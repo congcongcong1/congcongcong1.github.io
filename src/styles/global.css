@@ -110,6 +110,16 @@ body {
   padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--ink-20);
   margin-bottom: 0;
+  position: relative;
+}
+.section-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 3.25rem;
+  height: 2px;
+  background: var(--ink);
 }
 .section-head h2 {
   font-family: var(--serif);
@@ -380,22 +390,39 @@ body::before {
 .card-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--ink-10);      /* 1px 间隙即分隔线 */
-  border: 1px solid var(--ink-10);
+  gap: 1.1rem;
   margin-top: 0;
 }
 .project-card {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
   background: var(--paper);
+  border: 1px solid var(--ink-10);
+  border-radius: 14px;
   padding: 1.5rem 1.4rem 1.25rem;
   text-decoration: none;
   color: inherit;
-  transition: background-color 0.35s var(--ease-out);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
 }
-.project-card:hover { background: var(--paper-sunken); }
+.project-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s var(--ease-out);
+}
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 34px rgba(42, 22, 13, 0.14);
+}
+.project-card:hover::before { transform: scaleX(1); }
 .card-top {
   display: flex;
   justify-content: space-between;
@@ -407,6 +434,11 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--ink-10);
+  background: var(--paper);
+  font-size: 0.72rem;
 }
 .lang-icon {
   width: 0.95em;
@@ -1039,3 +1071,19 @@ body.night .chip--orange svg { color: #e2b877; }
 body.night .about-marker {
   background: linear-gradient(transparent 58%, rgba(238, 190, 122, 0.28) 58%);
 }
+
+/* ---------- 项目卡：主题色轮换 ---------- */
+.project-card:nth-child(5n+1) { background: #f5f2fa; }
+.project-card:nth-child(5n+1)::before { background: #a394c2; }
+.project-card:nth-child(5n+2) { background: #f0f6f1; }
+.project-card:nth-child(5n+2)::before { background: #7cb590; }
+.project-card:nth-child(5n+3) { background: #eff3f9; }
+.project-card:nth-child(5n+3)::before { background: #a9c0dc; }
+.project-card:nth-child(5n+4) { background: #faf5e6; }
+.project-card:nth-child(5n+4)::before { background: #e0c26a; }
+.project-card:nth-child(5n+5) { background: #fbf1e3; }
+.project-card:nth-child(5n+5)::before { background: #eebe7a; }
+
+body.night .project-card { background: #241812; }
+body.night .project-card:hover { box-shadow: 0 16px 34px rgba(0, 0, 0, 0.5); }
+body.night .card-lang { background: #241812; }

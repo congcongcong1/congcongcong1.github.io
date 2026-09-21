@@ -64,8 +64,8 @@ const fmt = (d: Date) =>
   <!-- ================= 最近更新 ================= -->
   <section class="wrap" id="recent" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
     <div class="section-head">
-      <span class="mono-meta">Recent — 最近更新</span>
-      <h2>新写的笔记</h2>
+      <span class="mono-meta">Fresh Ink — 最近更新</span>
+      <h2>墨迹<span class="about-marker">未干</span></h2>
     </div>
     {notes.map((note, i) => (
       <a class="index-row" href={`/notes/${note.id}/`}>
@@ -87,8 +87,8 @@ const fmt = (d: Date) =>
   <!-- ================= 项目展示 ================= -->
   <section class="wrap" id="projects" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
     <div class="section-head">
-      <span class="mono-meta">Open Source — 项目展示</span>
-      <h2>写过的代码</h2>
+      <span class="mono-meta">Open Source — 开源仓库</span>
+      <h2><span class="about-marker">手痒</span>时的产物</h2>
     </div>
     <div class="card-grid">
       {projects.map((p, i) => (
