@@ -84,5 +84,58 @@
       tick();
       setInterval(tick, 1000);
     }
+
+    /* ---------- 5) 夜间星空模式 ---------- */
+    const nightBtn = document.getElementById('night-toggle');
+    if (nightBtn) {
+      const moon = nightBtn.querySelector('.icon-moon');
+      const sun = nightBtn.querySelector('.icon-sun');
+      const meta = document.querySelector('meta[name="theme-color"]');
+      const applyNight = (on) => {
+        document.body.classList.toggle('night', on);
+        nightBtn.setAttribute('aria-pressed', String(on));
+        if (moon) moon.style.display = on ? 'none' : '';
+        if (sun) sun.style.display = on ? '' : 'none';
+        if (meta) meta.setAttribute('content', on ? '#241812' : '#f7f5fb');
+      };
+      applyNight(localStorage.getItem('night') === '1');
+      nightBtn.addEventListener('click', () => {
+        const on = !document.body.classList.contains('night');
+        applyNight(on);
+        localStorage.setItem('night', on ? '1' : '0');
+      });
+    }
+
+    /* ---------- 6) 彗星光标拖尾（仅桌面鼠标） ---------- */
+    (function cometTrail() {
+      if (matchMedia('(pointer: coarse)').matches) return;
+      let lastX = -100, lastY = -100, lastT = 0;
+      document.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        if (reduced || document.body.classList.contains('night')) return;
+        const now = performance.now();
+        if (now - lastT < 30) return;
+        const dx = e.clientX - lastX, dy = e.clientY - lastY;
+        if (dx * dx + dy * dy < 324) return; // <18px
+        lastX = e.clientX; lastY = e.clientY; lastT = now;
+        const dot = document.createElement('span');
+        dot.className = 'comet-dot';
+        dot.style.left = e.clientX + 'px';
+        dot.style.top = e.clientY + 'px';
+        dot.style.width = dot.style.height = (2 + Math.random() * 3).toFixed(1) + 'px';
+        dot.style.background = PALETTE[(Math.random() * PALETTE.length) | 0];
+        dot.addEventListener('animationend', () => dot.remove());
+        document.body.appendChild(dot);
+      }, { passive: true });
+    })();
+
+    /* ---------- 7) 不蒜子计数兜底：服务异常时隐藏 ---------- */
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const pv = document.getElementById('busuanzi_value_site_pv');
+        const stat = document.getElementById('visit-stat');
+        if (stat && pv && pv.textContent.trim() === '–') stat.style.display = 'none';
+      }, 5000);
+    });
   })();
 </script>

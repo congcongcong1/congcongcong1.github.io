@@ -67,6 +67,10 @@ const isActive = (href: string) =>
               <span>{item.label}</span>
             </a>
           ))}
+          <button id="night-toggle" class="nav-pill night-btn" type="button" aria-label="切换夜间星空模式" aria-pressed="false">
+            <svg class="nav-icon" id="night-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11Z"/></svg>
+            <svg class="nav-icon" id="night-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.3 4.3l1.6 1.6M18.1 18.1l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.3 19.7l1.6-1.6M18.1 5.9l1.6-1.6"/></svg>
+          </button>
         </nav>
       </div>
     </header>
@@ -76,7 +80,7 @@ const isActive = (href: string) =>
     <footer class="site-footer">
       <div class="wrap">
         <span>© {SITE.since} {SITE.name}</span>
-        <span>v1.0.0 — built with Astro · <span id="site-clock" class="footer-clock" data-since={SITE.since + '-09-21'}>…</span></span>
+        <span>v1.0.0 — built with Astro · <span id="site-clock" class="footer-clock" data-since={SITE.since + '-09-21'}>…</span><span id="visit-stat"> · 访问 <span id="busuanzi_value_site_pv">–</span> · 访客 <span id="busuanzi_value_site_uv">–</span></span></span>
         <span class="footer-right">
           <a class="footer-icon-link" href={`mailto:${SITE.email}`} aria-label="发送邮件">
             <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
@@ -93,6 +97,7 @@ const isActive = (href: string) =>
         </span>
       </div>
     </footer>
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     <SiteFx />
     <script is:inline>
       // PWA：生产环境注册 Service Worker（开发环境不注册，避免缓存干扰热更新）

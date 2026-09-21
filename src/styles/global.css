@@ -883,3 +883,60 @@ body::before {
 
 /* 页脚实时时钟 */
 .footer-clock { font-variant-numeric: tabular-nums; }
+
+/* ---------- 夜间星空模式 ---------- */
+body.night {
+  --paper: #1f150e;            /* 深暖墨色夜空 */
+  --paper-sunken: #2a1d14;
+  --ink: #f2ead9;
+  --ink-80: rgba(242, 234, 217, 0.8);
+  --ink-60: rgba(242, 234, 217, 0.6);
+  --ink-40: rgba(242, 234, 217, 0.4);
+  --ink-20: rgba(242, 234, 217, 0.2);
+  --ink-10: rgba(242, 234, 217, 0.12);
+  --marker: rgba(238, 190, 122, 0.9);
+}
+body.night .hero,
+body.night .about-hero,
+body.night .dust-zone,
+body.night .site-footer {
+  background: #241812;         /* 点阵地球与星尘在深色底上呈全息发光感 */
+}
+body.night .site-header {
+  background: rgba(36, 24, 18, 0.6);
+}
+body.night .entry:hover { background: rgba(242, 234, 217, 0.06); }
+body.night .notes-mobile-nav { background: rgba(36, 24, 18, 0.5); }
+
+/* 夜间切换按钮 */
+.night-btn {
+  cursor: pointer;
+  background: none;
+  font: inherit;
+  color: var(--ink-60);
+  margin-left: 0.35rem;
+}
+.night-btn:hover { color: var(--ink); }
+.night-btn[aria-pressed="true"] {
+  background: rgba(42, 22, 13, 0.08);
+  border-color: rgba(42, 22, 13, 0.16);
+  color: var(--ink);
+}
+body.night .night-btn[aria-pressed="true"] {
+  background: rgba(242, 234, 217, 0.1);
+  border-color: rgba(242, 234, 217, 0.22);
+}
+
+/* ---------- 彗星光标拖尾 ---------- */
+.comet-dot {
+  position: fixed;
+  z-index: 68;
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: comet-fade 0.7s ease-out forwards;
+}
+@keyframes comet-fade {
+  from { opacity: 0.75; }
+  to   { opacity: 0; transform: translate(-50%, -50%) scale(0.15); }
+}
