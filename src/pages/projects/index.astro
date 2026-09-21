@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import LangIcon from '../../components/LangIcon.astro';
 import { SITE } from '../../site.config';
 import { projects, repoTotal } from '../../data/projects';
 ---
@@ -15,7 +16,7 @@ import { projects, repoTotal } from '../../data/projects';
         <a class="project-card" href={p.url} target="_blank" rel="noopener">
           <span class="card-top">
             <span class="mono-meta">{String(i + 1).padStart(2, '0')}</span>
-            <span class="mono-meta">{p.language}</span>
+            <span class="mono-meta card-lang"><LangIcon lang={p.language} />{p.language}</span>
           </span>
           <span class="card-name uline">{p.name}</span>
           <span class="card-desc">{p.description}</span>
