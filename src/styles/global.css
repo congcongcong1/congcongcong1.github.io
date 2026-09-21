@@ -519,6 +519,25 @@ body::before {
   gap: 1.5rem;
 }
 
+.footer-icon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.footer-icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+  opacity: 0.75;
+  transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+}
+
+.footer-icon-link:hover .footer-icon {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
 /* ---------- Hero 底部下滑提示：文字 + 箭头若隐若现 ---------- */
 .scroll-cue {
   position: absolute;
