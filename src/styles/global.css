@@ -449,3 +449,77 @@ body::before {
   .hero-inner { padding-top: 2.5rem; }
   .entry-sub { display: none; }
 }
+
+/* ---------- 关于页 ---------- */
+.about-hero {
+  background: #f7f5fb;
+  border-bottom: 1px solid var(--ink-10);
+  padding-top: clamp(3rem, 8vw, 5rem);
+  padding-bottom: clamp(2.5rem, 6vw, 4rem);
+}
+.about-body {
+  padding-top: clamp(2.5rem, 6vw, 4rem);
+  padding-bottom: clamp(3rem, 8vw, 6rem);
+}
+.about-grid {
+  display: grid;
+  grid-template-columns: 13rem 1fr;
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+}
+.avatar-slot {
+  position: relative;
+  width: 13rem;
+  height: 13rem;
+  border-radius: 50%;
+  border: 1px solid var(--ink-20);
+  background: var(--paper-sunken);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-slot img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-hint {
+  color: var(--ink-40);
+  text-align: center;
+  line-height: 1.9;
+}
+.about-lead {
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+.about-main > p:not(.about-lead):not(.mono-meta) {
+  color: var(--ink-80);
+  max-width: 38em;
+  margin-bottom: 1rem;
+}
+.stats-row--light {
+  border-top-color: var(--ink-15, rgba(42, 22, 13, 0.15));
+  margin-top: 2.5rem;
+}
+.about-contact {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ink-10);
+}
+
+@media (max-width: 720px) {
+  .about-grid { grid-template-columns: 1fr; }
+  .about-side { display: flex; align-items: center; gap: 1.5rem; }
+  .avatar-slot { width: 6.5rem; height: 6.5rem; flex-shrink: 0; }
+  .about-side .mono-meta { text-align: left; margin-top: 0; }
+}
+
+.footer-right {
+  display: inline-flex;
+  gap: 1.5rem;
+}

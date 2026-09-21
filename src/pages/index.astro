@@ -40,14 +40,14 @@ const fmt = (d: Date) =>
             <span class="entry-sub">开源代码与实现</span>
             <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
           </a>
-          <a class="entry" href="#about">
+          <a class="entry" href="/about/">
             <span class="entry-no mono-meta">03</span>
             <span class="entry-title">关于</span>
             <span class="entry-sub">我是谁、怎么联系</span>
             <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
           </a>
         </nav>
-        <p class="mono-meta hero-scroll" aria-hidden="true">↓ 下滑 — 最近更新 / 项目 / 关于</p>
+        <p class="mono-meta hero-scroll" aria-hidden="true">↓ 下滑 — 最近更新 / 项目</p>
       </div>
     </div>
   </section>
@@ -98,45 +98,5 @@ const fmt = (d: Date) =>
     <p style="margin-top: 1.25rem;">
       <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">GitHub 主页（全部 {repoTotal} 个仓库）→</a>
     </p>
-  </section>
-
-  <!-- ================= 关于（深底反转） ================= -->
-  <section class="on-dark" id="about">
-    <div class="wrap" style="position: relative; padding-top: clamp(3.5rem, 8vw, 6rem); padding-bottom: clamp(3.5rem, 8vw, 6rem);">
-      <span class="mono-meta" style="position: absolute; top: 1.5rem; right: var(--gutter);">About — 关于</span>
-      <blockquote style="font-family: var(--serif); font-weight: 400; font-size: clamp(1.5rem, 3.2vw, 2.3rem); line-height: 1.5; max-width: 22em; margin: 0;">
-        我是 Kaiser，就读于南京大学。这个站是我的自留地：学到的东西记下来，手痒了就写个小项目。
-      </blockquote>
-      <p style="margin-top: 2rem; max-width: 36em; color: rgba(252, 252, 248, 0.65);">
-        目前对机器学习系统和模型训练比较感兴趣，笔记里多半是这类内容。这里没有什么宏大的计划，更多是给自己的备忘录——如果你从中得到一点点用处，或者想聊聊，欢迎来信。
-      </p>
-      <div class="stats-row">
-        <div class="stat">
-          <span class="stat-num">{notes.length}</span>
-          <span class="mono-meta stat-label">篇笔记</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">{repoTotal}</span>
-          <span class="mono-meta stat-label">个开源仓库</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">2026</span>
-          <span class="mono-meta stat-label">年建站至今</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= 联系 ================= -->
-  <section class="on-dark" id="contact" style="border-top: 1px solid rgba(252, 252, 248, 0.12);">
-    <div class="wrap" style="padding-top: clamp(3rem, 7vw, 5rem); padding-bottom: clamp(4rem, 9vw, 7rem);">
-      <p class="mono-meta" style="margin-bottom: 1rem;">Contact — 联系</p>
-      <p style="font-family: var(--serif); font-size: clamp(1.4rem, 3vw, 2.1rem); line-height: 1.4;">
-        <a class="uline uline--dark" href={`mailto:${SITE.email}`}>{SITE.email}</a>
-      </p>
-      <p style="margin-top: 0.9rem; color: rgba(252, 252, 248, 0.55); font-size: 0.9rem;">
-        邮件或 GitHub Issue 都可以，看到就会回。
-      </p>
-    </div>
   </section>
 </Base>

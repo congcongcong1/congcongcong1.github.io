@@ -1,0 +1,74 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../site.config';
+import { repoTotal } from '../../data/projects';
+import { getCollection } from 'astro:content';
+
+const notes = await getCollection('notes', ({ data }) => !data.draft);
+---
+
+<Base title={`关于 · ${SITE.name}`} description="关于 Kaiser">
+  <!-- 顶部：与首页 Hero 一致的淡薰衣草带 -->
+  <section class="about-hero">
+    <div class="wrap">
+      <p class="mono-meta" style="margin-bottom: 1.5rem;">About — 关于我</p>
+      <h1 style="font-family: var(--serif); font-weight: 400; font-size: clamp(2.2rem, 4.5vw, 3.6rem); line-height: 1.15; letter-spacing: -0.02em;">
+        你好，我是 <em style="font-style: italic;">Kaiser</em>。
+      </h1>
+    </div>
+  </section>
+
+  <!-- 主体：头像 + 介绍 -->
+  <section class="wrap about-body">
+    <div class="about-grid">
+      <div class="about-side">
+        <!-- 头像占位：把 avatar.jpg 放进 public/ 即自动替换显示 -->
+        <div class="avatar-slot">
+          <img src="/avatar.jpg" alt="Kaiser 的头像" onerror="this.style.display='none'" />
+          <span class="avatar-hint mono-meta">头像位置<br /><span style="text-transform: none; letter-spacing: 0.04em;">public/avatar.jpg</span></span>
+        </div>
+        <p class="mono-meta" style="margin-top: 1rem; text-align: center;">Kaiser · 南京大学</p>
+      </div>
+
+      <div class="about-main">
+        <p class="about-lead">
+          我是 Kaiser，就读于南京大学。这个站是我的自留地：学到的东西记下来，手痒了就写个小项目。
+        </p>
+        <p>
+          目前对机器学习系统和模型训练比较感兴趣，笔记里多半是这类内容。这里没有什么宏大的计划，更多是给自己的备忘录——如果你从中得到一点点用处，那就很好。
+        </p>
+        <p>
+          平时会读一些论文、啃一些开源代码，喜欢把复杂的东西用自己的话讲清楚。写笔记是这个过程的副产品，项目则是手痒时的产物。
+        </p>
+
+        <div class="stats-row stats-row--light">
+          <div class="stat">
+            <span class="stat-num">{notes.length}</span>
+            <span class="mono-meta stat-label">篇笔记</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">{repoTotal}</span>
+            <span class="mono-meta stat-label">个开源仓库</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">2026</span>
+            <span class="mono-meta stat-label">年建站至今</span>
+          </div>
+        </div>
+
+        <div class="about-contact" id="contact">
+          <p class="mono-meta" style="margin-bottom: 0.75rem;">Contact — 联系</p>
+          <p style="font-family: var(--serif); font-size: clamp(1.2rem, 2.4vw, 1.7rem); line-height: 1.4;">
+            <a class="uline" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          </p>
+          <p style="margin-top: 0.6rem; font-size: 0.9rem; color: var(--ink-60);">
+            邮件或 GitHub Issue 都可以，看到就会回。
+          </p>
+          <p style="margin-top: 1.25rem;">
+            <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">GitHub 主页 →</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
