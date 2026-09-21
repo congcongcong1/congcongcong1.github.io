@@ -289,3 +289,96 @@ body {
   .uline, .site-nav a, .site-footer a, .index-row { transition: none; }
   .pill .dot { animation: none; }
 }
+
+/* ---------- 全站纸纹（极轻噪点，增加纸面质感） ---------- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- 项目卡片：细分隔线窗格 ---------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--ink-10);      /* 1px 间隙即分隔线 */
+  border: 1px solid var(--ink-10);
+  margin-top: 0;
+}
+.project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: var(--paper);
+  padding: 1.5rem 1.4rem 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.35s var(--ease-out);
+}
+.project-card:hover { background: var(--paper-sunken); }
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.card-name {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  line-height: 1.25;
+  font-weight: 400;
+  /* 下划线只与文字同宽，background-size 由内容决定 */
+  display: inline-block;
+  align-self: flex-start;
+}
+.card-desc {
+  color: var(--ink-60);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  flex: 1;
+}
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ink-10);
+}
+.card-arrow {
+  color: var(--ink-40);
+  transition: transform 0.35s var(--ease-out), color 0.35s var(--ease-out);
+}
+.project-card:hover .card-arrow {
+  transform: translate(3px, -3px);
+  color: var(--ink);
+}
+
+/* ---------- 关于区块的数据条 ---------- */
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem 4rem;
+  margin-top: 3rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(252, 252, 248, 0.15);
+}
+.stat .stat-num {
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  line-height: 1.1;
+  display: block;
+}
+.stat .stat-label { margin-top: 0.3rem; }
+
+@media (max-width: 900px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .card-grid { grid-template-columns: 1fr; }
+  .stats-row { gap: 1.5rem 2.5rem; }
+}

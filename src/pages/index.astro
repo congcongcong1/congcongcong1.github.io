@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE } from '../site.config';
-import { projects } from '../data/projects';
+import { projects, repoTotal } from '../data/projects';
 import { getCollection } from 'astro:content';
 
 const allNotes = await getCollection('notes', ({ data }) => !data.draft);
@@ -97,18 +97,24 @@ const sections = [
       <span class="mono-meta">Open Source — 项目展示</span>
       <h2>写过的代码</h2>
     </div>
-    {projects.map((p, i) => (
-      <a class="index-row" href={p.url} target="_blank" rel="noopener">
-        <span class="row-no">{String(i + 1).padStart(2, '0')}</span>
-        <span>
-          <span class="row-title uline">{p.name}</span>
-          <p class="row-sub">{p.description}</p>
-        </span>
-        <span class="row-meta">★ {p.stars} · {p.forks} forks<br />{p.language} · {p.license}</span>
-      </a>
-    ))}
+    <div class="card-grid">
+      {projects.map((p, i) => (
+        <a class="project-card" href={p.url} target="_blank" rel="noopener">
+          <span class="card-top">
+            <span class="mono-meta">{String(i + 1).padStart(2, '0')}</span>
+            <span class="mono-meta">{p.language}</span>
+          </span>
+          <span class="card-name uline">{p.name}</span>
+          <span class="card-desc">{p.description}</span>
+          <span class="card-bottom mono-meta">
+            <span>更新于 {p.updated}{p.license && ' · ' + p.license}</span>
+            <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
+          </span>
+        </a>
+      ))}
+    </div>
     <p style="margin-top: 1.25rem;">
-      <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">GitHub 主页 →</a>
+      <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">GitHub 主页（全部 {repoTotal} 个仓库）→</a>
     </p>
   </section>
 
@@ -122,6 +128,20 @@ const sections = [
       <p style="margin-top: 2rem; max-width: 36em; color: rgba(252, 252, 248, 0.65);">
         目前对机器学习系统和模型训练比较感兴趣，笔记里多半是这类内容。这里没有什么宏大的计划，更多是给自己的备忘录——如果你从中得到一点点用处，或者想聊聊，欢迎来信。
       </p>
+      <div class="stats-row">
+        <div class="stat">
+          <span class="stat-num">{notes.length}</span>
+          <span class="mono-meta stat-label">篇笔记</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">{repoTotal}</span>
+          <span class="mono-meta stat-label">个开源仓库</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">2026</span>
+          <span class="mono-meta stat-label">年建站至今</span>
+        </div>
+      </div>
     </div>
   </section>
 
