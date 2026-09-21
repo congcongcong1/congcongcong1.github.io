@@ -259,6 +259,28 @@ body {
 .site-footer a { color: inherit; text-decoration: none; transition: opacity 0.3s var(--ease-out); }
 .site-footer a:hover { opacity: 0.65; }
 
+/* ---------- 专题页 ---------- */
+.tag-link {
+  color: var(--ink-60);
+  text-decoration: none;
+  transition: color 0.3s var(--ease-out);
+}
+.tag-link:hover { color: var(--ink); }
+.topic-block { margin-bottom: 3rem; }
+.topic-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.topic-tag {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+.topic-title { font-family: var(--serif); }
+
 /* ---------- 深底区块（关于 / 联系） ---------- */
 .on-dark {
   background: var(--ink);

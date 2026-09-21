@@ -1,0 +1,59 @@
+---
+import Base from '../../layouts/Base.astro';
+import DustCanvas from '../../components/DustCanvas.astro';
+import { getCollection } from 'astro:content';
+
+const allNotes = await getCollection('notes', ({ data }) => !data.draft);
+
+// 按标签聚合，按数量降序
+const byTag = new Map<string, typeof allNotes>();
+for (const n of allNotes) {
+  for (const t of n.data.tags) {
+    if (!byTag.has(t)) byTag.set(t, []);
+    byTag.get(t)!.push(n);
+  }
+}
+const topics = [...byTag.entries()]
+  .map(([tag, list]) => ({
+    tag,
+    notes: list.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+  }))
+  .sort((a, b) => b.notes.length - a.notes.length);
+
+const total = allNotes.length;
+const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+---
+
+<Base title="专题 · kaiser" description="按主题聚合的全部笔记：强化学习、随笔、工具与思考。">
+  <div class="dust-zone">
+    <DustCanvas />
+    <section class="wrap" style="padding-top: clamp(3rem, 8vw, 5.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
+      <div class="section-head">
+        <span class="mono-meta">Topics — 专题索引</span>
+        <h2>专题</h2>
+      </div>
+      <p style="margin: -0.5rem 0 2.5rem; color: var(--ink-60); font-size: 0.92rem;">
+        共 {topics.length} 个专题 · {total} 篇笔记，点击专题名查看该系列全部文章。
+      </p>
+
+      {topics.map(({ tag, notes }) => (
+        <section class="topic-block" id={tag}>
+          <div class="topic-head">
+            <a class="topic-tag uline" href={`/topics/${encodeURIComponent(tag)}/`}>#{tag}</a>
+            <span class="mono-meta">{notes.length} 篇</span>
+          </div>
+          {notes.map((note, i) => (
+            <a class="index-row" href={`/notes/${note.id}/`}>
+              <span class="row-no">{String(i + 1).padStart(2, '0')}</span>
+              <span>
+                <span class="row-title uline">{note.data.title}</span>
+                {note.data.description && <p class="row-sub">{note.data.description}</p>}
+              </span>
+              <span class="row-meta">{fmt(note.data.date)}</span>
+            </a>
+          ))}
+        </section>
+      ))}
+    </section>
+  </div>
+</Base>

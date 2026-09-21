@@ -28,7 +28,12 @@ const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.get
           <span class="row-title uline">{note.data.title}</span>
           {note.data.description && <p class="row-sub">{note.data.description}</p>}
           {note.data.tags.length > 0 && (
-            <p class="row-sub mono-meta" style="margin-top: 0.4rem;">{note.data.tags.map((t) => `#${t}`).join('  ')}</p>
+            <p class="row-sub mono-meta" style="margin-top: 0.4rem;">{note.data.tags.map((t, ti) => (
+              <Fragment>
+                {ti > 0 && '  '}
+                <a class="tag-link" href={`/topics/${encodeURIComponent(t)}/`}>#{t}</a>
+              </Fragment>
+            ))}</p>
           )}
         </span>
         <span class="row-meta">{fmt(note.data.date)}</span>

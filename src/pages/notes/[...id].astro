@@ -98,7 +98,18 @@ for (const n of allNotes) {
       </p>
       <h1>{note.data.title}</h1>
       <p class="mono-meta" style="margin-bottom: 2.5rem;">
-        {fmt(note.data.date)} · 约 {minutes} 分钟读完{note.data.tags.length > 0 && ' · ' + note.data.tags.map((t) => `#${t}`).join(' ')}
+        {fmt(note.data.date)} · 约 {minutes} 分钟读完
+        {note.data.tags.length > 0 && (
+          <>
+            {' · '}
+            {note.data.tags.map((t, ti) => (
+              <Fragment>
+                {ti > 0 && ' '}
+                <a class="tag-link" href={`/topics/${encodeURIComponent(t)}/`}>#{t}</a>
+              </Fragment>
+            ))}
+          </>
+        )}
       </p>
       <Content />
 

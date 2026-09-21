@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import DustCanvas from '../../components/DustCanvas.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('notes', ({ data }) => !data.draft);
+  const tags = [...new Set(notes.flatMap((n) => n.data.tags))];
+  return tags.map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      notes: notes
+        .filter((n) => n.data.tags.includes(tag))
+        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+    },
+  }));
+}
+
+const { tag, notes } = Astro.props;
+const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+---
+
+<Base title={`#${tag} · 专题 · kaiser`} description={`「${tag}」专题下的全部笔记（${notes.length} 篇）。`}>
+  <div class="dust-zone">
+    <DustCanvas />
+    <section class="wrap" style="padding-top: clamp(3rem, 8vw, 5.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
+      <div class="section-head">
+        <span class="mono-meta">Topic — 专题</span>
+        <h2 class="topic-title">#{tag}</h2>
+      </div>
+      <p style="margin: -0.5rem 0 2.5rem; color: var(--ink-60); font-size: 0.92rem;">
+        共 {notes.length} 篇 ·
+        <a class="uline" href="/topics/" style="letter-spacing: 0.05em;">查看全部专题 →</a>
+      </p>
+      {notes.map((note, i) => (
+        <a class="index-row" href={`/notes/${note.id}/`}>
+          <span class="row-no">{String(i + 1).padStart(2, '0')}</span>
+          <span>
+            <span class="row-title uline">{note.data.title}</span>
+            {note.data.description && <p class="row-sub">{note.data.description}</p>}
+            {note.data.tags.filter((t) => t !== tag).length > 0 && (
+              <p class="row-sub mono-meta" style="margin-top: 0.4rem;">
+                {note.data.tags.filter((t) => t !== tag).map((t) => `#${t}`).join('  ')}
+              </p>
+            )}
+          </span>
+          <span class="row-meta">{fmt(note.data.date)}</span>
+        </a>
+      ))}
+    </section>
+  </div>
+</Base>
