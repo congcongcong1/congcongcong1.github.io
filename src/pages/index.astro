@@ -1,0 +1,140 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site.config';
+import { projects } from '../data/projects';
+import { getCollection } from 'astro:content';
+
+const allNotes = await getCollection('notes', ({ data }) => !data.draft);
+const notes = allNotes
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, SITE.recentCount);
+
+const fmt = (d: Date) =>
+  `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+
+const sections = [
+  {
+    no: '01',
+    title: '笔记',
+    sub: '学习笔记、长文与踩坑记录，用 Markdown 书写。',
+    meta: 'Note →',
+    href: '/notes/',
+  },
+  {
+    no: '02',
+    title: '项目',
+    sub: '一些想法的具体实现，代码开源在 GitHub。',
+    meta: 'Project ↓',
+    href: '#projects',
+  },
+  {
+    no: '03',
+    title: '实验',
+    sub: '稀奇古怪的试验场，想到什么就丢进来。',
+    meta: 'Lab · 筹备中',
+    href: '#',
+  },
+];
+---
+
+<Base>
+  <!-- ================= Hero ================= -->
+  <section class="wrap" style="padding-top: clamp(4rem, 10vw, 7rem); padding-bottom: clamp(3rem, 7vw, 5rem);">
+    <p class="mono-meta" style="margin-bottom: 1.5rem;">Personal Site — 主站</p>
+    <h1 style="font-family: var(--serif); font-weight: 400; font-size: var(--fs-display); line-height: 1.12; letter-spacing: -0.02em; max-width: 16em;">
+      学点新东西，<br />把想法写进 <em style="font-style: italic; color: var(--ink-80);">Notes</em> 里。
+    </h1>
+    <p style="max-width: 34em; margin-top: 1.75rem; font-size: var(--fs-lead); color: var(--ink-60);">
+      一个用来安放笔记、项目和胡思乱想的自留地。主站只做导航，真正的内容在下面的分区里。
+    </p>
+    <div style="margin-top: 2.25rem;">
+      <span class="pill"><span class="dot"></span>持续更新中</span>
+    </div>
+  </section>
+
+  <!-- ================= 分区导航 ================= -->
+  <section class="wrap" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
+    <div class="section-head">
+      <span class="mono-meta">Index — 前往分区</span>
+      <h2>三个去处</h2>
+    </div>
+    {sections.map((s) => (
+      <a class="index-row" href={s.href}>
+        <span class="row-no">{s.no}</span>
+        <span>
+          <span class="row-title">{s.title}</span>
+          <p class="row-sub">{s.sub}</p>
+        </span>
+        <span class="row-meta">{s.meta}</span>
+      </a>
+    ))}
+  </section>
+
+  <!-- ================= 最近更新 ================= -->
+  <section class="wrap" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
+    <div class="section-head">
+      <span class="mono-meta">Recent — 最近更新</span>
+      <h2>新写的笔记</h2>
+    </div>
+    {notes.map((note, i) => (
+      <a class="index-row" href={`/notes/${note.id}/`}>
+        <span class="row-no">{String(i + 1).padStart(2, '0')}</span>
+        <span>
+          <span class="row-title uline">{note.data.title}</span>
+          {note.data.description && <p class="row-sub">{note.data.description}</p>}
+        </span>
+        <span class="row-meta">{fmt(note.data.date)}</span>
+      </a>
+    ))}
+    <p style="margin-top: 1.25rem;">
+      <a class="uline mono-meta" href="/notes/" style="text-transform: none; letter-spacing: 0.06em;">查看全部笔记 →</a>
+    </p>
+  </section>
+
+  <!-- ================= 项目展示 ================= -->
+  <section class="wrap" id="projects" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
+    <div class="section-head">
+      <span class="mono-meta">Open Source — 项目展示</span>
+      <h2>写过的代码</h2>
+    </div>
+    {projects.map((p, i) => (
+      <a class="index-row" href={p.url} target="_blank" rel="noopener">
+        <span class="row-no">{String(i + 1).padStart(2, '0')}</span>
+        <span>
+          <span class="row-title uline">{p.name}</span>
+          <p class="row-sub">{p.description}</p>
+        </span>
+        <span class="row-meta">★ {p.stars} · {p.forks} forks<br />{p.language} · {p.license}</span>
+      </a>
+    ))}
+    <p style="margin-top: 1.25rem;">
+      <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">GitHub 主页 →</a>
+    </p>
+  </section>
+
+  <!-- ================= 关于（深底反转） ================= -->
+  <section class="on-dark" id="about">
+    <div class="wrap" style="position: relative; padding-top: clamp(3.5rem, 8vw, 6rem); padding-bottom: clamp(3.5rem, 8vw, 6rem);">
+      <span class="mono-meta" style="position: absolute; top: 1.5rem; right: var(--gutter);">About — 关于</span>
+      <blockquote style="font-family: var(--serif); font-weight: 400; font-size: clamp(1.5rem, 3.2vw, 2.3rem); line-height: 1.5; max-width: 22em; margin: 0;">
+        {SITE.description}
+      </blockquote>
+      <p style="margin-top: 2rem; max-width: 36em; color: rgba(252, 252, 248, 0.65);">
+        这里没有什么宏大的计划：读到好东西就记下来，手痒了就写个小项目。如果你从中得到一点点用处，那就很好。
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= 联系 ================= -->
+  <section class="on-dark" id="contact" style="border-top: 1px solid rgba(252, 252, 248, 0.12);">
+    <div class="wrap" style="padding-top: clamp(3rem, 7vw, 5rem); padding-bottom: clamp(4rem, 9vw, 7rem);">
+      <p class="mono-meta" style="margin-bottom: 1rem;">Contact — 联系</p>
+      <p style="font-family: var(--serif); font-size: clamp(1.4rem, 3vw, 2.1rem); line-height: 1.4;">
+        <a class="uline uline--dark" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+      </p>
+      <p style="margin-top: 0.9rem; color: rgba(252, 252, 248, 0.55); font-size: 0.9rem;">
+        邮件或 GitHub Issue 都可以，看到就会回。
+      </p>
+    </div>
+  </section>
+</Base>

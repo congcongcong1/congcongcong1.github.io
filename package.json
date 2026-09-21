@@ -1,0 +1,14 @@
+{
+  "name": "kaisar-site",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "个人网站：主站 + 笔记（Astro 静态站点）",
+  "scripts": {
+    "dev": "astro dev --host --port 7100",
+    "build": "astro build",
+    "preview": "astro preview --host --port 7100"
+  },
+  "dependencies": {
+    "astro": "^5.13.0"
+  }
+}

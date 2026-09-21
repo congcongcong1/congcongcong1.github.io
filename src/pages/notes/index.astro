@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const notes = (await getCollection('notes', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+---
+
+<Base title="笔记 · Kaisar" description="学习笔记与长文">
+  <section class="wrap" style="padding-top: clamp(3rem, 8vw, 5.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
+    <div class="section-head">
+      <span class="mono-meta">Note — 笔记站</span>
+      <h2>全部笔记</h2>
+    </div>
+    {notes.length === 0 && (
+      <p style="padding: 3rem 0; color: var(--ink-60);">还没有笔记，去 src/content/notes/ 下建一个 Markdown 文件吧。</p>
+    )}
+    {notes.map((note, i) => (
+      <a class="index-row" href={`/notes/${note.id}/`}>
+        <span class="row-no">{String(i + 1).padStart(2, '0')}</span>
+        <span>
+          <span class="row-title uline">{note.data.title}</span>
+          {note.data.description && <p class="row-sub">{note.data.description}</p>}
+          {note.data.tags.length > 0 && (
+            <p class="row-sub mono-meta" style="margin-top: 0.4rem;">{note.data.tags.map((t) => `#${t}`).join('  ')}</p>
+          )}
+        </span>
+        <span class="row-meta">{fmt(note.data.date)}</span>
+      </a>
+    ))}
+  </section>
+</Base>
