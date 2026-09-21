@@ -47,13 +47,16 @@ const fmt = (d: Date) =>
             <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
           </a>
         </nav>
-        <p class="mono-meta hero-scroll" aria-hidden="true">↓ 下滑 — 最近更新 / 项目</p>
       </div>
     </div>
+    <a class="scroll-cue" href="#recent" aria-label="下滑查看更多">
+      <span class="mono-meta">了解更多</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </a>
   </section>
 
   <!-- ================= 最近更新 ================= -->
-  <section class="wrap" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
+  <section class="wrap" id="recent" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
     <div class="section-head">
       <span class="mono-meta">Recent — 最近更新</span>
       <h2>新写的笔记</h2>

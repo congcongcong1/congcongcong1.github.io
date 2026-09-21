@@ -439,11 +439,6 @@ body::before {
   transform: translate(3px, -3px);
   color: var(--ink);
 }
-.hero-scroll {
-  margin-top: 2.25rem;
-  color: var(--ink-40);
-}
-
 @media (max-width: 720px) {
   .hero { min-height: calc(100svh - 3.75rem); }
   .hero-inner { padding-top: 2.5rem; }
@@ -522,4 +517,36 @@ body::before {
 .footer-right {
   display: inline-flex;
   gap: 1.5rem;
+}
+
+/* ---------- Hero 底部下滑提示：文字 + 箭头若隐若现 ---------- */
+.scroll-cue {
+  position: absolute;
+  bottom: 1.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-decoration: none;
+  color: var(--ink-40);
+  animation: cue-fade 2.6s ease-in-out infinite;
+  transition: color 0.3s var(--ease-out);
+}
+.scroll-cue:hover { color: var(--ink); animation-play-state: paused; opacity: 1; }
+.scroll-cue svg {
+  animation: cue-drift 2.6s ease-in-out infinite;
+}
+@keyframes cue-fade {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.9; }
+}
+@keyframes cue-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue, .scroll-cue svg { animation: none; opacity: 0.6; }
 }
