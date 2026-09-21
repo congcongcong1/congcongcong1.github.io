@@ -1,33 +1,132 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
+import GithubSlugger from 'github-slugger';
 
 export async function getStaticPaths() {
   const notes = await getCollection('notes', ({ data }) => !data.draft);
-  return notes.map((note) => ({
+  const sorted = notes.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  return sorted.map((note, i) => ({
     params: { id: note.id },
-    props: { note },
+    props: {
+      note,
+      allNotes: sorted,
+      prev: sorted[i - 1] ?? null,   // 更新的一篇
+      next: sorted[i + 1] ?? null,   // 更早的一篇
+    },
   }));
 }
 
-const { note } = Astro.props;
+const { note, allNotes, prev, next } = Astro.props;
 const { Content } = await render(note);
 
 const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+const fmtShort = (d: Date) => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
 
 // 阅读时长：中文字符按 400 字/分钟，英文单词按 250 词/分钟
 const cjk = (note.body.match(/[一-鿿]/g) || []).length;
 const words = (note.body.replace(/[一-鿿]/g, ' ').match(/[a-zA-Z0-9]+/g) || []).length;
 const minutes = Math.max(1, Math.round(cjk / 400 + words / 250));
+
+// 页内目录：提取 h2/h3，用与 rehype-slug 相同的规则生成锚点
+const slugger = new GithubSlugger();
+const headings: { depth: number; text: string; slug: string }[] = [];
+for (const line of note.body.split('\n')) {
+  const m = /^(#{2,3})\s+(.+?)\s*$/.exec(line);
+  if (m) {
+    const text = m[2].replace(/[*`[\]]/g, '');
+    headings.push({ depth: m[1].length, text, slug: slugger.slug(text) });
+  }
+}
+
+// 侧栏按年份分组
+const yearOf = (d: Date) => d.getFullYear();
+const years: { year: number; items: typeof allNotes }[] = [];
+for (const n of allNotes) {
+  const y = yearOf(n.data.date);
+  if (!years.length || years[years.length - 1].year !== y) years.push({ year: y, items: [] });
+  years[years.length - 1].items.push(n);
+}
 ---
 
 <Base title={`${note.data.title} · kaiser`} description={note.data.description}>
-  <article class="wrap prose" style="padding-top: clamp(2.5rem, 7vw, 4.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
-    <p class="mono-meta">
-      <a href="/notes/" class="uline" style="text-transform: none; letter-spacing: 0.06em;">← 返回笔记列表</a>
-    </p>
-    <h1>{note.data.title}</h1>
-    <p class="mono-meta" style="margin-bottom: 2.5rem;">{fmt(note.data.date)} · 约 {minutes} 分钟读完{note.data.tags.length > 0 && ' · ' + note.data.tags.map((t) => `#${t}`).join(' ')}</p>
-    <Content />
-  </article>
+  <!-- 移动端：折叠导航（桌面端隐藏） -->
+  <details class="wrap notes-mobile-nav">
+    <summary class="mono-meta">全部笔记 / 本页目录</summary>
+    {years.map((g) => (
+      <div class="side-group">
+        <p class="mono-meta side-year">{g.year}</p>
+        {g.items.map((n) => (
+          <a class:list={['side-link', { active: n.id === note.id }]} href={`/notes/${n.id}/`}>
+            <span class="side-title">{n.data.title}</span>
+            <span class="side-date mono-meta">{fmtShort(n.data.date)}</span>
+          </a>
+        ))}
+      </div>
+    ))}
+    {headings.length > 0 && (
+      <div class="side-group">
+        <p class="mono-meta side-year">本页</p>
+        {headings.map((h) => (
+          <a class="toc-link" href={`#${h.slug}`}>{h.text}</a>
+        ))}
+      </div>
+    )}
+  </details>
+
+  <div class="wrap notes-layout">
+    <!-- 左栏：全部笔记 -->
+    <aside class="notes-side" aria-label="全部笔记">
+      <p class="mono-meta" style="margin-bottom: 1rem;">Note — 全部笔记</p>
+      {years.map((g) => (
+        <div class="side-group">
+          <p class="mono-meta side-year">{g.year}</p>
+          {g.items.map((n) => (
+            <a class:list={['side-link', { active: n.id === note.id }]} href={`/notes/${n.id}/`}>
+              <span class="side-title">{n.data.title}</span>
+              <span class="side-date mono-meta">{fmtShort(n.data.date)}</span>
+            </a>
+          ))}
+        </div>
+      ))}
+    </aside>
+
+    <!-- 中栏：正文 -->
+    <article class="prose notes-article">
+      <p class="mono-meta">
+        <a href="/notes/" class="uline" style="text-transform: none; letter-spacing: 0.06em;">← 返回笔记列表</a>
+      </p>
+      <h1>{note.data.title}</h1>
+      <p class="mono-meta" style="margin-bottom: 2.5rem;">
+        {fmt(note.data.date)} · 约 {minutes} 分钟读完{note.data.tags.length > 0 && ' · ' + note.data.tags.map((t) => `#${t}`).join(' ')}
+      </p>
+      <Content />
+
+      <hr />
+      <nav class="prev-next" aria-label="上一篇 / 下一篇">
+        {prev ? (
+          <a class="pn-link" href={`/notes/${prev.id}/`}>
+            <span class="mono-meta">← 更新的一篇</span>
+            <span class="pn-title uline">{prev.data.title}</span>
+          </a>
+        ) : <span />}
+        {next ? (
+          <a class="pn-link pn-right" href={`/notes/${next.id}/`}>
+            <span class="mono-meta">更早的一篇 →</span>
+            <span class="pn-title uline">{next.data.title}</span>
+          </a>
+        ) : <span />}
+      </nav>
+    </article>
+
+    <!-- 右栏：本页目录 -->
+    {headings.length > 0 && (
+      <aside class="notes-toc" aria-label="本页目录">
+        <p class="mono-meta" style="margin-bottom: 0.9rem;">On this page — 本页</p>
+        {headings.map((h) => (
+          <a class:list={['toc-link', `toc-h${h.depth}`]} href={`#${h.slug}`}>{h.text}</a>
+        ))}
+      </aside>
+    )}
+  </div>
 </Base>
