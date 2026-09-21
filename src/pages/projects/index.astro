@@ -1,11 +1,14 @@
 ---
 import Base from '../../layouts/Base.astro';
 import LangIcon from '../../components/LangIcon.astro';
+import DustCanvas from '../../components/DustCanvas.astro';
 import { SITE } from '../../site.config';
 import { projects, repoTotal } from '../../data/projects';
 ---
 
 <Base title={`项目 · ${SITE.name}`} description="开源项目与代码实现">
+  <div class="dust-zone">
+    <DustCanvas />
   <section class="wrap" style="padding-top: clamp(3rem, 8vw, 5.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
     <div class="section-head">
       <span class="mono-meta">Project — 项目站</span>
@@ -34,4 +37,5 @@ import { projects, repoTotal } from '../../data/projects';
       <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">前往 GitHub 查看全部 →</a>
     </p>
   </section>
+  </div>
 </Base>
