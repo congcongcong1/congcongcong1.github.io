@@ -345,7 +345,10 @@ body::before {
 .project-card:hover .lang-icon { opacity: 1; }
 
 /* ---------- 首页内容区：星尘背景（鼠标视差粒子） ---------- */
-.dust-zone { position: relative; }
+.dust-zone {
+  position: relative;
+  background: #f7f5fb; /* 与 Hero 同底色，整屏连续的淡薰衣草 */
+}
 .dust-canvas {
   position: absolute;
   inset: 0;
@@ -422,8 +425,7 @@ body::before {
   display: flex;
   align-items: center;
   overflow: hidden;
-  background: #f7f5fb;            /* 淡薰衣草白，呼应参考站的浅底色 */
-  border-bottom: 1px solid var(--ink-10);
+  background: #f7f5fb;            /* 淡薰衣草白，与下方内容区同色衔接 */
 }
 #hero-canvas {
   position: absolute;
