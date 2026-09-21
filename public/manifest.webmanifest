@@ -1,0 +1,17 @@
+{
+  "name": "kaiser · 个人网站",
+  "short_name": "kaiser",
+  "description": "学点新东西，写点笔记，也捣鼓点小项目。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f7f5fb",
+  "theme_color": "#f7f5fb",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
