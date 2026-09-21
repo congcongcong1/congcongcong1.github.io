@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../site.config';
+import { projects, repoTotal } from '../../data/projects';
+---
+
+<Base title={`项目 · ${SITE.name}`} description="开源项目与代码实现">
+  <section class="wrap" style="padding-top: clamp(3rem, 8vw, 5.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
+    <div class="section-head">
+      <span class="mono-meta">Project — 项目站</span>
+      <h2>开源项目</h2>
+    </div>
+    <div class="card-grid" style="margin-top: 0;">
+      {projects.map((p, i) => (
+        <a class="project-card" href={p.url} target="_blank" rel="noopener">
+          <span class="card-top">
+            <span class="mono-meta">{String(i + 1).padStart(2, '0')}</span>
+            <span class="mono-meta">{p.language}</span>
+          </span>
+          <span class="card-name uline">{p.name}</span>
+          <span class="card-desc">{p.description}</span>
+          <span class="card-bottom mono-meta">
+            <span>更新于 {p.updated}{p.license && ' · ' + p.license}</span>
+            <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
+          </span>
+        </a>
+      ))}
+    </div>
+    <p style="margin-top: 1.5rem; color: var(--ink-60); font-size: 0.92rem;">
+      以上是精选的 {projects.length} 个，GitHub 上共 {repoTotal} 个仓库（还有一些课程实践和练习存档）。
+    </p>
+    <p style="margin-top: 0.6rem;">
+      <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">前往 GitHub 查看全部 →</a>
+    </p>
+  </section>
+</Base>

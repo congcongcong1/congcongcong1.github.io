@@ -1,0 +1,216 @@
+---
+// 首页 Hero 的点阵地球：斐波那契球面粒子 + 视角明暗 shader + 轨道卫星 + 星尘视差
+// 无外部贴图，全程序化生成；尊重 prefers-reduced-motion
+---
+
+<canvas id="hero-canvas" aria-hidden="true"></canvas>
+
+<script>
+  import * as THREE from 'three';
+
+  const canvas = document.getElementById('hero-canvas') as HTMLCanvasElement | null;
+  if (canvas) init(canvas);
+
+  function init(canvas: HTMLCanvasElement) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.innerWidth < 720;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    camera.position.set(0, 0, isMobile ? 9.6 : 7.8);
+
+    // root：鼠标视差作用层；globe：自转层
+    const root = new THREE.Group();
+    const globe = new THREE.Group();
+    root.add(globe);
+    scene.add(root);
+
+    const INK = new THREE.Color('#2a160d');
+    const DIM = new THREE.Color('#b3aac6');   // 背面点的褪色薰衣草灰
+    const OCHRE = new THREE.Color('#b0713a'); // 赭石：卫星/月亮点缀
+
+    // ---------- 点阵地球（斐波那契球 + 视角明暗） ----------
+    const R = 1.9;
+    const COUNT = isMobile ? 900 : 1600;
+    const pos = new Float32Array(COUNT * 3);
+    const GA = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < COUNT; i++) {
+      const y = 1 - (i / (COUNT - 1)) * 2;
+      const rad = Math.sqrt(1 - y * y);
+      const th = GA * i;
+      pos[i * 3] = Math.cos(th) * rad * R;
+      pos[i * 3 + 1] = y * R;
+      pos[i * 3 + 2] = Math.sin(th) * rad * R;
+    }
+    const dotGeo = new THREE.BufferGeometry();
+    dotGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+    const dotMat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      uniforms: {
+        uLight: { value: new THREE.Vector3(-0.55, 0.75, 0.8).normalize() },
+        uInk: { value: INK },
+        uDim: { value: DIM },
+      },
+      vertexShader: /* glsl */ `
+        uniform vec3 uLight;
+        varying float vLight;
+        void main() {
+          vec3 n = normalize(position);
+          float l = dot(n, normalize(uLight));
+          vLight = smoothstep(-0.45, 1.0, l);
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = (30.0 / -mv.z) * (0.7 + 0.5 * vLight);
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        uniform vec3 uInk;
+        uniform vec3 uDim;
+        varying float vLight;
+        void main() {
+          vec2 c = gl_PointCoord - 0.5;
+          if (dot(c, c) > 0.25) discard;
+          gl_FragColor = vec4(mix(uDim, uInk, vLight), 0.18 + 0.82 * vLight);
+        }
+      `,
+    });
+    globe.add(new THREE.Points(dotGeo, dotMat));
+
+    // ---------- 经纬线（淡发丝线，读出"地球仪"） ----------
+    const gratMat = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.1 });
+    const grat: number[] = [];
+    const seg = 96;
+    for (let lat = -60; lat <= 60; lat += 30) {
+      const phi = (lat * Math.PI) / 180;
+      const r = R * Math.cos(phi);
+      const yy = R * Math.sin(phi);
+      for (let i = 0; i < seg; i++) {
+        const a1 = (i / seg) * Math.PI * 2;
+        const a2 = ((i + 1) / seg) * Math.PI * 2;
+        grat.push(r * Math.cos(a1), yy, r * Math.sin(a1), r * Math.cos(a2), yy, r * Math.sin(a2));
+      }
+    }
+    for (let lon = 0; lon < 180; lon += 30) {
+      const lam = (lon * Math.PI) / 180;
+      for (let i = 0; i < seg; i++) {
+        const p1 = (i / seg) * Math.PI * 2;
+        const p2 = ((i + 1) / seg) * Math.PI * 2;
+        grat.push(
+          R * Math.sin(p1) * Math.cos(lam), R * Math.cos(p1), R * Math.sin(p1) * Math.sin(lam),
+          R * Math.sin(p2) * Math.cos(lam), R * Math.cos(p2), R * Math.sin(p2) * Math.sin(lam)
+        );
+      }
+    }
+    const gratGeo = new THREE.BufferGeometry();
+    gratGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(grat), 3));
+    globe.add(new THREE.LineSegments(gratGeo, gratMat));
+
+    // ---------- 轨道 + 卫星 / 月球 ----------
+    const orbitGroup = new THREE.Group();
+    orbitGroup.rotation.set(-0.42, 0.28, 0);
+    root.add(orbitGroup);
+
+    const mkOrbit = (rx: number, ry: number, opacity: number) => {
+      const pts: THREE.Vector3[] = [];
+      for (let i = 0; i <= 128; i++) {
+        const t = (i / 128) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(t) * rx, 0, Math.sin(t) * ry));
+      }
+      const g = new THREE.BufferGeometry().setFromPoints(pts);
+      return new THREE.Line(g, new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity }));
+    };
+    orbitGroup.add(mkOrbit(2.6, 0.95, 0.22));
+    orbitGroup.add(mkOrbit(2.2, 0.8, 0.1));
+
+    const mkBody = (size: number, color: THREE.Color, opacity = 1) =>
+      new THREE.Mesh(
+        new THREE.SphereGeometry(size, 16, 16),
+        new THREE.MeshBasicMaterial({ color, transparent: opacity < 1, opacity })
+      );
+    const moon = mkBody(0.09, OCHRE);
+    const satellite = mkBody(0.045, INK, 0.7);
+    orbitGroup.add(moon, satellite);
+
+    // ---------- 星尘（最远层，视差最大） ----------
+    const STAR_N = isMobile ? 120 : 240;
+    const sPos = new Float32Array(STAR_N * 3);
+    for (let i = 0; i < STAR_N; i++) {
+      sPos[i * 3] = (Math.random() - 0.5) * 18;
+      sPos[i * 3 + 1] = (Math.random() - 0.5) * 10;
+      sPos[i * 3 + 2] = -2 - Math.random() * 6;
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+    const stars = new THREE.Points(
+      starGeo,
+      new THREE.PointsMaterial({ color: INK, size: 0.05, transparent: true, opacity: 0.35, depthWrite: false })
+    );
+    scene.add(stars);
+
+    // ---------- 布局：桌面地球偏右出血，移动端居中靠下 ----------
+    const layout = () => {
+      const w = canvas.clientWidth || canvas.parentElement!.clientWidth;
+      const h = canvas.clientHeight || canvas.parentElement!.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      if (isMobile) {
+        root.position.set(0, -1.7, 0);
+        stars.position.set(0, 0, 0);
+      } else {
+        root.position.set(2.55, 0, 0);
+        stars.position.set(1.2, 0, 0);
+      }
+    };
+    layout();
+    window.addEventListener('resize', layout);
+
+    // ---------- 鼠标视差 ----------
+    let mx = 0, my = 0, tx = 0, ty = 0;
+    window.addEventListener('pointermove', (e) => {
+      tx = (e.clientX / window.innerWidth) * 2 - 1;
+      ty = (e.clientY / window.innerHeight) * 2 - 1;
+    });
+
+    // ---------- 动画循环（离屏暂停） ----------
+    let raf = 0;
+    let t = 0;
+    const clock = new THREE.Clock();
+    const animate = () => {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      t += dt;
+      mx += (tx - mx) * 0.045;
+      my += (ty - my) * 0.045;
+
+      if (!reduced) {
+        globe.rotation.y += dt * 0.12;
+        globe.rotation.x = 0.18 + my * 0.12;
+        root.rotation.y = mx * 0.22;
+        stars.rotation.y = mx * 0.06 + t * 0.004;
+        stars.position.y = -my * 0.25;
+        const a1 = t * 0.35;
+        const a2 = -t * 0.5 + 2.2;
+        moon.position.set(Math.cos(a1) * 2.6, 0, Math.sin(a1) * 0.95);
+        satellite.position.set(Math.cos(a2) * 2.2, 0, Math.sin(a2) * 0.8);
+      }
+      renderer.render(scene, camera);
+      raf = requestAnimationFrame(animate);
+    };
+
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        if (!raf) { clock.getDelta(); raf = requestAnimationFrame(animate); }
+      } else {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    });
+    io.observe(canvas);
+  }
+</script>

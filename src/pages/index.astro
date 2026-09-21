@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Globe from '../components/Globe.astro';
 import { SITE } from '../site.config';
 import { projects, repoTotal } from '../data/projects';
 import { getCollection } from 'astro:content';
@@ -11,63 +12,44 @@ const notes = allNotes
 
 const fmt = (d: Date) =>
   `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
-
-const sections = [
-  {
-    no: '01',
-    title: '笔记',
-    sub: '学习笔记、长文与踩坑记录，用 Markdown 书写。',
-    meta: 'Note →',
-    href: '/notes/',
-  },
-  {
-    no: '02',
-    title: '项目',
-    sub: '一些想法的具体实现，代码开源在 GitHub。',
-    meta: 'Project ↓',
-    href: '#projects',
-  },
-  {
-    no: '03',
-    title: '实验',
-    sub: '稀奇古怪的试验场，想到什么就丢进来。',
-    meta: 'Lab · 筹备中',
-    href: '#',
-  },
-];
 ---
 
 <Base>
-  <!-- ================= Hero ================= -->
-  <section class="wrap" style="padding-top: clamp(4rem, 10vw, 7rem); padding-bottom: clamp(3rem, 7vw, 5rem);">
-    <p class="mono-meta" style="margin-bottom: 1.5rem;">Personal Site — 主站</p>
-    <h1 style="font-family: var(--serif); font-weight: 400; font-size: var(--fs-display); line-height: 1.12; letter-spacing: -0.02em; max-width: 16em;">
-      学点新东西，<br />把想法写进 <em style="font-style: italic; color: var(--ink-80);">Notes</em> 里。
-    </h1>
-    <p style="max-width: 34em; margin-top: 1.75rem; font-size: var(--fs-lead); color: var(--ink-60);">
-      一个用来安放笔记、项目和胡思乱想的自留地。主站只做导航，真正的内容在下面的分区里。
-    </p>
-    <div style="margin-top: 2.25rem;">
-      <span class="pill"><span class="dot"></span>持续更新中</span>
+  <!-- ================= Hero：全视口点阵地球 ================= -->
+  <section class="hero">
+    <Globe />
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <p class="mono-meta" style="margin-bottom: 1.5rem;">Personal Site — 主站</p>
+        <h1 style="font-family: var(--serif); font-weight: 400; font-size: clamp(2.6rem, 5.5vw, 4.6rem); line-height: 1.12; letter-spacing: -0.02em;">
+          你好，我是 <em style="font-style: italic;">Kaiser</em>。
+        </h1>
+        <p style="margin-top: 1.5rem; font-size: var(--fs-lead); color: var(--ink-60); max-width: 24em;">
+          学点新东西，写点笔记，也捣鼓点小项目。这个站是它们的集合地。
+        </p>
+        <nav class="entry-list" aria-label="站点入口">
+          <a class="entry" href="/notes/">
+            <span class="entry-no mono-meta">01</span>
+            <span class="entry-title">笔记</span>
+            <span class="entry-sub">学习笔记与长文</span>
+            <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
+          </a>
+          <a class="entry" href="/projects/">
+            <span class="entry-no mono-meta">02</span>
+            <span class="entry-title">项目</span>
+            <span class="entry-sub">开源代码与实现</span>
+            <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
+          </a>
+          <a class="entry" href="#about">
+            <span class="entry-no mono-meta">03</span>
+            <span class="entry-title">关于</span>
+            <span class="entry-sub">我是谁、怎么联系</span>
+            <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
+          </a>
+        </nav>
+        <p class="mono-meta hero-scroll" aria-hidden="true">↓ 下滑 — 最近更新 / 项目 / 关于</p>
+      </div>
     </div>
-  </section>
-
-  <!-- ================= 分区导航 ================= -->
-  <section class="wrap" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
-    <div class="section-head">
-      <span class="mono-meta">Index — 前往分区</span>
-      <h2>三个去处</h2>
-    </div>
-    {sections.map((s) => (
-      <a class="index-row" href={s.href}>
-        <span class="row-no">{s.no}</span>
-        <span>
-          <span class="row-title">{s.title}</span>
-          <p class="row-sub">{s.sub}</p>
-        </span>
-        <span class="row-meta">{s.meta}</span>
-      </a>
-    ))}
   </section>
 
   <!-- ================= 最近更新 ================= -->
