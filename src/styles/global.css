@@ -828,3 +828,58 @@ body::before {
   .notes-mobile-nav .side-link,
   .notes-mobile-nav .toc-link { padding: 0.45rem 0.25rem; }
 }
+
+/* ---------- 全站趣味动效 ---------- */
+/* 阅读进度条：贴顶部 2px 渐变线 */
+#read-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  background: linear-gradient(90deg, #a394c2, #7cb590 55%, #f0d78c);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+/* 点击绽出的小星星 */
+.click-star {
+  position: fixed;
+  z-index: 70;
+  pointer-events: none;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  animation: star-pop 0.8s var(--ease-out) forwards;
+  text-shadow: 0 0 8px currentColor;
+}
+@keyframes star-pop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(0deg); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, calc(-50% - 52px)) scale(1.15) rotate(160deg); }
+}
+
+/* kaiser 星雨彩蛋 */
+.star-shower {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  pointer-events: none;
+  overflow: hidden;
+}
+.star-shower span {
+  position: absolute;
+  top: -6vh;
+  line-height: 1;
+  animation: star-fall linear forwards;
+  text-shadow: 0 0 10px currentColor;
+}
+@keyframes star-fall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+  8%   { opacity: 1; }
+  100% { transform: translateY(115vh) rotate(300deg); opacity: 0.85; }
+}
+
+/* 页脚实时时钟 */
+.footer-clock { font-variant-numeric: tabular-nums; }

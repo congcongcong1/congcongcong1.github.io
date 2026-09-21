@@ -1,5 +1,6 @@
 ---
 import { SITE } from '../site.config';
+import SiteFx from '../components/SiteFx.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -31,6 +32,7 @@ const isActive = (href: string) =>
     <meta name="theme-color" content="#f7f5fb" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="kaiser" />
@@ -74,7 +76,7 @@ const isActive = (href: string) =>
     <footer class="site-footer">
       <div class="wrap">
         <span>© {SITE.since} {SITE.name}</span>
-        <span>v1.0.0 — built with Astro</span>
+        <span>v1.0.0 — built with Astro · <span id="site-clock" class="footer-clock" data-since={SITE.since + '-09-21'}>…</span></span>
         <span class="footer-right">
           <a class="footer-icon-link" href={`mailto:${SITE.email}`} aria-label="发送邮件">
             <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
@@ -91,6 +93,7 @@ const isActive = (href: string) =>
         </span>
       </div>
     </footer>
+    <SiteFx />
     <script is:inline>
       // PWA：生产环境注册 Service Worker（开发环境不注册，避免缓存干扰热更新）
       if ('serviceWorker' in navigator && !location.port) {

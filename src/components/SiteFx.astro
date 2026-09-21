@@ -1,0 +1,88 @@
+---
+// 全站趣味动效：
+// 1) 点击任意处绽出小星星  2) 键盘输入 "kaiser" 触发星雨彩蛋
+// 3) 文章阅读进度条        4) 页脚实时时钟与站龄
+// 全部尊重 prefers-reduced-motion
+---
+
+<div id="read-progress" aria-hidden="true"></div>
+
+<script>
+  (() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const PALETTE = ['#a394c2', '#7cb590', '#a9c0dc', '#f0d78c', '#eebe7a'];
+
+    /* ---------- 1) 点击星星 ---------- */
+    if (!reduced) {
+      document.addEventListener('click', (e) => {
+        // 链接点击不挡路，星星画在按钮后面
+        const star = document.createElement('span');
+        star.className = 'click-star';
+        star.textContent = '✦';
+        star.style.left = e.clientX + 'px';
+        star.style.top = e.clientY + 'px';
+        star.style.color = PALETTE[(Math.random() * PALETTE.length) | 0];
+        star.style.fontSize = 10 + Math.random() * 10 + 'px';
+        document.body.appendChild(star);
+        star.addEventListener('animationend', () => star.remove());
+      }, { passive: true });
+    }
+
+    /* ---------- 2) kaiser 星雨彩蛋 ---------- */
+    if (!reduced) {
+      let buffer = '';
+      document.addEventListener('keydown', (e) => {
+        if (e.key.length !== 1) return;
+        buffer = (buffer + e.key.toLowerCase()).slice(-6);
+        if (buffer === 'kaiser') starShower();
+      });
+    }
+
+    function starShower() {
+      const layer = document.createElement('div');
+      layer.className = 'star-shower';
+      for (let i = 0; i < 42; i++) {
+        const s = document.createElement('span');
+        s.textContent = Math.random() > 0.4 ? '✦' : '✧';
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.color = PALETTE[(Math.random() * PALETTE.length) | 0];
+        s.style.fontSize = 8 + Math.random() * 14 + 'px';
+        s.style.animationDuration = 1.6 + Math.random() * 1.6 + 's';
+        s.style.animationDelay = Math.random() * 0.7 + 's';
+        layer.appendChild(s);
+      }
+      document.body.appendChild(layer);
+      setTimeout(() => layer.remove(), 4500);
+    }
+
+    /* ---------- 3) 阅读进度条 ---------- */
+    const bar = document.getElementById('read-progress');
+    if (bar) {
+      let ticking = false;
+      const update = () => {
+        ticking = false;
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(window.scrollY / max, 1) : 0) + ')';
+      };
+      window.addEventListener('scroll', () => {
+        if (!ticking) { ticking = true; requestAnimationFrame(update); }
+      }, { passive: true });
+      update();
+    }
+
+    /* ---------- 4) 页脚时钟与站龄 ---------- */
+    const clock = document.getElementById('site-clock');
+    if (clock) {
+      const since = new Date(clock.dataset.since + 'T00:00:00');
+      const pad = (n) => String(n).padStart(2, '0');
+      const tick = () => {
+        const now = new Date();
+        const days = Math.max(1, Math.floor((now - since) / 86400000) + 1);
+        clock.textContent = '已运行 ' + days + ' 天 · ' +
+          pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+  })();
+</script>
