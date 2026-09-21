@@ -234,6 +234,14 @@ body {
   transform: translateY(-1px);
 }
 
+/* 当前页面常驻高亮 */
+.nav-pill.active {
+  background: rgba(42, 22, 13, 0.06);
+  border-color: rgba(42, 22, 13, 0.14);
+  color: var(--ink);
+}
+.nav-pill.active .nav-icon { opacity: 1; }
+
 .site-footer {
   background: #f7f5fb; /* 与主色调一致的薰衣草收尾 */
   padding: 2rem 0 2.5rem;
