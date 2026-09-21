@@ -1,17 +1,18 @@
 ---
-// 首页 Hero 的点阵地球：斐波那契球面粒子 + 视角明暗 shader + 轨道卫星 + 星尘视差
-// 无外部贴图，全程序化生成；尊重 prefers-reduced-motion
+// 首页 Hero 的点阵地球：斐波那契球面粒子 + 陆地遮罩上色 + 视角明暗 shader
+// + 轨道卫星/月球 + 星尘视差。无外部贴图，全程序化生成；尊重 prefers-reduced-motion
+import maskB64 from './landmask.b64?raw';
 ---
 
-<canvas id="hero-canvas" aria-hidden="true"></canvas>
+<canvas id="hero-canvas" data-mask={`data:image/png;base64,${maskB64}`} aria-hidden="true"></canvas>
 
 <script>
   import * as THREE from 'three';
 
   const canvas = document.getElementById('hero-canvas') as HTMLCanvasElement | null;
-  if (canvas) init(canvas);
+  if (canvas) init(canvas, canvas.dataset.mask || '');
 
-  function init(canvas: HTMLCanvasElement) {
+  async function init(canvas: HTMLCanvasElement, maskUri: string) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isMobile = window.innerWidth < 720;
 
@@ -29,61 +30,84 @@
     root.add(globe);
     scene.add(root);
 
-    const INK = new THREE.Color('#2a160d');
-    const DIM = new THREE.Color('#b3aac6');   // 背面点的褪色薰衣草灰
-    const OCHRE = new THREE.Color('#b0713a'); // 赭石：卫星/月亮点缀
+    // 粉彩系（取自参考图的薄荷绿 / 粉末蓝 / 薰衣草紫，加深一档保证浅底对比度）
+    const OCEAN = new THREE.Color('#a9c0dc');  // 海洋：粉末蓝
+    const LAND  = new THREE.Color('#7cb590');  // 陆地：薄荷绿
+    const DIM   = new THREE.Color('#b3aac6');  // 背光面：薰衣草灰
+    const LILAC = new THREE.Color('#a394c2');  // 轨道/卫星：薰衣草紫
+    const MOON  = new THREE.Color('#f0d78c');  // 月球：淡黄
 
-    // ---------- 点阵地球（斐波那契球 + 视角明暗） ----------
+    // ---------- 陆地遮罩：等距柱状投影 → 球面逐点采样 ----------
+    const landFlags = await loadLandMask(maskUri);
+
+    // ---------- 点阵地球（斐波那契球 + 视角明暗 + 陆地着色） ----------
     const R = 1.9;
     const COUNT = isMobile ? 900 : 1600;
     const pos = new Float32Array(COUNT * 3);
+    const land = new Float32Array(COUNT);
     const GA = Math.PI * (3 - Math.sqrt(5));
     for (let i = 0; i < COUNT; i++) {
       const y = 1 - (i / (COUNT - 1)) * 2;
       const rad = Math.sqrt(1 - y * y);
       const th = GA * i;
-      pos[i * 3] = Math.cos(th) * rad * R;
+      const x = Math.cos(th) * rad;
+      const z = Math.sin(th) * rad;
+      pos[i * 3] = x * R;
       pos[i * 3 + 1] = y * R;
-      pos[i * 3 + 2] = Math.sin(th) * rad * R;
+      pos[i * 3 + 2] = z * R;
+      // 方向 → 经纬度 → 遮罩采样（lon: atan2(z,x)，lat: asin(y)）
+      const lon = Math.atan2(z, x);
+      const lat = Math.asin(y);
+      const u = (lon + Math.PI) / (2 * Math.PI);
+      const v = (Math.PI / 2 - lat) / Math.PI;
+      land[i] = sampleMask(landFlags, u, v);
     }
     const dotGeo = new THREE.BufferGeometry();
     dotGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    dotGeo.setAttribute('aLand', new THREE.BufferAttribute(land, 1));
 
     const dotMat = new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
       uniforms: {
         uLight: { value: new THREE.Vector3(-0.55, 0.75, 0.8).normalize() },
-        uInk: { value: INK },
+        uOcean: { value: OCEAN },
+        uLand: { value: LAND },
         uDim: { value: DIM },
       },
       vertexShader: /* glsl */ `
         uniform vec3 uLight;
+        attribute float aLand;
         varying float vLight;
+        varying float vLand;
         void main() {
           vec3 n = normalize(position);
           float l = dot(n, normalize(uLight));
           vLight = smoothstep(-0.45, 1.0, l);
+          vLand = aLand;
           vec4 mv = modelViewMatrix * vec4(position, 1.0);
           gl_PointSize = (30.0 / -mv.z) * (0.7 + 0.5 * vLight);
           gl_Position = projectionMatrix * mv;
         }
       `,
       fragmentShader: /* glsl */ `
-        uniform vec3 uInk;
+        uniform vec3 uOcean;
+        uniform vec3 uLand;
         uniform vec3 uDim;
         varying float vLight;
+        varying float vLand;
         void main() {
           vec2 c = gl_PointCoord - 0.5;
           if (dot(c, c) > 0.25) discard;
-          gl_FragColor = vec4(mix(uDim, uInk, vLight), 0.18 + 0.82 * vLight);
+          vec3 lit = mix(uOcean, uLand, vLand);
+          gl_FragColor = vec4(mix(uDim, lit, vLight), 0.2 + 0.8 * vLight);
         }
       `,
     });
     globe.add(new THREE.Points(dotGeo, dotMat));
 
-    // ---------- 经纬线（淡发丝线，读出"地球仪"） ----------
-    const gratMat = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.1 });
+    // ---------- 经纬线（淡薰衣草发丝线） ----------
+    const gratMat = new THREE.LineBasicMaterial({ color: LILAC, transparent: true, opacity: 0.16 });
     const grat: number[] = [];
     const seg = 96;
     for (let lat = -60; lat <= 60; lat += 30) {
@@ -123,18 +147,18 @@
         pts.push(new THREE.Vector3(Math.cos(t) * rx, 0, Math.sin(t) * ry));
       }
       const g = new THREE.BufferGeometry().setFromPoints(pts);
-      return new THREE.Line(g, new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity }));
+      return new THREE.Line(g, new THREE.LineBasicMaterial({ color: LILAC, transparent: true, opacity }));
     };
-    orbitGroup.add(mkOrbit(2.6, 0.95, 0.22));
-    orbitGroup.add(mkOrbit(2.2, 0.8, 0.1));
+    orbitGroup.add(mkOrbit(2.6, 0.95, 0.3));
+    orbitGroup.add(mkOrbit(2.2, 0.8, 0.14));
 
     const mkBody = (size: number, color: THREE.Color, opacity = 1) =>
       new THREE.Mesh(
         new THREE.SphereGeometry(size, 16, 16),
         new THREE.MeshBasicMaterial({ color, transparent: opacity < 1, opacity })
       );
-    const moon = mkBody(0.09, OCHRE);
-    const satellite = mkBody(0.045, INK, 0.7);
+    const moon = mkBody(0.09, MOON);
+    const satellite = mkBody(0.045, LILAC, 0.85);
     orbitGroup.add(moon, satellite);
 
     // ---------- 星尘（最远层，视差最大） ----------
@@ -149,7 +173,7 @@
     starGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
     const stars = new THREE.Points(
       starGeo,
-      new THREE.PointsMaterial({ color: INK, size: 0.05, transparent: true, opacity: 0.35, depthWrite: false })
+      new THREE.PointsMaterial({ color: LILAC, size: 0.05, transparent: true, opacity: 0.45, depthWrite: false })
     );
     scene.add(stars);
 
@@ -212,5 +236,22 @@
       }
     });
     io.observe(canvas);
+
+    // ---------- 工具：加载并采样陆地遮罩 ----------
+    async function loadLandMask(uri: string): Promise<ImageData> {
+      const img = new Image();
+      img.src = uri;
+      await img.decode();
+      const cv = document.createElement('canvas');
+      cv.width = img.width; cv.height = img.height;
+      const ctx = cv.getContext('2d', { willReadFrequently: true })!;
+      ctx.drawImage(img, 0, 0);
+      return ctx.getImageData(0, 0, cv.width, cv.height);
+    }
+    function sampleMask(flags: ImageData, u: number, v: number): number {
+      const x = Math.min(flags.width - 1, Math.floor(u * flags.width));
+      const y = Math.min(flags.height - 1, Math.floor(v * flags.height));
+      return flags.data[(y * flags.width + x) * 4] > 128 ? 1 : 0;
+    }
   }
 </script>
