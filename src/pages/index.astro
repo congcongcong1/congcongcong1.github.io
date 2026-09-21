@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Globe from '../components/Globe.astro';
 import LangIcon from '../components/LangIcon.astro';
+import DustCanvas from '../components/DustCanvas.astro';
 import { SITE } from '../site.config';
 import { projects, repoTotal } from '../data/projects';
 import { getCollection } from 'astro:content';
@@ -56,6 +57,10 @@ const fmt = (d: Date) =>
     </a>
   </section>
 
+  <!-- ================= 内容区：星尘背景 ================= -->
+  <div class="dust-zone">
+    <DustCanvas />
+
   <!-- ================= 最近更新 ================= -->
   <section class="wrap" id="recent" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
     <div class="section-head">
@@ -103,4 +108,5 @@ const fmt = (d: Date) =>
       <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">GitHub 主页（全部 {repoTotal} 个仓库）→</a>
     </p>
   </section>
+  </div>
 </Base>

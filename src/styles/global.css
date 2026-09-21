@@ -343,6 +343,22 @@ body::before {
   transition: opacity 0.3s var(--ease-out);
 }
 .project-card:hover .lang-icon { opacity: 1; }
+
+/* ---------- 首页内容区：星尘背景（鼠标视差粒子） ---------- */
+.dust-zone { position: relative; }
+.dust-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  z-index: 0;
+}
+.dust-zone > section {
+  position: relative;
+  z-index: 1;
+}
 .card-name {
   font-family: var(--serif);
   font-size: 1.35rem;
@@ -405,19 +421,9 @@ body::before {
   min-height: calc(100vh - 3.75rem);
   display: flex;
   align-items: center;
-  background: linear-gradient(to bottom, #f7f5fb 0%, #f7f5fb 55%, rgba(247, 245, 251, 0) 100%); /* 淡薰衣草白向下渐隐，与内容区自然衔接 */
-}
-/* 接缝处一抹地球同色系微光，呼应点阵地球 */
-.hero::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -5rem;
-  transform: translateX(-50%);
-  width: min(92vw, 62rem);
-  height: 13rem;
-  background: radial-gradient(ellipse at center, rgba(169, 192, 220, 0.16), rgba(124, 181, 144, 0.09) 45%, rgba(247, 245, 251, 0) 72%);
-  pointer-events: none;
+  overflow: hidden;
+  background: #f7f5fb;            /* 淡薰衣草白，呼应参考站的浅底色 */
+  border-bottom: 1px solid var(--ink-10);
 }
 #hero-canvas {
   position: absolute;
@@ -473,7 +479,8 @@ body::before {
 
 /* ---------- 关于页 ---------- */
 .about-hero {
-  background: linear-gradient(to bottom, #f7f5fb 0%, #f7f5fb 55%, rgba(247, 245, 251, 0) 100%);
+  background: #f7f5fb;
+  border-bottom: 1px solid var(--ink-10);
   padding-top: clamp(3rem, 8vw, 5rem);
   padding-bottom: clamp(2.5rem, 6vw, 4rem);
 }
