@@ -1,6 +1,7 @@
 // 站点全局配置：改名字、邮箱、社交链接只动这一个文件
 export const SITE = {
   name: 'kaiser',
+  url: 'https://zicongluo.cn',
   title: 'kaiser · 个人网站',
   description: '学点新东西，写点笔记，也捣鼓点小项目。',
   email: 'zicongluo@smail.nju.edu.cn',
