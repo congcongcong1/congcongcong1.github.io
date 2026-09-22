@@ -1,0 +1,114 @@
+---
+import Base from '../../layouts/Base.astro';
+import DustCanvas from '../../components/DustCanvas.astro';
+import { getCollection, render } from 'astro:content';
+
+const all = await getCollection('shelf');
+const kinds = ['韩剧', '电影', '书', '音乐', '游戏'];
+const kindUnit: Record<string, string> = { 韩剧: '部', 电影: '部', 书: '本', 音乐: '首', 游戏: '个' };
+const kindLabel: Record<string, string> = {
+  韩剧: '在追的剧',
+  电影: '看过的电影',
+  书: '读过的书',
+  音乐: '循环的歌',
+  游戏: '玩过的游戏',
+};
+const byKind = (k: string) =>
+  all.filter((e) => e.data.kind === k).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+const stars = (r: number) => (r > 0 ? '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r)) : '');
+const isNow = (s: string) => ['在看', '在听', '在玩'].includes(s);
+
+const entries = await Promise.all(
+  all.map(async (e) => ({ e, Content: (await render(e)).Content, hasBody: e.body.trim().replace(/[（(].{0,30}(待补充|还没看完|占位).{0,30}[)）]/, '').trim().length > 0 }))
+);
+const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
+---
+
+<Base title={`影音 · ${'kaiser'}`} description="精神食粮影音架：韩剧、电影、书、音乐、游戏与碎碎念。">
+  <section class="about-hero">
+    <div class="wrap">
+      <p class="mono-meta" style="margin-bottom: 1.5rem;">Media Shelf — 精神食粮</p>
+      <h1 style="font-family: var(--serif); font-weight: 400; font-size: clamp(2.2rem, 4.5vw, 3.6rem); line-height: 1.15; letter-spacing: -0.02em;">
+        精神<span class="about-marker">食粮</span>架
+      </h1>
+      <p style="margin-top: 1rem; color: var(--ink-60); max-width: 30em;">
+        追过的剧、看过的书、循环的歌、玩过的游戏，以及每一格下面慢慢生长的碎碎念。
+      </p>
+    </div>
+  </section>
+
+  <div class="dust-zone">
+    <DustCanvas />
+    <section class="wrap" style="padding-top: clamp(2rem, 5vw, 3rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
+
+      <!-- 统计条 -->
+      <div class="shelf-stats">
+        {kinds.map((k) => (
+          <div>
+            <span class="shelf-stats-num">{all.filter((e) => e.data.kind === k).length}</span>
+            <span class="mono-meta">{kindUnit[k]}{k === '音乐' ? '歌' : k}</span>
+          </div>
+        ))}
+      </div>
+
+      <!-- 五个分区 -->
+      {kinds.map((k) => {
+        const list = byKind(k);
+        if (list.length === 0) return null;
+        return (
+          <div style="margin-top: clamp(2.5rem, 6vw, 4rem);">
+            <div class="section-head">
+              <span class="mono-meta">{k} — {list.length} {kindUnit[k]}</span>
+              <h2 set:html={kindLabel[k]} />
+            </div>
+            <div class="shelf-grid">
+              {list.map((e) => {
+                const { Content, hasBody } = findEntry(e.id);
+                return (
+                  <article class="shelf-card" data-kind={e.data.kind} id={e.id}>
+                    {e.data.images.length > 0 && (
+                      <div class="shelf-media">
+                        <img src={e.data.images[0]} alt={`《${e.data.title}》截图`} loading="lazy" />
+                      </div>
+                    )}
+                    <div class="shelf-body">
+                      <div class="shelf-head">
+                        <h3>《{e.data.title}》{e.data.alt && <span class="shelf-alt">/ {e.data.alt}</span>}</h3>
+                        <span class="shelf-headmeta">
+                          <span class:list={['shelf-chip', { now: isNow(e.data.status) }]}>
+                            <span class="dot"></span>{e.data.status}
+                          </span>
+                        </span>
+                      </div>
+                      <p class="mono-meta" style="margin-top: 0.35rem;">
+                        {stars(e.data.rating) && <span class="shelf-stars">{stars(e.data.rating)}</span>}
+                        {stars(e.data.rating) && ' · '}
+                        收录于 {fmt(e.data.date)}
+                        {e.data.link && (
+                          <>
+                            {' · '}
+                            <a class="uline" href={e.data.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">seeduck ↗</a>
+                          </>
+                        )}
+                      </p>
+                      <div class="shelf-comment">
+                        <p class="mono-meta" style="margin-bottom: 0.4rem;">碎碎念</p>
+                        {hasBody ? (
+                          <div class="prose"><Content /></div>
+                        ) : (
+                          <p class="shelf-empty">（先占个位置，碎碎念慢慢长出来……）</p>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </section>
+  </div>
+</Base>

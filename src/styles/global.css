@@ -1087,3 +1087,118 @@ body.night .about-marker {
 body.night .project-card { background: #241812; }
 body.night .project-card:hover { box-shadow: 0 16px 34px rgba(0, 0, 0, 0.5); }
 body.night .card-lang { background: #241812; }
+
+/* ---------- 精神食粮影音架 ---------- */
+.shelf-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3.5rem;
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--ink-10);
+  border-bottom: 1px solid var(--ink-10);
+}
+.shelf-stats-num {
+  font-family: var(--serif);
+  font-size: 1.55rem;
+  line-height: 1.1;
+  display: block;
+}
+
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.4rem;
+  margin-top: 1.5rem;
+}
+.shelf-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--ink-10);
+  border-radius: 16px;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+.shelf-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(42, 22, 13, 0.14);
+}
+.shelf-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--kind-color, var(--ink-20));
+  z-index: 2;
+}
+.shelf-card[data-kind="韩剧"] { --kind-color: #a394c2; }
+.shelf-card[data-kind="电影"] { --kind-color: #a9c0dc; }
+.shelf-card[data-kind="书"] { --kind-color: #7cb590; }
+.shelf-card[data-kind="音乐"] { --kind-color: #e0c26a; }
+.shelf-card[data-kind="游戏"] { --kind-color: #eebe7a; }
+
+.shelf-media {
+  aspect-ratio: 16 / 9;
+  background: var(--paper-sunken);
+  overflow: hidden;
+}
+.shelf-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s var(--ease-out);
+}
+.shelf-card:hover .shelf-media img { transform: scale(1.03); }
+
+.shelf-body { padding: 1.1rem 1.25rem 1.3rem; }
+.shelf-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.shelf-head h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+.shelf-alt { color: var(--ink-40); font-size: 0.85rem; margin-left: 0.2rem; }
+.shelf-headmeta { flex-shrink: 0; }
+
+.shelf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.18rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--ink-10);
+  background: var(--paper);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.shelf-chip .dot { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--ink-40); }
+.shelf-chip.now .dot { background: #d99b4e; animation: shelf-pulse 1.6s ease-in-out infinite; }
+@keyframes shelf-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217, 155, 78, 0.45); }
+  50% { box-shadow: 0 0 0 5px rgba(217, 155, 78, 0); }
+}
+
+.shelf-stars { color: #d9a83e; letter-spacing: 0.12em; }
+.shelf-comment {
+  margin-top: 0.85rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--ink-20);
+}
+.shelf-comment .prose p { font-size: 0.92rem; color: var(--ink-80); margin: 0.4rem 0; }
+.shelf-empty { color: var(--ink-40); font-style: italic; font-size: 0.92rem; }
+
+@media (max-width: 720px) {
+  .shelf-grid { grid-template-columns: 1fr; }
+}
+
+body.night .shelf-card { background: #241812; }
+body.night .shelf-card:hover { box-shadow: 0 16px 34px rgba(0, 0, 0, 0.5); }
+body.night .shelf-chip { background: #241812; }

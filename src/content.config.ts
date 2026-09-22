@@ -12,4 +12,19 @@ const notes = defineCollection({
   }),
 });
 
-export const collections = { notes };
+/* 精神食粮影音架：剧 / 电影 / 书 / 音乐 / 游戏，正文即碎碎念 */
+const shelf = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/shelf' }),
+  schema: z.object({
+    title: z.string(),
+    alt: z.string().default(''),          // 又名 / 原名
+    kind: z.enum(['韩剧', '电影', '书', '音乐', '游戏']),
+    status: z.enum(['在看', '看过', '想看', '想读', '读过', '在听', '想玩', '在玩', '玩过']),
+    link: z.string().default(''),         // seeduck / 豆瓣等外链
+    rating: z.number().min(0).max(5).default(0),
+    date: z.coerce.date(),
+    images: z.array(z.string()).default([]),
+  }),
+});
+
+export const collections = { notes, shelf };
