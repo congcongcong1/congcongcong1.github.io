@@ -4,7 +4,7 @@ alt: ''
 kind: 韩剧
 status: 在看
 link: https://seeduck.cc/movies/135689/
-rating: 0
+rating: 9
 date: 2026-09-22
 images:
   - /shelf/iron-fist-1.png

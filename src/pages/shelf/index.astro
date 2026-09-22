@@ -18,7 +18,6 @@ const byKind = (k: string) =>
   all.filter((e) => e.data.kind === k).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
-const stars = (r: number) => (r > 0 ? '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r)) : '');
 const isNow = (s: string) => ['在看', '在听', '在玩'].includes(s);
 
 const entries = await Promise.all(
@@ -91,8 +90,16 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                         </span>
                       </div>
                       <p class="mono-meta" style="margin-top: 0.35rem;">
-                        {stars(e.data.rating) && <span class="shelf-stars">{stars(e.data.rating)}</span>}
-                        {stars(e.data.rating) && ' · '}
+                        {e.data.rating > 0 && (
+                          <>
+                            <span class="shelf-stars-wrap" title={`${e.data.rating}/10`}>
+                              <span class="shelf-stars-base">★★★★★</span>
+                              <span class="shelf-stars-fill" data-fill={String(e.data.rating * 10)}>★★★★★</span>
+                            </span>
+                            <span class="shelf-stars-num">{e.data.rating}/10</span>
+                            {' · '}
+                          </>
+                        )}
                         收录于 {fmt(e.data.date)}
                         {e.data.link && (
                           <>

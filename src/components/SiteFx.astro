@@ -137,5 +137,19 @@
         if (stat && pv && pv.textContent.trim() === '–') stat.style.display = 'none';
       }, 5000);
     });
+
+    /* ---------- 8) 五星评分：滚入视野时动态填充 ---------- */
+    const starFills = document.querySelectorAll('.shelf-stars-fill');
+    if (starFills.length) {
+      const fillIO = new IntersectionObserver((entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.style.width = en.target.dataset.fill + '%';
+            fillIO.unobserve(en.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      starFills.forEach((el) => fillIO.observe(el));
+    }
   })();
 </script>

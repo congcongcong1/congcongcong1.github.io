@@ -1270,3 +1270,23 @@ body.night .shelf-chip { background: #241812; }
 }
 
 .shelf-travel-cta { font-size: 0.92rem; }
+
+/* ---------- 五星评分（动态填充） ---------- */
+.shelf-stars-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  font-size: 0.85rem;
+}
+.shelf-stars-base { color: var(--ink-20); }
+.shelf-stars-fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #d9a83e;
+  white-space: nowrap;
+  width: 0;
+  transition: width 1.2s var(--ease-out);
+}
+.shelf-stars-num { margin-left: 0.45rem; color: var(--ink-60); }

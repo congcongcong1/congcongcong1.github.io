@@ -27,6 +27,16 @@ const isNow = ['在看', '在听', '在玩', '想去'].includes(d.status);
           <span class="dot"></span>{d.status}
         </span>
         {' · '}
+        {d.rating > 0 && (
+          <>
+            <span class="shelf-stars-wrap" title={`${d.rating}/10`}>
+              <span class="shelf-stars-base">★★★★★</span>
+              <span class="shelf-stars-fill" data-fill={String(d.rating * 10)}>★★★★★</span>
+            </span>
+            <span class="shelf-stars-num">{d.rating}/10</span>
+            {' · '}
+          </>
+        )}
         {fmt(d.date)}
         {d.images.length > 0 && ` · ${d.images.length} 张照片`}
         {d.link && (
