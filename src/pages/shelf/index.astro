@@ -71,7 +71,10 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                 return (
                   <article class="shelf-card" data-kind={e.data.kind} id={e.id}>
                     {e.data.images.length > 0 && (
-                      <div class="shelf-media">
+                      <div
+                        class:list={['shelf-media', { 'shelf-poster': e.data.kind === '电影' }]}
+                        style={e.data.kind === '电影' ? `background-image:url('${e.data.images[0]}')` : undefined}
+                      >
                         <img src={e.data.images[0]} alt={`《${e.data.title}》截图`} loading="lazy" />
                       </div>
                     )}
@@ -112,7 +115,11 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                         {e.data.link && (
                           <>
                             {' · '}
-                            <a class="uline" href={e.data.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">seeduck ↗</a>
+                            {e.data.kind === '音乐' ? (
+                              <a class="shelf-play-btn" href={e.data.link} target="_blank" rel="noopener">▶ 去网易云听</a>
+                            ) : (
+                              <a class="uline" href={e.data.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">{e.data.kind === '电影' ? '豆瓣 ↗' : 'seeduck ↗'}</a>
+                            )}
                           </>
                         )}
                       </p>
