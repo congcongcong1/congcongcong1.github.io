@@ -1,6 +1,6 @@
 // PWA Service Worker：预缓存核心页面，离线可访问
 // 策略：HTML 网络优先（永远拿最新，离线才回退缓存）；静态资源缓存优先（带 hash，安全）
-const CACHE = 'zicongluo-v2';
+const CACHE = 'zicongluo-v3';
 const PRECACHE = [
   '/',
   '/notes/',
@@ -52,17 +52,24 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // 静态资源（JS/CSS/图片，文件名带 hash）：缓存优先
+  // 静态资源（JS/CSS/图片）：stale-while-revalidate——
+  // 先回缓存立刻显示（秒开），同时后台拉新副本，下次访问自动换上
   e.respondWith(
     caches.match(req).then((hit) => {
-      if (hit) return hit;
-      return fetch(req).then((res) => {
+      const update = fetch(req).then((res) => {
         if (res.ok) {
           const clone = res.clone();
           caches.open(CACHE).then((c) => c.put(req, clone));
         }
         return res;
-      }).catch(() => caches.match('/'));
+      }).catch(() => hit);
+      // 有缓存：立刻显示旧图，后台默默换新
+      if (hit) {
+        update;
+        return hit;
+      }
+      // 无缓存：等网络，顺便写入缓存
+      return update.then((res) => res || caches.match('/'));
     })
   );
 });
