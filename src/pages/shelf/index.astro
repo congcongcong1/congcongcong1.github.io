@@ -103,6 +103,12 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                           </>
                         )}
                         收录于 {fmt(e.data.date)}
+                        {e.data.hours > 0 && (
+                          <>
+                            {' · '}
+                            时长 {e.data.hours} h
+                          </>
+                        )}
                         {e.data.link && (
                           <>
                             {' · '}

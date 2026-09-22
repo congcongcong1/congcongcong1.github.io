@@ -38,6 +38,7 @@ const isNow = ['在看', '在听', '在玩', '想去'].includes(d.status);
           </>
         )}
         {fmt(d.date)}
+        {d.hours > 0 && ` · 时长 ${d.hours} h`}
         {d.images.length > 0 && ` · ${d.images.length} 张照片`}
         {d.link && (
           <>
