@@ -15,8 +15,8 @@ const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.get
     <DustCanvas />
   <section class="wrap" style="padding-top: clamp(3rem, 8vw, 5.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
     <div class="section-head">
-      <span class="mono-meta">Note — 笔记站</span>
-      <h2>全部笔记</h2>
+      <span class="mono-meta">Archive — 全部笔记</span>
+      <h2>字里<span class="about-marker">行间</span></h2>
     </div>
     {notes.length === 0 && (
       <p style="padding: 3rem 0; color: var(--ink-60);">还没有笔记，去 src/content/notes/ 下建一个 Markdown 文件吧。</p>
