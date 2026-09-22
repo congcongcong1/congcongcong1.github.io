@@ -1,7 +1,7 @@
 ---
-// 内容区背景：失焦光斑（bokeh）+ 极细闪烁微尘 + 鼠标视差
-// 审美取向：大光圈镜头下的午后光雾——安静、温暖、不打扰阅读
-// 光斑预渲染为渐变精灵，性能好；颜色取站点调色板，低透明度
+// 内容区背景：织光 —— 竖纹织线肌理
+// 技法：竖条织幅 × 2-3px 间距的横丝线，逐纹差速横移产生「织机在动」的错觉；
+// 少量经线缓慢换色（活色），纸感底线维持阅读安静。夜间经线发光。
 ---
 
 <canvas class="dust-canvas" aria-hidden="true"></canvas>
@@ -13,53 +13,35 @@
     const parent = canvas.parentElement!;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const PALETTE = [
+    // 站点调色板：经线（彩色）与纬线（纸色）
+    const WARP = [
       [163, 148, 194], // 薰衣草
       [124, 181, 144], // 薄荷
       [169, 192, 220], // 粉末蓝
       [240, 215, 140], // 麦金
       [238, 190, 122], // 蜂蜜橙
     ];
+    const PAPER = [42, 22, 13];       // 墨棕纬线（白天）
+    const PAPER_NIGHT = [242, 234, 217]; // 暖白纬线（夜间）
 
-    // 预渲染光斑精灵：径向渐变，边缘自然虚化
-    const SPRITE = 256;
-    const sprites = PALETTE.map(([r, g, b]) => {
-      const c = document.createElement('canvas');
-      c.width = c.height = SPRITE;
-      const sctx = c.getContext('2d')!;
-      const grad = sctx.createRadialGradient(SPRITE / 2, SPRITE / 2, 0, SPRITE / 2, SPRITE / 2, SPRITE / 2);
-      grad.addColorStop(0, `rgba(${r},${g},${b},1)`);
-      grad.addColorStop(0.45, `rgba(${r},${g},${b},0.32)`);
-      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      sctx.fillStyle = grad;
-      sctx.fillRect(0, 0, SPRITE, SPRITE);
-      return c;
-    });
-
-    interface Orb {
-      x: number; y: number; r: number;
-      ax: number; ay: number;          // 漂移振幅
-      phase: number; speed: number;
-      depth: number;                   // 视差深度
-      sprite: number;
+    interface Stripe {
+      w: number;              // 织幅宽
+      x: number;              // 当前位置
+      speed: number;          // 差速横移
+      gap: number;            // 丝线间距 2-3px
+      warp: number;           // 经线索引，-1 = 纸色纬线
+      morph: number;          // 换色速度（0 = 不换）
       alpha: number;
-    }
-    interface Mote {
-      x: number; y: number; r: number;
-      phase: number; speed: number;
-      depth: number;
-      color: number[];
-      baseAlpha: number;
+      phase: number;
     }
 
-    let orbs: Orb[] = [];
-    let motes: Mote[] = [];
+    let stripes: Stripe[] = [];
     let w = 0, h = 0, dpr = 1;
-    let mx = 0, my = 0;
-    let tmx = 0, tmy = 0;
+    let totalW = 0;
     let raf = 0;
     let running = false;
     let time = 0;
+    let mx = 0, tmx = 0;
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -74,63 +56,64 @@
     }
 
     function seed() {
-      const area = w * h;
-      const orbN = Math.max(9, Math.min(16, Math.round(area / 90000)));
-      const moteN = Math.max(26, Math.min(64, Math.round(area / 20000)));
-      orbs = Array.from({ length: orbN }, (_, i) => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: 50 + Math.random() * 110 + (i === 0 ? 90 : 0), // 留一颗特别大的压场
-        ax: 20 + Math.random() * 40,
-        ay: 14 + Math.random() * 30,
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.08 + Math.random() * 0.12,
-        depth: 0.25 + Math.random() * 0.75,
-        sprite: (Math.random() * PALETTE.length) | 0,
-        alpha: 0.08 + Math.random() * 0.07,
-      }));
-      motes = Array.from({ length: moteN }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: 0.6 + Math.random() * 1.1,
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.5 + Math.random() * 0.9,
-        depth: 0.3 + Math.random() * 0.7,
-        color: Math.random() < 0.6 ? [42, 22, 13] : PALETTE[(Math.random() * PALETTE.length) | 0],
-        baseAlpha: 0.1 + Math.random() * 0.16,
-      }));
+      // 织幅宽度覆盖约 1.5 屏，保证差速横移时不露底
+      stripes = [];
+      totalW = 0;
+      const target = w * 1.6;
+      while (totalW < target) {
+        const isWarp = Math.random() < 0.3; // 三成为彩色经线
+        const s: Stripe = {
+          w: 36 + Math.random() * 90,
+          x: totalW,
+          speed: 2 + Math.random() * 7,       // px/s，逐纹不同 = 织机感
+          gap: 2 + Math.random(),             // 2-3px 丝线间距
+          warp: isWarp ? (Math.random() * WARP.length) | 0 : -1,
+          morph: isWarp ? 0.05 + Math.random() * 0.1 : 0,
+          alpha: isWarp ? 0.1 + Math.random() * 0.07 : 0.05 + Math.random() * 0.035,
+          phase: Math.random() * Math.PI * 2,
+        };
+        stripes.push(s);
+        totalW += s.w;
+      }
+    }
+
+    function stripeColor(s: Stripe, night: boolean): string {
+      if (s.warp < 0) {
+        const c = night ? PAPER_NIGHT : PAPER;
+        return `rgba(${c[0]},${c[1]},${c[2]},${(s.alpha * (night ? 0.9 : 1)).toFixed(3)})`;
+      }
+      // 活色：经线在调色板内缓慢循环
+      const idx = s.morph > 0
+        ? Math.floor(time * s.morph + s.phase) % WARP.length
+        : s.warp;
+      const c = WARP[(idx + WARP.length) % WARP.length];
+      const a = s.alpha * (night ? 1.9 : 1.15);
+      return `rgba(${c[0]},${c[1]},${c[2]},${Math.min(a, 0.28).toFixed(3)})`;
     }
 
     function frame() {
-      time += 0.016;
-      mx += (tmx - mx) * 0.045;
-      my += (tmy - my) * 0.045;
+      time += 1 / 60;
+      mx += (tmx - mx) * 0.04;
       ctx.clearRect(0, 0, w, h);
-
       const night = document.body.classList.contains('night');
-      const nightBoost = night ? 1.55 : 1;
 
-      // 光斑：缓慢的正弦漂移 + 呼吸明灭 + 视差
-      for (const o of orbs) {
-        const ox = o.x + Math.sin(time * o.speed + o.phase) * o.ax + mx * o.depth * 22;
-        const oy = o.y + Math.cos(time * o.speed * 0.8 + o.phase) * o.ay + my * o.depth * 22;
-        const breathe = 0.8 + 0.2 * Math.sin(time * 0.35 + o.phase * 1.7);
-        ctx.globalAlpha = Math.min(o.alpha * breathe * nightBoost, 0.22);
-        const d = o.r * 2;
-        ctx.drawImage(sprites[o.sprite], ox - o.r, oy - o.r, d, d);
-      }
-
-      // 微尘：原地闪烁，不漂移
-      for (const m of motes) {
-        const twinkle = reduced ? 1 : 0.5 + 0.5 * Math.sin(time * m.speed + m.phase);
-        const a = m.baseAlpha * twinkle * (night ? 1.7 : 1);
-        ctx.globalAlpha = Math.min(a, 0.4);
-        ctx.fillStyle = `rgb(${m.color[0]},${m.color[1]},${m.color[2]})`;
+      ctx.lineWidth = 1;
+      for (const s of stripes) {
+        if (!reduced) {
+          s.x += s.speed / 60;
+          if (s.x > totalW) s.x -= totalW;
+        }
+        const sx = ((s.x % totalW) + totalW) % totalW - (totalW - w) / 2 + mx * 6;
+        if (sx > w || sx + s.w < 0) continue;
+        ctx.strokeStyle = stripeColor(s, night);
         ctx.beginPath();
-        ctx.arc(m.x + mx * m.depth * 14, m.y + my * m.depth * 14, m.r, 0, Math.PI * 2);
-        ctx.fill();
+        const breathe = reduced ? 0 : Math.sin(time * 0.4 + s.phase) * s.gap * 0.25;
+        for (let y = -2; y < h + 2; y += s.gap + breathe * 0.1) {
+          ctx.moveTo(sx, y);
+          ctx.lineTo(sx + s.w, y);
+        }
+        ctx.stroke();
       }
-      ctx.globalAlpha = 1;
 
       if (running) raf = requestAnimationFrame(frame);
     }
@@ -148,15 +131,13 @@
     window.addEventListener('resize', resize, { passive: true });
     window.addEventListener('mousemove', (e) => {
       tmx = (e.clientX / window.innerWidth - 0.5) * 2;
-      tmy = (e.clientY / window.innerHeight - 0.5) * 2;
     }, { passive: true });
 
-    // 离开视口时暂停，省电
     new IntersectionObserver((entries) => {
       entries[0].isIntersecting ? start() : stop();
     }, { rootMargin: '80px' }).observe(parent);
 
     resize();
-    if (reduced) frame(); // 减少动态偏好：只画一帧静态光雾
+    if (reduced) frame();
   }
 </script>
