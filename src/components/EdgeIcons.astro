@@ -79,15 +79,20 @@ const icons: IconSpec[] = [
 
 <script>
   // 首页：滚过 Hero 后淡入；无 Hero 的页面直接显示
+  // 笔记文章页是三栏布局，左右侧栏占满边缘，图标带会遮挡，直接不渲染
   const root = document.getElementById('edge-icons');
   if (root) {
-    const hero = document.querySelector('.hero');
-    if (hero) {
-      new IntersectionObserver((entries) => {
-        root.classList.toggle('on', !entries[0].isIntersecting);
-      }, { rootMargin: '-40% 0px 0px 0px' }).observe(hero);
+    if (document.querySelector('.notes-layout')) {
+      root.remove();
     } else {
-      root.classList.add('on');
+      const hero = document.querySelector('.hero');
+      if (hero) {
+        new IntersectionObserver((entries) => {
+          root.classList.toggle('on', !entries[0].isIntersecting);
+        }, { rootMargin: '-40% 0px 0px 0px' }).observe(hero);
+      } else {
+        root.classList.add('on');
+      }
     }
   }
 
