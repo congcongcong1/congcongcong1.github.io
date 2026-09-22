@@ -1,0 +1,114 @@
+---
+// Hero 漂浮小图标层：细线条 SVG（星球/音符/书/胶片/手柄…），
+// 缓慢上下浮动 + 鼠标视差分层平移；大部分集中在右侧地球区，
+// 避开左侧文案。z-index:0，位于文案与地球之下，随 hero overflow 裁切。
+interface IconSpec {
+  x: number;   // 水平位置 %
+  y: number;   // 垂直位置 %
+  s: number;   // 尺寸 px
+  d: number;   // 视差深度 0.2–1
+  dur: number; // 浮动周期 s
+  cls?: string;
+  svg: string;
+}
+const stroke = 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
+const icons: IconSpec[] = [
+  { x: 72, y: 10, s: 26, d: 1.0, dur: 7.5, cls: 'c-lav', svg: `<circle cx="12" cy="12" r="5.5" ${stroke}/><path d="M3.6 9.5c-1 3.6 1.7 5.7 5.5 6.6 4.9 1.1 10.7.6 11.9-2.5 1-2.7-1.4-4.8-4.6-6.1" ${stroke}/>` },
+  { x: 86, y: 18, s: 18, d: 0.8, dur: 6.2, svg: `<path d="M12 3l1.9 5.6 5.6 1.9-5.6 1.9L12 18l-1.9-5.6-5.6-1.9 5.6-1.9Z" ${stroke}/>` },
+  { x: 93, y: 38, s: 22, d: 1.0, dur: 8.4, cls: 'c-gold', svg: `<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" ${stroke}/>` },
+  { x: 66, y: 30, s: 18, d: 0.9, dur: 6.8, cls: 'c-blue', svg: `<path d="M9 18V5l12-2v13" ${stroke}/><circle cx="6" cy="18" r="3" ${stroke}/><circle cx="18" cy="16" r="3" ${stroke}/>` },
+  { x: 90, y: 62, s: 20, d: 0.9, dur: 7.1, cls: 'c-orange', svg: `<rect x="3" y="4" width="18" height="16" rx="2" ${stroke}/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4" ${stroke}/>` },
+  { x: 70, y: 74, s: 22, d: 1.0, dur: 8.0, cls: 'c-mint', svg: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z" ${stroke}/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" ${stroke}/>` },
+  { x: 82, y: 86, s: 20, d: 0.7, dur: 6.5, cls: 'c-lav', svg: `<path d="M17.3 5H6.7a4 4 0 0 0-4 3.6L2 14.6A2.6 2.6 0 0 0 6.6 16l1-2h8.8l1 2a2.6 2.6 0 0 0 4.6-1.4l-.7-6A4 4 0 0 0 17.3 5Z" ${stroke}/><path d="M6 12h4M8 10v4" ${stroke}/><path d="M15.5 11.5h.01M18.5 13h.01" ${stroke}/>` },
+  { x: 56, y: 16, s: 18, d: 0.5, dur: 7.8, cls: 'c-blue d-sm', svg: `<path d="M22 2L11 13" ${stroke}/><path d="M22 2l-7 20-4-9-9-4Z" ${stroke}/>` },
+  { x: 60, y: 90, s: 20, d: 0.4, dur: 6.9, cls: 'd-sm', svg: `<path d="M17 8h1a4 4 0 1 1 0 8h-1" ${stroke}/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" ${stroke}/>` },
+  { x: 40, y: 8, s: 14, d: 0.3, dur: 5.8, cls: 'd-sm', svg: `<path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5Z" ${stroke}/>` },
+  { x: 30, y: 92, s: 20, d: 0.3, dur: 8.6, cls: 'c-blue d-sm', svg: `<path d="M17.5 19a4.5 4.5 0 0 0 .38-8.98 7 7 0 0 0-13.1 2.1A4 4 0 0 0 6.5 19h11Z" ${stroke}/>` },
+  { x: 95, y: 8, s: 16, d: 0.9, dur: 6.1, svg: `<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" ${stroke}/><circle cx="12" cy="13" r="3.5" ${stroke}/>` },
+];
+---
+<div class="hero-icons" aria-hidden="true">
+  {icons.map((ic, i) => (
+    <span
+      class={`hero-icon ${ic.cls ?? ''}`}
+      data-depth={ic.d}
+      style={`left:${ic.x}%; top:${ic.y}%; width:${ic.s}px; height:${ic.s}px; animation-duration:${ic.dur}s; animation-delay:${(-i * 0.9).toFixed(1)}s;`}
+    ><svg viewBox="0 0 24 24" set:html={ic.svg} /></span>
+  ))}
+</div>
+
+<style>
+  .hero-icons {
+    position: absolute;
+    inset: 0;
+    z-index: 0;               /* 文案(z-index:1)与地球画布之下 */
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .hero-icon {
+    position: absolute;
+    color: rgba(42, 22, 13, 0.34);   /* 默认墨棕细线 */
+    animation-name: hero-bob;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    will-change: transform;
+  }
+  .hero-icon svg { display: block; width: 100%; height: 100%; }
+  .c-lav    { color: rgba(139, 120, 180, 0.62); }
+  .c-mint   { color: rgba(104, 164, 126, 0.6); }
+  .c-blue   { color: rgba(146, 176, 212, 0.68); }
+  .c-gold   { color: rgba(196, 156, 66, 0.55); }
+  .c-orange { color: rgba(222, 166, 86, 0.6); }
+
+  body.night .hero-icon           { color: rgba(242, 234, 217, 0.28); }
+  body.night .c-lav               { color: rgba(163, 148, 194, 0.5); }
+  body.night .c-mint              { color: rgba(124, 181, 144, 0.45); }
+  body.night .c-blue              { color: rgba(169, 192, 220, 0.5); }
+  body.night .c-gold              { color: rgba(240, 215, 140, 0.42); }
+  body.night .c-orange            { color: rgba(238, 190, 122, 0.45); }
+
+  @keyframes hero-bob {
+    from { transform: translateY(-6px) rotate(-4deg); }
+    to   { transform: translateY(7px)  rotate(5deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-icon { animation: none; }
+  }
+  /* 移动端文案占满宽度，藏起左侧几个图标，避免压住文字 */
+  @media (max-width: 720px) {
+    .hero-icon.d-sm { display: none; }
+  }
+</style>
+
+<script>
+  // 鼠标视差：按 data-depth 分层平移（用 translate 属性，与 bob 动画的 transform 叠加不冲突）
+  const fine = window.matchMedia('(pointer: fine)').matches;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const els = Array.from(document.querySelectorAll<HTMLElement>('.hero-icon'));
+  if (fine && !reduced && els.length) {
+    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, active = false;
+    const loop = () => {
+      cx += (tx - cx) * 0.06;
+      cy += (ty - cy) * 0.06;
+      for (const el of els) {
+        const d = parseFloat(el.dataset.depth || '0.5');
+        el.style.translate = `${(-cx * d * 18).toFixed(1)}px ${(-cy * d * 14).toFixed(1)}px`;
+      }
+      if (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001 || active) {
+        raf = requestAnimationFrame(loop);
+      } else {
+        raf = 0;
+      }
+    };
+    const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+    window.addEventListener('mousemove', (e) => {
+      tx = (e.clientX / window.innerWidth - 0.5) * 2;
+      ty = (e.clientY / window.innerHeight - 0.5) * 2;
+      active = true;
+      kick();
+      clearTimeout((kick as any)._t);
+      (kick as any)._t = setTimeout(() => { active = false; kick(); }, 120);
+    }, { passive: true });
+  }
+</script>

@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Globe from '../components/Globe.astro';
+import HeroIcons from '../components/HeroIcons.astro';
 import LangIcon from '../components/LangIcon.astro';
 import DustCanvas from '../components/DustCanvas.astro';
 import { SITE } from '../site.config';
@@ -20,6 +21,7 @@ const fmt = (d: Date) =>
   <!-- ================= Hero：全视口点阵地球 ================= -->
   <section class="hero">
     <Globe />
+    <HeroIcons />
     <div class="wrap hero-inner">
       <div class="hero-copy">
         <p class="mono-meta" style="margin-bottom: 1.5rem;">Personal Site — 主站</p>
