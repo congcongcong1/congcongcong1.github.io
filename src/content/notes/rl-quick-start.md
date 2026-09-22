@@ -10,7 +10,7 @@ tags: [强化学习]
 
 入门强化学习最开始可以花费5分钟时间熟悉**基本概念**，不需要死记硬背，仅需要把本节当作字典查询即可，大家可以快速预览后直接进入下一节，了解完代码流程后再返回来理解。
 
-![image\.png](/notes-assets/rl-quick-start/image.png)
+![image](/notes-assets/rl-quick-start/image.jpg)
 
 ## Basic elements
 

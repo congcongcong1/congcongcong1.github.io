@@ -1285,6 +1285,86 @@ body.night .shelf-play-btn {
 .shelf-comment .prose p { font-size: 0.92rem; color: var(--ink-80); margin: 0.4rem 0; }
 .shelf-empty { color: var(--ink-40); font-style: italic; font-size: 0.92rem; }
 
+/* ---------- 藏书阁：通栏书卡，封面立起 + 衬线引文 ---------- */
+.shelf-book-grid { grid-template-columns: 1fr; }
+.shelf-book {
+  display: grid;
+  grid-template-columns: 6.8rem 1fr;
+  gap: 1.7rem;
+  align-items: center;
+  padding: 1.5rem 1.8rem;
+}
+.shelf-book-cover {
+  position: relative;
+  align-self: center;
+  perspective: 600px;
+}
+.shelf-book-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 4px 10px 10px 4px;   /* 书脊侧微圆 */
+  box-shadow:
+    -2px 0 0 rgba(42, 22, 13, 0.12) inset,
+    0 10px 22px rgba(42, 22, 13, 0.22),
+    0 2px 6px rgba(42, 22, 13, 0.12);
+  transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
+  transform-origin: left center;
+}
+.shelf-book:hover .shelf-book-cover img {
+  transform: rotateY(-9deg) translateY(-4px);
+  box-shadow:
+    -2px 0 0 rgba(42, 22, 13, 0.12) inset,
+    14px 22px 40px rgba(42, 22, 13, 0.26),
+    0 4px 10px rgba(42, 22, 13, 0.14);
+}
+.shelf-book-info { min-width: 0; }
+.shelf-book-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.7rem;
+}
+.shelf-book-head h3 {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 400;
+}
+.shelf-book-head .shelf-headmeta { margin-left: auto; }
+.shelf-book-quote {
+  position: relative;
+  margin: 0.9rem 0 0;
+  padding-left: 1.4rem;
+  border-left: none;
+  font-family: var(--serif);
+  font-size: 1.06rem;
+  line-height: 1.85;
+  color: var(--ink-60);
+}
+.shelf-book-quote::before {
+  content: '“';
+  position: absolute;
+  left: -0.35rem;
+  top: -1.35rem;
+  font-size: 3.2rem;
+  line-height: 1;
+  color: var(--marker, rgba(238, 190, 122, 0.55));
+  font-family: var(--serif);
+  pointer-events: none;
+}
+.shelf-book-quote p { margin: 0; }
+body.night .shelf-book-cover img {
+  box-shadow:
+    -2px 0 0 rgba(0, 0, 0, 0.3) inset,
+    0 10px 24px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+@media (max-width: 560px) {
+  .shelf-book { grid-template-columns: 5.2rem 1fr; gap: 1.1rem; padding: 1.1rem 1.15rem; }
+  .shelf-book-head h3 { font-size: 1.15rem; }
+}
+
 @media (max-width: 720px) {
   .shelf-grid { grid-template-columns: 1fr; }
 }

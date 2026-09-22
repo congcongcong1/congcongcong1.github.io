@@ -65,9 +65,28 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
             {list.length === 0 ? (
               <p class="shelf-empty" style="margin-top: 1.2rem;">这一格还空着 —— 等它慢慢长出来……</p>
             ) : (
-            <div class="shelf-grid">
+            <div class:list={['shelf-grid', { 'shelf-book-grid': k === '书' }]}>
               {list.map((e) => {
                 const { Content, hasBody } = findEntry(e.id);
+                if (e.data.kind === '书') return (
+                  <article class="shelf-card shelf-book" id={e.id}>
+                    <div class="shelf-book-cover">
+                      <img src={e.data.images[0]} alt={`《${e.data.title}》封面`} loading="lazy" decoding="async" />
+                    </div>
+                    <div class="shelf-book-info">
+                      <div class="shelf-book-head">
+                        <h3>《{e.data.title}》</h3>
+                        {e.data.alt && <span class="shelf-alt">{e.data.alt}</span>}
+                        <span class="shelf-headmeta">
+                          <span class="shelf-chip"><span class="dot"></span>{e.data.status}</span>
+                        </span>
+                      </div>
+                      <blockquote class="shelf-book-quote">
+                        <Content />
+                      </blockquote>
+                    </div>
+                  </article>
+                );
                 return (
                   <article class="shelf-card" data-kind={e.data.kind} id={e.id}>
                     {e.data.images.length > 0 && (
