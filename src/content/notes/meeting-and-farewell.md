@@ -2,7 +2,7 @@
 title: 相遇与告别
 date: 2026-09-22
 description: 关于相聚、离别与「你的存在」的五段摘抄——祝我们永远都有重逢。
-tags: [随笔, 摘抄]
+tags: [随笔]
 draft: false
 ---
 

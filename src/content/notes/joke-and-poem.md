@@ -2,7 +2,7 @@
 title: 一则是梗，一则是诗
 date: 2026-09-22
 description: 分手攻略（？）与《抓落叶》的结尾论——备忘录里最长的两则，奇文共赏。
-tags: [随笔, 有趣]
+tags: [随笔]
 draft: false
 ---
 

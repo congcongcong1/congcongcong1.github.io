@@ -2,7 +2,7 @@
 title: 生活给的参考答案
 date: 2026-09-22
 description: 六段在疲倦时值得翻出来看看的话——关于梦想、结局与理解。
-tags: [随笔, 摘抄]
+tags: [随笔]
 draft: false
 ---
 

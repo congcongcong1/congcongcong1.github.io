@@ -2,7 +2,7 @@
 title: A Quick Start to RL
 date: 2026-09-21
 description: 强化学习快速入门：基本概念速览 + PPO / SAC / REINFORCE 代码实践与配套资料。
-tags: [强化学习, 笔记]
+tags: [强化学习]
 ---
 
 
