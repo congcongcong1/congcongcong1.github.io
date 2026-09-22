@@ -8,4 +8,4 @@ date: 2026-09-22
 images: []
 ---
 
-（先占个位置，乐评慢慢长出来……）
+> And when they let you down, you'll get up off the ground, 'cause morning rolls around and it's another day of sun.

@@ -3,6 +3,7 @@ title: 雀魂
 alt: Mahjong Soul
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/1329410/
 rating: 7
 hours: 75
 date: 2025-09-14

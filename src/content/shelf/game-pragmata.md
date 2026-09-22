@@ -3,6 +3,7 @@ title: 识质存在
 alt: PRAGMATA
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/3357650/
 rating: 9.8
 hours: 19.2
 date: 2026-09-20

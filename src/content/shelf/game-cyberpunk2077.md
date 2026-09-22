@@ -3,6 +3,7 @@ title: 赛博朋克2077
 alt: Cyberpunk 2077
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/1091500/
 rating: 9
 hours: 200
 date: 2025-07-20

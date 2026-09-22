@@ -3,6 +3,7 @@ title: 天国：拯救2
 alt: "Kingdom Come: Deliverance II"
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/1771300/
 rating: 9.4
 hours: 100.1
 date: 2026-05-10

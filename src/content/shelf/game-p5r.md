@@ -3,6 +3,7 @@ title: 女神异闻录5皇家版
 alt: P5R
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/1687950/
 rating: 9.5
 hours: 138.6
 date: 2025-04-12

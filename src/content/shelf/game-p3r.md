@@ -3,6 +3,7 @@ title: 女神异闻录3 Reload
 alt: P3R
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/2161700/
 rating: 8
 hours: 96.2
 date: 2026-03-22

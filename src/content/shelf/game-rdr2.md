@@ -3,6 +3,7 @@ title: 荒野大镖客：救赎2
 alt: Red Dead Redemption 2
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/1174180/
 rating: 9.7
 hours: 116.6
 date: 2025-05-02

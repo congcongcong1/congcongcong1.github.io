@@ -3,6 +3,7 @@ title: 最后生还者
 alt: The Last of Us Part I & II
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/1888930/
 rating: 8.5
 hours: 49.9
 date: 2025-11-05

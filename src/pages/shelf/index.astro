@@ -118,7 +118,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                             {e.data.kind === '音乐' ? (
                               <a class="shelf-play-btn" href={e.data.link} target="_blank" rel="noopener">▶ 去网易云听</a>
                             ) : (
-                              <a class="uline" href={e.data.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">{e.data.kind === '电影' ? '豆瓣 ↗' : 'seeduck ↗'}</a>
+                              <a class="uline" href={e.data.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">{e.data.kind === '电影' ? '豆瓣 ↗' : e.data.kind === '游戏' ? 'Steam ↗' : 'seeduck ↗'}</a>
                             )}
                           </>
                         )}

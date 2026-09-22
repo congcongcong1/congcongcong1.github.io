@@ -3,6 +3,7 @@ title: 战神
 alt: God of War 4 & 5
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/1593500/
 rating: 9.5
 hours: 120
 date: 2026-08-15

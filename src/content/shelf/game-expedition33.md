@@ -3,6 +3,7 @@ title: 光与影：33号远征队
 alt: Clair Obscur
 kind: 游戏
 status: 玩过
+link: https://store.steampowered.com/app/1903340/
 rating: 9
 hours: 56.6
 date: 2026-07-02
