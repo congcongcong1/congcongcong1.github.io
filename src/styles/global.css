@@ -276,20 +276,52 @@ body {
   transition: color 0.3s var(--ease-out);
 }
 .tag-link:hover { color: var(--ink); }
-.topic-block { margin-bottom: 3rem; }
+.topic-block {
+  margin: 1.5rem 0 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--ink-10);
+  border-radius: 16px;
+  padding: 1.2rem 1.4rem 0.6rem;
+}
+.topic-block::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--topic-color, var(--ink-20));
+}
+.topic-block:nth-child(5n+1) { --topic-color: #a394c2; }
+.topic-block:nth-child(5n+2) { --topic-color: #7cb590; }
+.topic-block:nth-child(5n+3) { --topic-color: #a9c0dc; }
+.topic-block:nth-child(5n+4) { --topic-color: #e0c26a; }
+.topic-block:nth-child(5n+5) { --topic-color: #eebe7a; }
+.topic-block .index-row:last-of-type { border-bottom: none; }
 .topic-head {
   display: flex;
   align-items: baseline;
+  justify-content: space-between;
   gap: 1rem;
   margin-bottom: 0.5rem;
 }
 .topic-tag {
   font-family: var(--serif);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   color: var(--ink);
   text-decoration: none;
 }
-.topic-title { font-family: var(--serif); }
+.topic-tag:hover { color: var(--topic-color, var(--ink)); }
+.topic-title {
+  font-family: var(--serif);
+  background: var(--paper-sunken);
+  border: 1px solid var(--ink-10);
+  padding: 0.12em 0.55em;
+  border-radius: 10px;
+}
+body.night .topic-block { background: #241812; }
 
 /* ---------- 深底区块（关于 / 联系） ---------- */
 .on-dark {
