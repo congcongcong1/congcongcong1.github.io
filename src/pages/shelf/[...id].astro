@@ -1,0 +1,60 @@
+---
+import Base from '../../layouts/Base.astro';
+import DustCanvas from '../../components/DustCanvas.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const all = await getCollection('shelf');
+  return all.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const fmt = (dt: Date) => `${dt.getFullYear()} 年 ${dt.getMonth() + 1} 月 ${dt.getDate()} 日`;
+const isNow = ['在看', '在听', '在玩', '想去'].includes(d.status);
+---
+
+<Base title={`${d.title} · 影音 · kaiser`} description={`「${d.title}」的${d.kind}档案：攻略、照片与感想。`}>
+  <section class="about-hero">
+    <div class="wrap">
+      <p class="mono-meta" style="margin-bottom: 1.5rem;">{d.kind} — 精神食粮架</p>
+      <h1 style="font-family: var(--serif); font-weight: 400; font-size: clamp(2.2rem, 4.5vw, 3.6rem); line-height: 1.15; letter-spacing: -0.02em;">
+        {d.title}{d.alt && d.kind === '旅行' && <span class="shelf-alt" style="font-size: 0.4em; letter-spacing: 0.08em;"> / {d.alt}</span>}
+      </h1>
+      <p class="mono-meta" style="margin-top: 1rem;">
+        <span class:list={['shelf-chip', { now: isNow }]}>
+          <span class="dot"></span>{d.status}
+        </span>
+        {' · '}
+        {fmt(d.date)}
+        {d.images.length > 0 && ` · ${d.images.length} 张照片`}
+        {d.link && (
+          <>
+            {' · '}
+            <a class="uline" href={d.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">相关链接 ↗</a>
+          </>
+        )}
+      </p>
+    </div>
+  </section>
+
+  <div class="dust-zone">
+    <DustCanvas />
+    <section class="wrap" style="padding-top: clamp(2rem, 5vw, 3rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
+      {d.images.length > 0 && (
+        <div class="travel-gallery">
+          {d.images.map((src) => (
+            <img src={src} alt={`${d.title}的照片`} loading="lazy" />
+          ))}
+        </div>
+      )}
+      <div class="prose travel-body">
+        <Content />
+      </div>
+      <p style="margin-top: 2.5rem;">
+        <a class="uline mono-meta" href="/shelf/" style="text-transform: none; letter-spacing: 0.06em;">← 返回精神食粮架</a>
+      </p>
+    </section>
+  </div>
+</Base>

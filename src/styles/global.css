@@ -1202,3 +1202,39 @@ body.night .card-lang { background: #241812; }
 body.night .shelf-card { background: #241812; }
 body.night .shelf-card:hover { box-shadow: 0 16px 34px rgba(0, 0, 0, 0.5); }
 body.night .shelf-chip { background: #241812; }
+
+/* ---------- 旅行详情页 ---------- */
+.shelf-card[data-kind="旅行"] { --kind-color: #8fbfb0; }
+.travel-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 0 0 2rem;
+}
+.travel-gallery img {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--ink-10);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+.travel-gallery img:first-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 21 / 9;
+}
+.travel-body { max-width: 42em; }
+.travel-body h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.5rem;
+  margin-top: 2rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--ink-10);
+}
+@media (max-width: 720px) {
+  .travel-gallery { grid-template-columns: 1fr; }
+  .travel-gallery img:first-child { aspect-ratio: 16 / 9; }
+}
+
+.shelf-travel-cta { font-size: 0.92rem; }

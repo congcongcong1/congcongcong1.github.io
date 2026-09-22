@@ -4,14 +4,15 @@ import DustCanvas from '../../components/DustCanvas.astro';
 import { getCollection, render } from 'astro:content';
 
 const all = await getCollection('shelf');
-const kinds = ['韩剧', '电影', '书', '音乐', '游戏'];
-const kindUnit: Record<string, string> = { 韩剧: '部', 电影: '部', 书: '本', 音乐: '首', 游戏: '个' };
+const kinds = ['韩剧', '电影', '书', '音乐', '游戏', '旅行'];
+const kindUnit: Record<string, string> = { 韩剧: '部', 电影: '部', 书: '本', 音乐: '首', 游戏: '个', 旅行: '座' };
 const kindLabel: Record<string, string> = {
   韩剧: '在追的剧',
   电影: '看过的电影',
   书: '读过的书',
   音乐: '循环的歌',
   游戏: '玩过的游戏',
+  旅行: '走过的地方',
 };
 const byKind = (k: string) =>
   all.filter((e) => e.data.kind === k).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -75,7 +76,14 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                     )}
                     <div class="shelf-body">
                       <div class="shelf-head">
-                        <h3>《{e.data.title}》{e.data.alt && <span class="shelf-alt">/ {e.data.alt}</span>}</h3>
+                        <h3>
+                          {e.data.kind === '旅行' ? (
+                            <a class="uline" href={`/shelf/${e.id}/`}>《{e.data.title}》</a>
+                          ) : (
+                            <>《{e.data.title}》</>
+                          )}
+                          {e.data.alt && <span class="shelf-alt">/ {e.data.alt}</span>}
+                        </h3>
                         <span class="shelf-headmeta">
                           <span class:list={['shelf-chip', { now: isNow(e.data.status) }]}>
                             <span class="dot"></span>{e.data.status}
@@ -94,11 +102,19 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                         )}
                       </p>
                       <div class="shelf-comment">
-                        <p class="mono-meta" style="margin-bottom: 0.4rem;">碎碎念</p>
-                        {hasBody ? (
-                          <div class="prose"><Content /></div>
+                        {e.data.kind === '旅行' ? (
+                          <p class="shelf-travel-cta">
+                            <a class="uline" href={`/shelf/${e.id}/`}>点开这座城：攻略 · 照片 · 感想 →</a>
+                          </p>
                         ) : (
-                          <p class="shelf-empty">（先占个位置，碎碎念慢慢长出来……）</p>
+                          <>
+                            <p class="mono-meta" style="margin-bottom: 0.4rem;">碎碎念</p>
+                            {hasBody ? (
+                              <div class="prose"><Content /></div>
+                            ) : (
+                              <p class="shelf-empty">（先占个位置，碎碎念慢慢长出来……）</p>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
