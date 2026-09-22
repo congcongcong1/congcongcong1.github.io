@@ -1,6 +1,7 @@
 ---
-// 内容区背景：缓慢漂浮的星尘粒子 + 鼠标视差 + 淡星座连线
-// 灵感来自星空的呼吸感；颜色取站点调色板（墨棕 / 薰衣草 / 薄荷），低透明度不干扰阅读
+// 内容区背景：失焦光斑（bokeh）+ 极细闪烁微尘 + 鼠标视差
+// 审美取向：大光圈镜头下的午后光雾——安静、温暖、不打扰阅读
+// 光斑预渲染为渐变精灵，性能好；颜色取站点调色板，低透明度
 ---
 
 <canvas class="dust-canvas" aria-hidden="true"></canvas>
@@ -13,25 +14,49 @@
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const PALETTE = [
-      [42, 22, 13],    // 墨棕
-      [42, 22, 13],
       [163, 148, 194], // 薰衣草
       [124, 181, 144], // 薄荷
       [169, 192, 220], // 粉末蓝
+      [240, 215, 140], // 麦金
+      [238, 190, 122], // 蜂蜜橙
     ];
 
-    interface Dot {
+    // 预渲染光斑精灵：径向渐变，边缘自然虚化
+    const SPRITE = 256;
+    const sprites = PALETTE.map(([r, g, b]) => {
+      const c = document.createElement('canvas');
+      c.width = c.height = SPRITE;
+      const sctx = c.getContext('2d')!;
+      const grad = sctx.createRadialGradient(SPRITE / 2, SPRITE / 2, 0, SPRITE / 2, SPRITE / 2, SPRITE / 2);
+      grad.addColorStop(0, `rgba(${r},${g},${b},1)`);
+      grad.addColorStop(0.45, `rgba(${r},${g},${b},0.32)`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      sctx.fillStyle = grad;
+      sctx.fillRect(0, 0, SPRITE, SPRITE);
+      return c;
+    });
+
+    interface Orb {
       x: number; y: number; r: number;
-      vx: number; vy: number;
-      depth: number; phase: number; speed: number;
+      ax: number; ay: number;          // 漂移振幅
+      phase: number; speed: number;
+      depth: number;                   // 视差深度
+      sprite: number;
+      alpha: number;
+    }
+    interface Mote {
+      x: number; y: number; r: number;
+      phase: number; speed: number;
+      depth: number;
       color: number[];
       baseAlpha: number;
     }
 
-    let dots: Dot[] = [];
+    let orbs: Orb[] = [];
+    let motes: Mote[] = [];
     let w = 0, h = 0, dpr = 1;
-    let mx = 0, my = 0;       // 鼠标相对中心，平滑后
-    let tmx = 0, tmy = 0;     // 目标
+    let mx = 0, my = 0;
+    let tmx = 0, tmy = 0;
     let raf = 0;
     let running = false;
     let time = 0;
@@ -49,67 +74,63 @@
     }
 
     function seed() {
-      const n = Math.max(48, Math.min(140, Math.round((w * h) / 11000)));
-      dots = Array.from({ length: n }, () => ({
+      const area = w * h;
+      const orbN = Math.max(9, Math.min(16, Math.round(area / 90000)));
+      const moteN = Math.max(26, Math.min(64, Math.round(area / 20000)));
+      orbs = Array.from({ length: orbN }, (_, i) => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        r: 0.7 + Math.random() * 1.3,
-        vx: (Math.random() - 0.5) * 0.14,
-        vy: (Math.random() - 0.5) * 0.14,
-        depth: 0.3 + Math.random() * 0.7,
+        r: 50 + Math.random() * 110 + (i === 0 ? 90 : 0), // 留一颗特别大的压场
+        ax: 20 + Math.random() * 40,
+        ay: 14 + Math.random() * 30,
         phase: Math.random() * Math.PI * 2,
-        speed: 0.4 + Math.random() * 0.8,
-        color: PALETTE[(Math.random() * PALETTE.length) | 0],
-        baseAlpha: 0.16 + Math.random() * 0.22,
+        speed: 0.08 + Math.random() * 0.12,
+        depth: 0.25 + Math.random() * 0.75,
+        sprite: (Math.random() * PALETTE.length) | 0,
+        alpha: 0.08 + Math.random() * 0.07,
+      }));
+      motes = Array.from({ length: moteN }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: 0.6 + Math.random() * 1.1,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 0.9,
+        depth: 0.3 + Math.random() * 0.7,
+        color: Math.random() < 0.6 ? [42, 22, 13] : PALETTE[(Math.random() * PALETTE.length) | 0],
+        baseAlpha: 0.1 + Math.random() * 0.16,
       }));
     }
 
     function frame() {
       time += 0.016;
-      mx += (tmx - mx) * 0.04;
-      my += (tmy - my) * 0.04;
+      mx += (tmx - mx) * 0.045;
+      my += (tmy - my) * 0.045;
       ctx.clearRect(0, 0, w, h);
 
-      // 星座连线（距离近才连，极淡）
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < dots.length; i++) {
-        const a = dots[i];
-        const ax = a.x + mx * a.depth * 14;
-        const ay = a.y + my * a.depth * 14;
-        for (let j = i + 1; j < dots.length; j++) {
-          const b = dots[j];
-          const bx = b.x + mx * b.depth * 14;
-          const by = b.y + my * b.depth * 14;
-          const dx = ax - bx, dy = ay - by;
-          const d2 = dx * dx + dy * dy;
-          if (d2 < 8100) { // 90px
-            const alpha = (1 - Math.sqrt(d2) / 90) * 0.1;
-            ctx.strokeStyle = `rgba(42, 22, 13, ${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(ax, ay);
-            ctx.lineTo(bx, by);
-            ctx.stroke();
-          }
-        }
+      const night = document.body.classList.contains('night');
+      const nightBoost = night ? 1.55 : 1;
+
+      // 光斑：缓慢的正弦漂移 + 呼吸明灭 + 视差
+      for (const o of orbs) {
+        const ox = o.x + Math.sin(time * o.speed + o.phase) * o.ax + mx * o.depth * 22;
+        const oy = o.y + Math.cos(time * o.speed * 0.8 + o.phase) * o.ay + my * o.depth * 22;
+        const breathe = 0.8 + 0.2 * Math.sin(time * 0.35 + o.phase * 1.7);
+        ctx.globalAlpha = Math.min(o.alpha * breathe * nightBoost, 0.22);
+        const d = o.r * 2;
+        ctx.drawImage(sprites[o.sprite], ox - o.r, oy - o.r, d, d);
       }
 
-      // 星尘点：缓慢漂移 + 呼吸闪烁
-      for (const d of dots) {
-        if (!reduced) {
-          d.x += d.vx;
-          d.y += d.vy;
-          if (d.x < -4) d.x = w + 4;
-          if (d.x > w + 4) d.x = -4;
-          if (d.y < -4) d.y = h + 4;
-          if (d.y > h + 4) d.y = -4;
-        }
-        const twinkle = reduced ? 1 : 0.55 + 0.45 * Math.sin(time * d.speed + d.phase);
-        const alpha = d.baseAlpha * twinkle;
-        ctx.fillStyle = `rgba(${d.color[0]}, ${d.color[1]}, ${d.color[2]}, ${alpha})`;
+      // 微尘：原地闪烁，不漂移
+      for (const m of motes) {
+        const twinkle = reduced ? 1 : 0.5 + 0.5 * Math.sin(time * m.speed + m.phase);
+        const a = m.baseAlpha * twinkle * (night ? 1.7 : 1);
+        ctx.globalAlpha = Math.min(a, 0.4);
+        ctx.fillStyle = `rgb(${m.color[0]},${m.color[1]},${m.color[2]})`;
         ctx.beginPath();
-        ctx.arc(d.x + mx * d.depth * 14, d.y + my * d.depth * 14, d.r, 0, Math.PI * 2);
+        ctx.arc(m.x + mx * m.depth * 14, m.y + my * m.depth * 14, m.r, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.globalAlpha = 1;
 
       if (running) raf = requestAnimationFrame(frame);
     }
@@ -136,6 +157,6 @@
     }, { rootMargin: '80px' }).observe(parent);
 
     resize();
-    if (reduced) frame(); // 减少动态偏好：只画一帧静态星尘
+    if (reduced) frame(); // 减少动态偏好：只画一帧静态光雾
   }
 </script>
