@@ -75,7 +75,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                         class:list={['shelf-media', { 'shelf-poster': e.data.kind === '电影' }]}
                         style={e.data.kind === '电影' ? `background-image:url('${e.data.images[0]}')` : undefined}
                       >
-                        <img src={e.data.images[0]} alt={`《${e.data.title}》截图`} loading="lazy" />
+                        <img src={e.data.images[0]} alt={`《${e.data.title}》截图`} loading="lazy" decoding="async" />
                       </div>
                     )}
                     <div class="shelf-body">
