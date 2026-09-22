@@ -26,7 +26,7 @@ const entries = await Promise.all(
 const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
 ---
 
-<Base title={`影音 · ${'kaiser'}`} description="精神食粮影音架：韩剧、电影、书、音乐、游戏与碎碎念。">
+<Base title={`食粮 · ${'kaiser'}`} description="精神食粮架：韩剧、电影、书、音乐、游戏、旅行与碎碎念。">
   <section class="about-hero">
     <div class="wrap">
       <p class="mono-meta" style="margin-bottom: 1.5rem;">Media Shelf — 精神食粮</p>
@@ -43,26 +43,28 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
     <DustCanvas />
     <section class="wrap" style="padding-top: clamp(2rem, 5vw, 3rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
 
-      <!-- 统计条 -->
+      <!-- 统计条：点击任意一格跳转到对应分区 -->
       <div class="shelf-stats">
         {kinds.map((k) => (
-          <div>
+          <a class="shelf-stat-link" href={`#shelf-${k}`}>
             <span class="shelf-stats-num">{all.filter((e) => e.data.kind === k).length}</span>
             <span class="mono-meta">{kindUnit[k]}{k === '音乐' ? '歌' : k}</span>
-          </div>
+          </a>
         ))}
       </div>
 
-      <!-- 五个分区 -->
+      <!-- 六个分区（空格子也占位，等它慢慢长出来） -->
       {kinds.map((k) => {
         const list = byKind(k);
-        if (list.length === 0) return null;
         return (
-          <div style="margin-top: clamp(2.5rem, 6vw, 4rem);">
+          <div class="shelf-anchor" id={`shelf-${k}`} style="margin-top: clamp(2.5rem, 6vw, 4rem);">
             <div class="section-head">
               <span class="mono-meta">{k} — {list.length} {kindUnit[k]}</span>
               <h2 set:html={kindLabel[k]} />
             </div>
+            {list.length === 0 ? (
+              <p class="shelf-empty" style="margin-top: 1.2rem;">这一格还空着 —— 等它慢慢长出来……</p>
+            ) : (
             <div class="shelf-grid">
               {list.map((e) => {
                 const { Content, hasBody } = findEntry(e.id);
@@ -129,6 +131,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                 );
               })}
             </div>
+            )}
           </div>
         );
       })}
