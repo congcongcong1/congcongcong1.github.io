@@ -1567,3 +1567,123 @@ body.night .shelf-chip { background: #241812; }
   transition: width 1.2s var(--ease-out);
 }
 .shelf-stars-num { margin-left: 0.45rem; color: var(--ink-60); }
+
+/* ---------- 拾光架图片灯箱 ---------- */
+.shelf-media.has-gallery { cursor: zoom-in; }
+.shelf-media-badge {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  color: #fdfaf3;
+  background: rgba(30, 18, 10, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+  pointer-events: none;
+}
+.shelf-media-badge svg { width: 0.95rem; height: 0.95rem; }
+.shelf-media.has-gallery:hover .shelf-media-badge,
+.shelf-media.has-gallery:focus-within .shelf-media-badge {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (pointer: coarse) {
+  /* 触屏没有悬停，徽标常显 */
+  .shelf-media-badge { opacity: 1; transform: none; }
+}
+
+.shelf-lb {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(22, 13, 8, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s var(--ease-out), visibility 0.3s;
+}
+.shelf-lb.open { opacity: 1; visibility: visible; }
+.shelf-lb-stage {
+  margin: 0;
+  max-width: min(92vw, 1200px);
+  text-align: center;
+}
+.shelf-lb-stage img {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 12px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+  transition: transform 0.25s var(--ease-out), opacity 0.25s var(--ease-out);
+}
+.shelf-lb-cap {
+  margin-top: 0.9rem;
+  color: rgba(253, 250, 243, 0.85);
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+}
+.shelf-lb-count {
+  position: absolute;
+  bottom: 1.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.15em;
+  color: rgba(253, 250, 243, 0.75);
+}
+.shelf-lb-close {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.3rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(253, 250, 243, 0.25);
+  background: rgba(253, 250, 243, 0.08);
+  color: #fdfaf3;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.25s var(--ease-out);
+}
+.shelf-lb-close:hover { background: rgba(253, 250, 243, 0.2); }
+.shelf-lb-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid rgba(253, 250, 243, 0.25);
+  background: rgba(253, 250, 243, 0.08);
+  color: #fdfaf3;
+  font-size: 1.9rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.25s var(--ease-out);
+}
+.shelf-lb-nav:hover { background: rgba(253, 250, 243, 0.2); }
+.shelf-lb-nav.prev { left: 1.3rem; }
+.shelf-lb-nav.next { right: 1.3rem; }
+.shelf-lb-nav[disabled] { display: none; }
+@media (max-width: 640px) {
+  .shelf-lb-nav.prev { left: 0.5rem; }
+  .shelf-lb-nav.next { right: 0.5rem; }
+  .shelf-lb-nav { width: 44px; height: 44px; font-size: 1.5rem; }
+  .shelf-lb-stage img { max-height: 68vh; }
+}
