@@ -7,12 +7,20 @@ const all = await getCollection('shelf');
 const kinds = ['韩剧', '电影', '书', '音乐', '游戏', '旅行'];
 const kindUnit: Record<string, string> = { 韩剧: '部', 电影: '部', 书: '本', 音乐: '首', 游戏: '个', 旅行: '座' };
 const kindLabel: Record<string, string> = {
-  韩剧: '在追的剧',
-  电影: '看过的电影',
-  书: '读过的书',
-  音乐: '循环的歌',
-  游戏: '玩过的游戏',
-  旅行: '走过的地方',
+  韩剧: '未完<span class="about-marker">待续</span>',
+  电影: '银幕<span class="about-marker">往事</span>',
+  书: '纸上<span class="about-marker">山河</span>',
+  音乐: '声生<span class="about-marker">不息</span>',
+  游戏: '游戏<span class="about-marker">人间</span>',
+  旅行: '步履<span class="about-marker">不停</span>',
+};
+const kindMarker: Record<string, string> = {
+  韩剧: 'rgba(163, 148, 194, 0.38)',
+  电影: 'rgba(169, 192, 220, 0.42)',
+  书: 'rgba(124, 181, 144, 0.38)',
+  音乐: 'rgba(240, 215, 140, 0.55)',
+  游戏: 'rgba(238, 190, 122, 0.45)',
+  旅行: 'rgba(233, 170, 150, 0.38)',
 };
 const byKind = (k: string) =>
   all.filter((e) => e.data.kind === k).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -54,13 +62,13 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
       </div>
 
       <!-- 六个分区（空格子也占位，等它慢慢长出来） -->
-      {kinds.map((k) => {
+      {kinds.map((k, ki) => {
         const list = byKind(k);
         return (
           <div class="shelf-anchor" id={`shelf-${k}`} style="margin-top: clamp(2.5rem, 6vw, 4rem);">
             <div class="section-head">
               <span class="mono-meta">{k} — {list.length} {kindUnit[k]}</span>
-              <h2 set:html={kindLabel[k]} />
+              <h2 class="shelf-title" set:html={kindLabel[k]} style={`--marker: ${kindMarker[k]}; --mdelay: ${0.15 + ki * 0.14}s`} />
             </div>
             {list.length === 0 ? (
               <p class="shelf-empty" style="margin-top: 1.2rem;">这一格还空着 —— 等它慢慢长出来……</p>
