@@ -16,7 +16,7 @@ const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.get
   <section class="wrap" style="padding-top: clamp(3rem, 8vw, 5.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
     <div class="section-head">
       <span class="mono-meta">Archive — 全部笔记</span>
-      <h2>字里<span class="about-marker">行间</span></h2>
+      <h1>字里<span class="about-marker">行间</span></h1>
     </div>
     {notes.length === 0 && (
       <p style="padding: 3rem 0; color: var(--ink-60);">还没有笔记，去 src/content/notes/ 下建一个 Markdown 文件吧。</p>
@@ -31,7 +31,7 @@ const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.get
             <p class="row-sub mono-meta" style="margin-top: 0.4rem;">{note.data.tags.map((t, ti) => (
               <Fragment>
                 {ti > 0 && '  '}
-                <a class="tag-link" href={`/topics/${encodeURIComponent(t)}/`}>#{t}</a>
+                <span class="tag-link">#{t}</span>
               </Fragment>
             ))}</p>
           )}

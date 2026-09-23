@@ -88,8 +88,8 @@
     /* ---------- 5) 夜间星空模式 ---------- */
     const nightBtn = document.getElementById('night-toggle');
     if (nightBtn) {
-      const moon = nightBtn.querySelector('.icon-moon');
-      const sun = nightBtn.querySelector('.icon-sun');
+      const moon = nightBtn.querySelector('#night-icon-moon');
+      const sun = nightBtn.querySelector('#night-icon-sun');
       const meta = document.querySelector('meta[name="theme-color"]');
       const applyNight = (on) => {
         document.body.classList.toggle('night', on);
