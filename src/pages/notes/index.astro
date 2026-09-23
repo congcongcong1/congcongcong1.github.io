@@ -18,6 +18,7 @@ const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.get
       <span class="mono-meta">Archive — 全部笔记</span>
       <h1>字里<span class="about-marker">行间</span></h1>
     </div>
+    <p class="notes-tools"><a class="uline" href="/search/">搜索站内内容 →</a><a class="uline" href="/rss.xml">订阅 RSS ↗</a></p>
     {notes.length === 0 && (
       <p style="padding: 3rem 0; color: var(--ink-60);">还没有笔记，去 src/content/notes/ 下建一个 Markdown 文件吧。</p>
     )}

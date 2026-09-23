@@ -1,0 +1,71 @@
+---
+import Base from '../../layouts/Base.astro';
+import DustCanvas from '../../components/DustCanvas.astro';
+---
+
+<Base title="搜索 · kaiser" description="搜索站内笔记、拾光与项目。">
+  <div class="dust-zone">
+    <DustCanvas />
+    <section class="wrap search-page">
+      <div class="section-head">
+        <span class="mono-meta">Find — 站内搜索</span>
+        <h1>寻找<span class="about-marker">内容</span></h1>
+      </div>
+      <form id="site-search-form" class="site-search-form" role="search">
+        <label for="site-search-input" class="sr-only">搜索笔记、拾光与项目</label>
+        <input id="site-search-input" name="q" type="search" placeholder="搜索笔记、拾光与项目" autocomplete="off" />
+        <button type="submit" aria-label="搜索">搜索</button>
+      </form>
+      <p id="site-search-status" class="search-status" role="status">输入关键词开始搜索。</p>
+      <div id="site-search-results" class="search-results"></div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { searchIndex } from '../../lib/site-search';
+  import type { SiteEntry } from '../../lib/site-index';
+
+  const form = document.getElementById('site-search-form') as HTMLFormElement;
+  const input = document.getElementById('site-search-input') as HTMLInputElement;
+  const results = document.getElementById('site-search-results')!;
+  const status = document.getElementById('site-search-status')!;
+  let entries: SiteEntry[] = [];
+
+  function show(query: string) {
+    results.replaceChildren();
+    if (!query.trim()) { status.textContent = '输入关键词开始搜索。'; return; }
+    if (!entries.length) { status.textContent = '站内索引暂时不可用，请稍后重试。'; return; }
+    const hits = searchIndex(entries, query, 30);
+    const unique = new Map();
+    for (const hit of hits) if (!unique.has(hit.entry.id)) unique.set(hit.entry.id, hit);
+    status.textContent = unique.size ? `找到 ${unique.size} 条相关内容` : '没有找到相关内容，试试其他关键词。';
+    for (const { entry, section } of unique.values()) {
+      const link = document.createElement('a');
+      link.className = 'search-result';
+      link.href = section.url;
+      const kind = document.createElement('span');
+      kind.className = 'mono-meta';
+      kind.textContent = { note: '笔记', shelf: '拾光', project: '项目' }[entry.kind];
+      const title = document.createElement('strong');
+      title.textContent = entry.title;
+      const excerpt = document.createElement('span');
+      excerpt.textContent = entry.description || section.text.slice(0, 110);
+      link.append(kind, title, excerpt);
+      results.append(link);
+    }
+  }
+
+  const initial = new URL(location.href).searchParams.get('q') || '';
+  input.value = initial;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const query = input.value.trim();
+    history.replaceState(null, '', query ? `/search/?q=${encodeURIComponent(query)}` : '/search/');
+    show(query);
+  });
+  fetch('/site-index.json').then((response) => response.json()).then((data) => {
+    entries = data;
+    show(input.value);
+  }).catch(() => { status.textContent = '站内索引暂时不可用，请稍后重试。'; });
+</script>

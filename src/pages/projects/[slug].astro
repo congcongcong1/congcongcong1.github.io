@@ -1,0 +1,43 @@
+---
+import Base from '../../layouts/Base.astro';
+import DustCanvas from '../../components/DustCanvas.astro';
+import LangIcon from '../../components/LangIcon.astro';
+import { projects } from '../../data/projects';
+
+export function getStaticPaths() {
+  return projects.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}
+
+const { project } = Astro.props;
+---
+
+<Base title={`${project.name} · 项目 · kaiser`} description={project.description}>
+  <div class="dust-zone">
+    <DustCanvas />
+    <article class="wrap project-detail">
+      <a class="uline mono-meta" href="/projects/">← 返回项目列表</a>
+      <p class="mono-meta project-detail-kicker">Project — 项目档案</p>
+      <h1>{project.name}</h1>
+      <p class="project-detail-lead">{project.description}</p>
+      <div class="project-detail-meta">
+        <span><LangIcon lang={project.language} /> {project.language}</span>
+        <span>更新于 {project.updated}</span>
+        {project.license && <span>{project.license}</span>}
+      </div>
+      <section class="project-detail-section">
+        <h2>项目简介</h2>
+        <p>{project.overview}</p>
+      </section>
+      {project.highlights && (
+        <section class="project-detail-section">
+          <h2>实现内容</h2>
+          <ul>{project.highlights.map((item) => <li>{item}</li>)}</ul>
+        </section>
+      )}
+      <div class="project-detail-actions">
+        <a class="project-link" href={project.url} target="_blank" rel="noopener">查看源代码 ↗</a>
+        <button class="project-ask" type="button" data-ask-project={project.slug}>问小聪这个项目</button>
+      </div>
+    </article>
+  </div>
+</Base>

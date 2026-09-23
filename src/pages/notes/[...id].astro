@@ -97,6 +97,7 @@ for (const n of allNotes) {
         <a href="/notes/" class="uline" style="text-transform: none; letter-spacing: 0.06em;">← 返回笔记列表</a>
       </p>
       <h1>{note.data.title}</h1>
+      <button class="note-ask" type="button" data-ask-note={note.id}>问小聪这篇文章 ↗</button>
       <p class="mono-meta" style="margin-bottom: 2.5rem;">
         {fmt(note.data.date)} · 约 {minutes} 分钟读完
         {note.data.tags.length > 0 && (

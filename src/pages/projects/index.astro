@@ -16,7 +16,7 @@ import { projects, repoTotal } from '../../data/projects';
     </div>
     <div class="card-grid" style="margin-top: 0;">
       {projects.map((p, i) => (
-        <a class="project-card" href={p.url} target="_blank" rel="noopener">
+        <a class="project-card" href={`/projects/${p.slug}/`}>
           <span class="card-top">
             <span class="mono-meta">{String(i + 1).padStart(2, '0')}</span>
             <span class="mono-meta card-lang"><LangIcon lang={p.language} />{p.language}</span>
@@ -24,7 +24,7 @@ import { projects, repoTotal } from '../../data/projects';
           <span class="card-name uline">{p.name}</span>
           <span class="card-desc">{p.description}</span>
           <span class="card-bottom mono-meta">
-            <span>更新于 {p.updated}{p.license && ' · ' + p.license}</span>
+            <span>查看项目介绍 · {p.updated}</span>
             <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
           </span>
         </a>
