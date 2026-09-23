@@ -99,6 +99,7 @@ async function ossPut(object, body) {
 function sendMail({ host, port, user, pass, to, subject, html }) {
   return new Promise((resolve, reject) => {
     const b64 = (s) => Buffer.from(s, 'utf8').toString('base64');
+    const b64wrap = (s) => b64(s).replace(/(.{76})/g, '$1\r\n'); // RFC 5321 行长限制 998，base64 按 76 列折行
     const body = [
       `From: =?UTF-8?B?${b64('小聪 · 站点助手')}?= <${user}>`,
       `To: <${to}>`,
@@ -107,7 +108,7 @@ function sendMail({ host, port, user, pass, to, subject, html }) {
       'Content-Type: text/html; charset=utf-8',
       'Content-Transfer-Encoding: base64',
       '',
-      b64(html),
+      b64wrap(html),
     ].map((l) => (l.startsWith('.') ? '.' + l : l)).join('\r\n');
     const message = body + '\r\n.\r\n'; // DATA 终止行不能点填充，必须单独追加
 
