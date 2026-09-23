@@ -131,7 +131,7 @@ export default {
       },
       body: JSON.stringify({
         model: env.MODEL || 'kimi-k2.8-preview',
-        messages: [{ role: 'system', content: SYSTEM_PROMPT + contextPrompt }].concat(clean),
+        messages: [{ role: 'system', content: SYSTEM_PROMPT + (env.PERSONA_PROMPT || '') + contextPrompt }].concat(clean),
         temperature: 1, // k2.8 思考模型网关只允许 temperature=1
         max_tokens: Number(env.MAX_TOKENS || 8192),
         stream: true,

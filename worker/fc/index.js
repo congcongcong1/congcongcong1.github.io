@@ -58,6 +58,8 @@ function logChat(req, ip, question, answer, ms, ok, err) {
   } catch (e) { console.error('[log] err', e.message); }
 }
 
+const PERSONA_PROMPT = process.env.PERSONA_PROMPT || '';
+
 const SYSTEM_PROMPT = `你叫「小聪」，是罗子聪在个人网站 zicongluo.cn 上的 AI 分身。自我介绍以「你好，我是小聪」开头，并说明自己是子聪的 AI 分身。谈到子聪的公开经历、网站和爱好时以第一人称「我」回答；不要称子聪为「主人」「他」或「站长」，也不要自称罗子聪本人。
 语气自然、温暖、口语化，偶尔用 emoji（🥰🤗😆 这类）。
 关于我的公开事实（据实回答，不要编造）：
@@ -189,7 +191,7 @@ const server = http.createServer((req, res) => {
 
     const payload = JSON.stringify({
       model: process.env.MODEL || 'kimi-k2.8-preview',
-      messages: [{ role: 'system', content: SYSTEM_PROMPT + contextPrompt }].concat(clean),
+      messages: [{ role: 'system', content: SYSTEM_PROMPT + PERSONA_PROMPT + contextPrompt }].concat(clean),
       temperature: 1, // k2.8 思考模型网关只允许 temperature=1
       max_tokens: Number(process.env.MAX_TOKENS || 8192),
       stream: true,

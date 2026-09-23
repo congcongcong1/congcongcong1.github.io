@@ -6,3 +6,8 @@ dist/
 worker/.dev.vars
 worker/node_modules/
 worker/.wrangler/
+
+# 隐私数据：聊天记录原始导出与人格卡，绝不入库
+friend_*.txt
+和*聊天记录*.bak
+private/
