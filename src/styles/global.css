@@ -1365,6 +1365,87 @@ body.night .shelf-book-cover img {
   .shelf-book-head h3 { font-size: 1.15rem; }
 }
 
+/* ---------- 唱片墙：专辑封面 + 黑胶滑出 ---------- */
+.shelf-song-grid { grid-template-columns: repeat(3, 1fr); }
+.shelf-song {
+  display: flex;
+  flex-direction: column;
+  padding: 1.3rem 1.3rem 1.4rem;
+}
+.song-disc {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 0.92;
+  margin-bottom: 1rem;
+}
+.song-vinyl {
+  position: absolute;
+  top: 4%;
+  right: 0;
+  width: 80%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle at center,
+    #20140d 0 1.6px, #33231a 1.6px 3.2px);
+  box-shadow: 0 6px 16px rgba(42, 22, 13, 0.3);
+  animation: vinyl-spin 9s linear infinite;
+}
+.song-vinyl::after {           /* 中心标签 */
+  content: '';
+  position: absolute;
+  inset: 31%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(238, 190, 122, 0.95) 0 58%, #d8b25c 58% 100%);
+}
+.song-vinyl::before {          /* 中心孔 */
+  content: '';
+  position: absolute;
+  inset: 47.5%;
+  border-radius: 50%;
+  background: var(--paper);
+  z-index: 1;
+}
+.song-vinyl-label { display: none; }
+.song-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(42, 22, 13, 0.3), 0 2px 6px rgba(42, 22, 13, 0.15);
+  transition: transform 0.5s var(--ease-out);
+  z-index: 1;
+}
+.shelf-song:hover .song-cover {
+  transform: translateX(-9%) rotate(-4deg);
+}
+.song-info { min-width: 0; }
+.song-info .shelf-book-head h3 { font-size: 1.18rem; }
+.shelf-song-quote {
+  font-size: 0.98rem;
+  line-height: 1.75;
+}
+@keyframes vinyl-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .song-vinyl { animation: none; }
+}
+body.night .song-vinyl {
+  background: repeating-radial-gradient(circle at center,
+    #0d0805 0 1.6px, #241812 1.6px 3.2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
+}
+@media (max-width: 900px) {
+  .shelf-song-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .shelf-song-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 720px) {
   .shelf-grid { grid-template-columns: 1fr; }
 }

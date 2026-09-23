@@ -5,7 +5,8 @@ kind: 音乐
 status: 在听
 link: https://music.163.com/song?id=2690846376
 date: 2026-09-22
-images: []
+images:
+  - /shelf/song-春娇与志明.jpg
 ---
 
 > 有个女仔令我思想变得大个
