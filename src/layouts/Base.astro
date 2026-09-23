@@ -66,7 +66,10 @@ const isActive = (href: string) =>
           <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M4.5 15.5c-1.2-2.2 3.2-6.6 8.8-9.2 5-2.3 9.6-2.4 10.4-.6.4 1-.2 2.4-1.5 4"/><circle cx="16.5" cy="7.5" r="0.9" fill="currentColor" stroke="none"/></svg>
           <span>{SITE.name}</span>
         </a>
-        <nav class="site-nav" aria-label="主导航">
+        <button id="menu-toggle" class="menu-toggle" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="site-nav">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="主导航">
           {nav.map((item) => (
             <a class:list={['nav-pill', { active: isActive(item.href) }]} href={item.href} aria-label={item.label} aria-current={isActive(item.href) ? 'page' : undefined}>
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={item.icon}></svg>
@@ -108,6 +111,23 @@ const isActive = (href: string) =>
     <SiteFx />
     <AiPet />
     <script is:inline>
+      const menuToggle = document.getElementById('menu-toggle');
+      const siteNav = document.getElementById('site-nav');
+      const closeMenu = () => {
+        siteNav.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', '打开菜单');
+      };
+      menuToggle.addEventListener('click', () => {
+        const open = siteNav.classList.toggle('open');
+        menuToggle.setAttribute('aria-expanded', String(open));
+        menuToggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+      });
+      siteNav.addEventListener('click', (event) => { if (event.target.closest('a')) closeMenu(); });
+      document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMenu(); });
+      document.addEventListener('click', (event) => {
+        if (!siteNav.contains(event.target) && !menuToggle.contains(event.target)) closeMenu();
+      });
       // PWA：生产环境注册 Service Worker（开发环境不注册，避免缓存干扰热更新）
       if ('serviceWorker' in navigator && !location.port) {
         window.addEventListener('load', () => {

@@ -82,6 +82,8 @@ function corsHeaders(origin) {
     'Vary': 'Origin',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Expose-Headers': 'X-Xiaocong-Context',
+    'X-Xiaocong-Context': '1',
   };
 }
 
@@ -147,7 +149,9 @@ const server = http.createServer((req, res) => {
 
   const fwd = req.headers['x-forwarded-for'] || '';
   const ip = (fwd.split(',')[0] || req.socket.remoteAddress || 'unknown').trim();
-  if (!rateLimit(ip)) return sendJson(res, 429, { error: 'too many requests, slow down~' }, headers);
+  if (!rateLimit('__all_requests__', Number(process.env.GLOBAL_RATE_LIMIT_PER_MIN || 60)) || !rateLimit(ip)) {
+    return sendJson(res, 429, { error: 'too many requests, slow down~' }, headers);
+  }
 
   let body = '';
   req.on('data', (c) => {

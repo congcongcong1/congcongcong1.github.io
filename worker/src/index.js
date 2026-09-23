@@ -78,6 +78,8 @@ function cors(origin, allowed) {
     'Vary': 'Origin',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Expose-Headers': 'X-Xiaocong-Context',
+    'X-Xiaocong-Context': '1',
   };
 }
 
@@ -94,7 +96,8 @@ export default {
 
     // 限流
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!rateLimit(ip, Number(env.RATE_LIMIT_PER_MIN || 12))) {
+    if (!rateLimit('__all_requests__', Number(env.GLOBAL_RATE_LIMIT_PER_MIN || 60)) ||
+        !rateLimit(ip, Number(env.RATE_LIMIT_PER_MIN || 12))) {
       return json({ error: 'too many requests, slow down~' }, 429, headers);
     }
 

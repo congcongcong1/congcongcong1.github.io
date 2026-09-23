@@ -99,7 +99,7 @@ async function ossPut(object, body) {
 function sendMail({ host, port, user, pass, to, subject, html }) {
   return new Promise((resolve, reject) => {
     const b64 = (s) => Buffer.from(s, 'utf8').toString('base64');
-    const message = [
+    const body = [
       `From: =?UTF-8?B?${b64('小聪 · 站点助手')}?= <${user}>`,
       `To: <${to}>`,
       `Subject: =?UTF-8?B?${b64(subject)}?=`,
@@ -108,9 +108,8 @@ function sendMail({ host, port, user, pass, to, subject, html }) {
       'Content-Transfer-Encoding: base64',
       '',
       b64(html),
-      '.',
-      '',
     ].map((l) => (l.startsWith('.') ? '.' + l : l)).join('\r\n');
+    const message = body + '\r\n.\r\n'; // DATA 终止行不能点填充，必须单独追加
 
     const sock = tls.connect(port || 465, host, { servername: host, timeout: 30000 });
     let buf = '';

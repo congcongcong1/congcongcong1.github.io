@@ -1,10 +1,12 @@
 // PWA Service Worker：预缓存核心页面，离线可访问
 // 策略：HTML 网络优先（永远拿最新，离线才回退缓存）；静态资源缓存优先（带 hash，安全）
-const CACHE = 'zicongluo-v4';
+const CACHE = 'zicongluo-v5';
 const PRECACHE = [
   '/',
   '/notes/',
   '/projects/',
+  '/search/',
+  '/site-index.json',
   '/about/',
   '/manifest.webmanifest',
   '/icon-192.png',
