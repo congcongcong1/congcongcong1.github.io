@@ -1718,9 +1718,3 @@ body.night .stk-front.in-stack {
 body.night .stk-front.in-stack {
   box-shadow: 0 0 0 6px rgba(46, 32, 22, 0.98), 0 14px 30px rgba(0, 0, 0, 0.5);
 }
-
-/* ---------- 省电模式 ---------- */
-/* 标签页隐藏：暂停全部 CSS 动画 */
-html.ps-hidden * { animation-play-state: paused !important; }
-/* 分区滚出视口：暂停区内无限动画（黑胶旋转、圆点脉动等） */
-.shelf-anchor.ps-off * { animation-play-state: paused !important; }
