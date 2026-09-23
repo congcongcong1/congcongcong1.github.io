@@ -69,7 +69,7 @@ import { SITE } from '../site.config';
       <button class="aipet-clear" id="aipet-clear" type="button" aria-label="清空本机对话" title="清空本机对话">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 4h4M7 7l1 13h8l1-13M10 11v6M14 11v6"/></svg>
       </button>
-      <button class="aipet-expand" id="aipet-expand" type="button" aria-label="放大对话窗口" title="放大对话窗口" aria-pressed="false">
+      <button class="aipet-expand" id="aipet-expand" type="button" aria-label="全屏对话" title="全屏对话" aria-pressed="false">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <g class="icon-expand"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/></g>
           <g class="icon-compress" style="display:none"><path d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6"/></g>
@@ -151,11 +151,18 @@ import { SITE } from '../site.config';
     overflow: hidden; transform-origin: bottom right;
     transition: width 0.35s cubic-bezier(0.23, 1, 0.32, 1), height 0.35s cubic-bezier(0.23, 1, 0.32, 1), transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
   }
-  /* 放大模式：大窗口，小屏接近全屏 */
+  /* 全屏模式 */
   #aipet .aipet-panel.expanded {
-    width: min(720px, calc(100vw - 2rem)); height: min(760px, calc(100dvh - 4rem));
-    border-radius: 24px;
+    position: fixed; inset: 0; width: auto; height: auto;
+    border-radius: 0; transform-origin: center;
   }
+  /* 全屏时内容限宽居中，行不会拉到一整屏那么长 */
+  #aipet .aipet-panel.expanded .aipet-msgs,
+  #aipet .aipet-panel.expanded .aipet-chips,
+  #aipet .aipet-panel.expanded .aipet-privacy,
+  #aipet .aipet-panel.expanded .aipet-attach,
+  #aipet .aipet-panel.expanded .aipet-form { max-width: 880px; width: 100%; margin-left: auto; margin-right: auto; }
+  #aipet .aipet-panel.expanded .aipet-form { padding-left: 1rem; padding-right: 1rem; box-sizing: border-box; }
 #aipet .aipet-panel[hidden]{ display: flex; transform: scale(0.6) translateY(24px); opacity: 0; pointer-events: none; }
   #aipet .aipet-head {
     display: flex; align-items: center; gap: 0.6rem;
@@ -499,7 +506,7 @@ import { searchIndex } from '../lib/site-search';
   const BRAIN = [
     { re: /你是谁|你叫什么|介绍.*自己|what.*are.*you/i, r: '你好，我是小聪，是子聪的 AI 分身🥰 网站里的笔记、项目和爱好，都可以跟我聊。' },
     { re: /怎么联系|邮箱|联系|email/i, r: '想联系现实中的我，可以发邮件到 zicongluo@smail.nju.edu.cn，或者去 GitHub 找我。「关于」页也有联系方式📮' },
-    { re: /主人|kaiser|子聪|罗子聪|站长/i, r: '我是小聪，子聪的 AI 分身。我本科在武汉大学，现在是南京大学研0，研究方向是强化学习和视频编码。这里聊的是公开资料，不是本人实时在线回复。' },
+    { re: /主人|kaiser|子聪|罗子聪|站长/i, r: '我是小聪，子聪的 AI 分身。我本科在武汉大学，现在是南京大学研一，研究方向是强化学习和视频编码。这里聊的是公开资料，不是本人实时在线回复。' },
     { re: /研究|方向|专业|强化学习|编码|码率|rl\b/i, r: '我在做强化学习（RL）和视频编码相关研究。「笔记」里有一篇《RL Quick Start》，还放了 PPO、SAC 的配套资料，感兴趣可以看看。' },
     { re: /游戏|打游戏|玩什么|推荐.*游戏/i, r: '我挺喜欢单机游戏，《艾尔登法环》《赛博朋克2077》《荒野大镖客2》《P5R》都玩过。更多游戏记录在「拾光」里，想看哪一款？' },
     { re: /电影|片子|看片|推荐.*电影/i, r: '我会把看过的电影和短评放在「拾光」里。你可以翻翻我的电影分区🎬' },
@@ -595,8 +602,8 @@ import { searchIndex } from '../lib/site-search';
   function setExpanded(on) {
     panel.classList.toggle('expanded', on);
     expandBtn.setAttribute('aria-pressed', String(on));
-    expandBtn.setAttribute('aria-label', on ? '缩小对话窗口' : '放大对话窗口');
-    expandBtn.title = on ? '缩小对话窗口' : '放大对话窗口';
+    expandBtn.setAttribute('aria-label', on ? '退出全屏' : '全屏对话');
+    expandBtn.title = on ? '退出全屏' : '全屏对话';
     expandBtn.querySelector('.icon-expand').style.display = on ? 'none' : '';
     expandBtn.querySelector('.icon-compress').style.display = on ? '' : 'none';
     try { localStorage.setItem('xiaocong-expanded', on ? '1' : '0'); } catch (e) {}
