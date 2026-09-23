@@ -7,6 +7,7 @@ export interface Project {
   overview: string;
   topics: string[];
   highlights?: string[];
+  doc?: { label: string; url: string }; // 主要解读说明文档
   language: string;
   url: string;
   license: string | null;
@@ -65,12 +66,13 @@ export const projects: Project[] = [
     slug: 'leetcode-exercise',
     name: 'leetcode_exercise',
     description: 'LeetCode 刷题记录。',
-    overview: '按仓库记录的 LeetCode 题目练习与 Python 解法，可从源代码查看具体题目和实现。',
+    overview: '按仓库记录的 LeetCode 题目练习与 Python 解法，可按 hot_100 目录查看高频题目的思路与代码。配套有一份《力扣 hot 100 总结》PDF，逐题梳理考点与解法，是这份仓库的主要解读说明。',
     topics: ['算法练习', 'Python'],
+    doc: { label: '📕 力扣 hot 100 总结（主要解读说明）', url: '/projects-assets/leetcode-hot100.pdf' },
     language: 'Python',
     url: 'https://github.com/congcongcong1/leetcode_exercise',
     license: null,
-    updated: '2026-03',
+    updated: '2026-09',
   },
   {
     slug: 'yq-qt-mvs',

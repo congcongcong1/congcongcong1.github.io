@@ -35,6 +35,9 @@ const { project } = Astro.props;
         </section>
       )}
       <div class="project-detail-actions">
+        {project.doc && (
+          <a class="project-link project-doc" href={project.doc.url} target="_blank" rel="noopener">{project.doc.label} ↗</a>
+        )}
         <a class="project-link" href={project.url} target="_blank" rel="noopener">查看源代码 ↗</a>
         <button class="project-ask" type="button" data-ask-project={project.slug}>问小聪这个项目</button>
       </div>

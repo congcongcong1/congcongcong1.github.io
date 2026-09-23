@@ -877,6 +877,8 @@ body::before {
 .project-detail-section ul { padding-left: 1.3rem; }
 .project-detail-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.9rem; margin-top: 1.6rem; }
 .project-link { display: inline-flex; padding: 0.55rem 0.9rem; border-radius: 4px; background: var(--ink); color: var(--paper); text-decoration: none; font-size: 0.88rem; }
+.project-doc { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); font-weight: 600; }
+.project-doc:hover { background: var(--ink); color: var(--paper); }
 .project-ask { margin-top: 0; }
 
 /* 上一篇 / 下一篇 */
