@@ -141,16 +141,114 @@ function sendJson(res, status, obj, headers) {
   res.end(body);
 }
 
+/* ============ 留言板（GitHub 仓库做存储，公开内容） ============ */
+const GH_REPO = process.env.GUESTBOOK_REPO || 'congcongcong1/xiaocong-guestbook';
+const GH_TOKEN = process.env.GUESTBOOK_TOKEN || '';
+
+function ghContents(file, method, body) {
+  const opts = {
+    hostname: 'api.github.com',
+    path: `/repos/${GH_REPO}/contents/${file}`,
+    method: method || 'GET',
+    headers: {
+      'User-Agent': 'xiaocong-guestbook',
+      'Accept': 'application/vnd.github+json',
+      ...(GH_TOKEN ? { 'Authorization': `Bearer ${GH_TOKEN}` } : {}),
+    },
+  };
+  let payload;
+  if (body) { payload = JSON.stringify(body); opts.headers['Content-Type'] = 'application/json'; }
+  return new Promise((resolve, reject) => {
+    const r = https.request(opts, (resp) => {
+      let d = '';
+      resp.on('data', (c) => { d += c; });
+      resp.on('end', () => resolve({ status: resp.statusCode, body: d }));
+    });
+    r.on('error', reject);
+    if (payload) r.write(payload);
+    r.end();
+  });
+}
+
+async function readGuestbook() {
+  try {
+    const { status, body } = await ghContents('guestbook.json');
+    if (status !== 200) return { sha: null, messages: [] };
+    const outer = JSON.parse(body);
+    const data = JSON.parse(Buffer.from(outer.content || '', 'base64').toString('utf8'));
+    return { sha: outer.sha, messages: Array.isArray(data.messages) ? data.messages : [] };
+  } catch (e) {
+    return { sha: null, messages: [] };
+  }
+}
+
+const GB_MAX = 1000;
+function cleanGbText(s, max) {
+  return String(s || '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '').trim().slice(0, max);
+}
+
+async function handleGuestbook(req, res, headers, ip) {
+  if (req.method === 'GET') {
+    const { messages } = await readGuestbook();
+    return sendJson(res, 200, { messages: messages.slice(-200) }, headers);
+  }
+  if (req.method !== 'POST') return sendJson(res, 405, { error: 'method not allowed' }, headers);
+  if (!rateLimit('gb:' + ip, 4)) return sendJson(res, 429, { error: '留言太频繁啦，歇一分钟再来' }, headers);
+  let body = '';
+  req.on('data', (c) => { if (body.length < 8000) body += c; });
+  req.on('end', async () => {
+    let payload;
+    try { payload = JSON.parse(body); } catch (e) { return sendJson(res, 400, { error: 'bad json' }, headers); }
+    const name = cleanGbText(payload.name, 24) || '路人甲';
+    const msg = cleanGbText(payload.msg, 500);
+    if (!msg) return sendJson(res, 400, { error: '留言不能为空' }, headers);
+    if (/https?:\/\/.{0,500}(https?:\/\/)/.test(msg)) return sendJson(res, 400, { error: '链接太多啦，去掉一些吧' }, headers);
+    try {
+      // 读-改-写（有并发冲突就重试一次）
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const { sha, messages } = await readGuestbook();
+        messages.push({ name, msg, ts: Date.now() });
+        const trimmed = messages.slice(-GB_MAX);
+        const put = await ghContents('guestbook.json', 'PUT', {
+          message: `guestbook: ${name} 留言`,
+          content: Buffer.from(JSON.stringify({ messages: trimmed }, null, 1)).toString('base64'),
+          ...(sha ? { sha } : {}),
+          branch: 'main',
+        });
+        if (put.status === 200 || put.status === 201) {
+          return sendJson(res, 200, { ok: true, messages: trimmed.slice(-200) }, headers);
+        }
+        if (attempt === 1) {
+          return sendJson(res, 502, { error: '存储繁忙，稍后再试' }, headers);
+        }
+      }
+    } catch (e) {
+      return sendJson(res, 502, { error: '存储出错，稍后再试' }, headers);
+    }
+  });
+}
+
 const server = http.createServer((req, res) => {
   const origin = req.headers.origin || '';
   const headers = corsHeaders(origin);
 
   if (!ORIGINS.includes(origin)) return sendJson(res, 403, { error: 'origin denied' }, headers);
   if (req.method === 'OPTIONS') { res.writeHead(204, headers); return res.end(); }
-  if (req.method !== 'POST') return sendJson(res, 405, { error: 'method not allowed' }, headers);
 
   const fwd = req.headers['x-forwarded-for'] || '';
   const ip = (fwd.split(',')[0] || req.socket.remoteAddress || 'unknown').trim();
+
+  // 留言板路由：GET 读 / POST 写
+  const path = (req.url || '/').split('?')[0];
+  if (path === '/guestbook' || path.endsWith('/guestbook')) {
+    if (!rateLimit('__all_requests__', Number(process.env.GLOBAL_RATE_LIMIT_PER_MIN || 60))) {
+      return sendJson(res, 429, { error: 'too many requests, slow down~' }, headers);
+    }
+    return handleGuestbook(req, res, headers, ip);
+  }
+
+  if (req.method !== 'POST') return sendJson(res, 405, { error: 'method not allowed' }, headers);
+
   if (!rateLimit('__all_requests__', Number(process.env.GLOBAL_RATE_LIMIT_PER_MIN || 60)) || !rateLimit(ip)) {
     return sendJson(res, 429, { error: 'too many requests, slow down~' }, headers);
   }

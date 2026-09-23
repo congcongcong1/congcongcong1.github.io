@@ -1,0 +1,141 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../site.config';
+---
+
+<Base title={`留言板 · ${SITE.name}`} description="路过这里的朋友，都可以给小聪的主人留句话">
+  <section class="about-hero">
+    <div class="wrap">
+      <p class="mono-meta" style="margin-bottom: 1.5rem;">Guestbook — 留言板</p>
+      <h1 style="font-family: var(--serif); font-weight: 400; font-size: clamp(2.2rem, 4.5vw, 3.6rem); line-height: 1.15; letter-spacing: -0.02em;">
+        路过就是缘分，留句话吧。
+      </h1>
+      <p style="color: var(--ink-60); margin-top: 0.8rem;">大家都能看到。也可以右下角找小聪聊天～</p>
+    </div>
+  </section>
+
+  <section class="wrap gb-body">
+    <form class="gb-form" id="gb-form">
+      <input class="gb-name" id="gb-name" type="text" maxlength="24" placeholder="昵称（可留空，默认路人甲）" aria-label="昵称" />
+      <textarea class="gb-msg" id="gb-msg" rows="3" maxlength="500" required placeholder="想说什么？500 字以内" aria-label="留言内容"></textarea>
+      <div class="gb-form-foot">
+        <span class="mono-meta" id="gb-hint">留言会公开显示，请友善发言</span>
+        <button class="gb-send" type="submit">留言</button>
+      </div>
+    </form>
+
+    <p class="mono-meta" id="gb-loading" style="margin: 2rem 0 1rem;">加载留言中…</p>
+    <div class="gb-list" id="gb-list"></div>
+  </section>
+
+  <style>
+    .gb-body { max-width: 46rem; padding-bottom: 4rem; }
+    .gb-form {
+      background: var(--paper); border: 1.5px solid var(--ink-20); border-radius: 16px;
+      padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
+      box-shadow: 0 10px 30px rgba(42, 22, 13, 0.08);
+    }
+    .gb-name, .gb-msg {
+      font: inherit; font-size: 0.9rem; padding: 0.55rem 0.75rem; width: 100%; box-sizing: border-box;
+      background: var(--paper-sunken); color: var(--ink);
+      border: 1px solid var(--ink-10); border-radius: 10px; outline: none; resize: vertical;
+    }
+    .gb-name:focus, .gb-msg:focus { border-color: var(--ink-40); }
+    .gb-form-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .gb-send {
+      font: inherit; font-size: 0.85rem; padding: 0.45rem 1.4rem; cursor: pointer;
+      background: var(--ink); color: var(--paper); border: 0; border-radius: 10px;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .gb-send:hover { transform: translateY(-2px); }
+    .gb-send:disabled { opacity: 0.5; cursor: default; transform: none; }
+    .gb-list { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem; }
+    .gb-item {
+      background: var(--paper); border: 1.5px solid var(--ink-10); border-radius: 14px; padding: 0.85rem 1rem;
+    }
+    .gb-item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.35rem; }
+    .gb-item-name { font-weight: 600; font-size: 0.9rem; }
+    .gb-item-time { color: var(--ink-60); font-size: 0.72rem; white-space: nowrap; }
+    .gb-item-msg { font-size: 0.92rem; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+  </style>
+
+  <script define:vars={{ endpoint: (SITE.aiEndpoint || '').replace(/\/$/, '') + '/guestbook' }}>
+    const form = document.getElementById('gb-form');
+    const nameEl = document.getElementById('gb-name');
+    const msgEl = document.getElementById('gb-msg');
+    const listEl = document.getElementById('gb-list');
+    const hintEl = document.getElementById('gb-hint');
+    const loadingEl = document.getElementById('gb-loading');
+
+    function fmt(ts) {
+      const d = new Date(ts);
+      const p = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    function render(messages) {
+      listEl.innerHTML = '';
+      loadingEl.style.display = 'none';
+      if (!messages.length) {
+        loadingEl.style.display = '';
+        loadingEl.textContent = '还没有留言，来抢沙发～';
+        return;
+      }
+      for (const m of messages.slice().reverse()) {
+        const item = document.createElement('article');
+        item.className = 'gb-item';
+        const head = document.createElement('div');
+        head.className = 'gb-item-head';
+        const name = document.createElement('span');
+        name.className = 'gb-item-name';
+        name.textContent = m.name || '路人甲';
+        const time = document.createElement('span');
+        time.className = 'gb-item-time mono-meta';
+        time.textContent = fmt(m.ts);
+        const body = document.createElement('div');
+        body.className = 'gb-item-msg';
+        body.textContent = m.msg;
+        head.appendChild(name); head.appendChild(time);
+        item.appendChild(head); item.appendChild(body);
+        listEl.appendChild(item);
+      }
+    }
+
+    async function load() {
+      try {
+        const r = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+        const data = await r.json();
+        render(Array.isArray(data.messages) ? data.messages : []);
+      } catch (e) {
+        loadingEl.textContent = '留言加载失败，稍后再来看看';
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = msgEl.value.trim();
+      if (!msg) return;
+      const btn = form.querySelector('.gb-send');
+      btn.disabled = true;
+      hintEl.textContent = '提交中…';
+      try {
+        const r = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: nameEl.value.trim(), msg }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || '提交失败');
+        msgEl.value = '';
+        hintEl.textContent = '留言成功，感谢到访🥰';
+        render(data.messages || []);
+      } catch (err) {
+        hintEl.textContent = err.message || '网络开小差了，稍后再试';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    load();
+  </script>
+</Base>
