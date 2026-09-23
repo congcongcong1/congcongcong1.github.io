@@ -85,7 +85,9 @@ import { SITE } from '../site.config';
 
 <style is:global>
   /* ---------- 悬浮小生物 ---------- */
-#aipet .aipet{ position: fixed; right: clamp(0.9rem, 3vw, 2.2rem); bottom: clamp(0.9rem, 3vw, 2.2rem); z-index: 60; }
+/* 注意：根元素是 <div class="aipet" id="aipet">（id 和 class 在同一元素上），
+     容器自身规则必须只写 #aipet，写 #aipet .aipet 选不中（元素不是自己的后代） */
+#aipet{ position: fixed; right: clamp(0.9rem, 3vw, 2.2rem); bottom: clamp(0.9rem, 3vw, 2.2rem); z-index: 60; }
   #aipet .aipet-face {
     display: block; width: 86px; height: 86px; padding: 0;
     background: none; border: 0; cursor: pointer; position: relative;
