@@ -85,6 +85,11 @@ import { SITE } from '../site.config';
     <p class="aipet-privacy">本机保存历史；在线消息和图片发给 Kimi，站点可能记录问答与 IP。清空仅删除本机记录。</p>
     <div class="aipet-attach" id="aipet-attach" hidden></div>
     <form class="aipet-form" id="aipet-form">
+      <input type="file" id="aipet-file" multiple hidden
+        accept="image/*,.txt,.md,.markdown,.json,.js,.ts,.tsx,.jsx,.py,.csv,.log,.xml,.html,.css,.yml,.yaml,.toml,.ini,.sh,.c,.h,.cpp,.hpp,.java,.go,.rs,.sql,.vue,.astro" />
+      <button class="aipet-attach-btn" id="aipet-attach-btn" type="button" aria-label="添加图片或文件" title="添加图片或文件">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
       <input class="aipet-input" id="aipet-input" type="text" autocomplete="off" maxlength="2000"
         placeholder="和小聪说点什么…（可直接粘贴截图）" aria-label="输入消息" />
       <button class="aipet-send" type="submit" aria-label="发送">
@@ -239,6 +244,13 @@ import { SITE } from '../site.config';
 #aipet .aipet-attach[hidden]{ display: none; }
 #aipet .attach-item{ position: relative; width: 52px; height: 52px; }
 #aipet .attach-item img{ width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--ink-20); }
+#aipet .attach-item.attach-file{ width: auto; max-width: 180px; height: 30px; align-self: center; }
+#aipet .attach-file-name{
+  display: inline-block; padding: 0.28em 0.6em; font-size: 0.72rem; line-height: 1.3;
+  background: var(--paper-sunken); border: 1px solid var(--ink-20); border-radius: 8px;
+  color: var(--ink-80); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;
+}
+#aipet .attach-file .attach-rm{ top: -7px; right: -7px; }
 #aipet .attach-rm{
     position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
     border-radius: 50%; border: 0; background: var(--ink); color: var(--paper);
@@ -259,6 +271,12 @@ import { SITE } from '../site.config';
     border: 1px solid var(--ink-10); border-radius: 12px; outline: none;
   }
 #aipet .aipet-input:focus{ border-color: var(--ink-40); }
+  #aipet .aipet-attach-btn {
+    flex: none; width: 40px; height: 40px; display: grid; place-items: center;
+    background: var(--paper-sunken); color: var(--ink-60); border: 1px solid var(--ink-10); border-radius: 12px; cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+  }
+#aipet .aipet-attach-btn:hover{ color: var(--ink); transform: translateY(-2px) rotate(90deg); }
   #aipet .aipet-send {
     flex: none; width: 40px; height: 40px; display: grid; place-items: center;
     background: var(--ink); color: var(--paper); border: 0; border-radius: 12px; cursor: pointer;
@@ -473,9 +491,11 @@ import { searchIndex } from '../lib/site-search';
   /* ============ 待发送图片（粘贴/附件） ============ */
   const attachBox = document.getElementById('aipet-attach');
   let pendingImages = [];
+  let pendingFiles = []; // {name, size, text} 小文本文件
+  const MAX_ATTACH = 4; // 图片+文件总数上限
   function renderAttach() {
     attachBox.innerHTML = '';
-    attachBox.hidden = pendingImages.length === 0;
+    attachBox.hidden = pendingImages.length === 0 && pendingFiles.length === 0;
     pendingImages.forEach((dataUrl, i) => {
       const wrap = document.createElement('span');
       wrap.className = 'attach-item';
@@ -487,11 +507,33 @@ import { searchIndex } from '../lib/site-search';
       wrap.appendChild(img); wrap.appendChild(rm);
       attachBox.appendChild(wrap);
     });
+    pendingFiles.forEach((f, i) => {
+      const wrap = document.createElement('span');
+      wrap.className = 'attach-item attach-file';
+      const label = document.createElement('span');
+      label.className = 'attach-file-name';
+      label.textContent = `📄 ${f.name}`;
+      label.title = f.name;
+      const rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'attach-rm'; rm.textContent = '×'; rm.setAttribute('aria-label', '移除文件');
+      rm.addEventListener('click', () => { pendingFiles.splice(i, 1); renderAttach(); });
+      wrap.appendChild(label); wrap.appendChild(rm);
+      attachBox.appendChild(wrap);
+    });
   }
   async function addPendingImage(blob) {
-    if (pendingImages.length >= 3) return;
+    if (pendingImages.length + pendingFiles.length >= MAX_ATTACH) return;
     try {
       pendingImages.push(await shrinkImage(blob));
+      renderAttach();
+    } catch (e) {}
+  }
+  async function addPendingFile(file) {
+    if (pendingImages.length + pendingFiles.length >= MAX_ATTACH) return;
+    if (file.size > 50 * 1024) { addMsg('文件太大啦，我只吃得下 50KB 以内的小文件🥲 大文件可以粘贴里面的文字给我', 'bot'); return; }
+    try {
+      const text = (await file.text()).slice(0, 8000);
+      pendingFiles.push({ name: file.name, size: file.size, text });
       renderAttach();
     } catch (e) {}
   }
@@ -500,6 +542,17 @@ import { searchIndex } from '../lib/site-search';
     if (!files.length) return;
     e.preventDefault();
     files.forEach(addPendingImage);
+  });
+
+  /* ============ + 按钮：选图片或文件 ============ */
+  const fileInput = document.getElementById('aipet-file');
+  document.getElementById('aipet-attach-btn').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    Array.from(fileInput.files || []).forEach((f) => {
+      if (f.type.startsWith('image/')) addPendingImage(f);
+      else addPendingFile(f);
+    });
+    fileInput.value = '';
   });
 
   /* ============ 本地离线人格（内置站点知识的小聪大脑） ============ */
@@ -590,6 +643,7 @@ import { searchIndex } from '../lib/site-search';
     if (sending) return;
     history = [];
     pendingImages = [];
+    pendingFiles = [];
     renderAttach();
     localStorage.removeItem(HISTORY_KEY);
     localStorage.removeItem('xiaocong-history');
@@ -717,10 +771,16 @@ import { searchIndex } from '../lib/site-search';
     e.preventDefault();
     if (sending) return;
     const raw = input.value.trim();
-    if (!raw && !pendingImages.length) return;
+    if (!raw && !pendingImages.length && !pendingFiles.length) return;
     sending = true;
     sendBtn.disabled = true;
     input.value = '';
+    // 待发送小文件：内容拼进消息文本
+    const files = pendingFiles.splice(0);
+    renderAttach();
+    const fileNote = files.length ? `（附文件：${files.map((f) => f.name).join('、')}）` : '';
+    const fileBlocks = files.map((f) => `【附件 ${f.name}】\n${f.text}`);
+    const fullText = [raw, ...fileBlocks].filter(Boolean).join('\n\n');
     // 图片 = 粘贴/附件 + 输入里的图片链接（尝试转 base64；跨域抓不到就提示用户直接粘贴）
     const { text, images: urlImages } = extractImages(raw);
     const notes = [];
@@ -732,15 +792,15 @@ import { searchIndex } from '../lib/site-search';
     }
     const images = pendingImages.splice(0).concat(converted);
     renderAttach();
-    if (!text && !images.length) {
+    if (!fullText && !images.length) {
       if (notes.length) addMsg(notes.join('\n'), 'bot');
       sending = false; sendBtn.disabled = false;
       return;
     }
-    const personaQuestion = /你是谁|你叫什么|介绍.*自己|谁是.*(?:子聪|罗子聪|主人)|(?:子聪|罗子聪).*是谁|你.*(?:主人|子聪|罗子聪)|(?:子聪|罗子聪).*你|what.*are.*you/i.test(text);
-    const hits = personaQuestion ? [] : await relevantContent(text);
-    const userMsg = buildUserMessage(text || (images.length ? '（分享了一张图片）' : ''), images);
-    addMsg(text || (images.length ? '（分享了一张图片）' : ''), 'user', images);
+    const personaQuestion = /你是谁|你叫什么|介绍.*自己|谁是.*(?:子聪|罗子聪|主人)|(?:子聪|罗子聪).*是谁|你.*(?:主人|子聪|罗子聪)|(?:子聪|罗子聪).*你|what.*are.*you/i.test(fullText);
+    const hits = personaQuestion ? [] : await relevantContent(fullText);
+    const userMsg = buildUserMessage(fullText || (images.length ? '（分享了一张图片）' : ''), images);
+    addMsg((text || (images.length ? '（分享了一张图片）' : '')) + fileNote, 'user', images);
     history.push(userMsg);
     saveHistory();
 
