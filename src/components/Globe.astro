@@ -202,15 +202,20 @@ import maskB64 from './landmask.b64?raw';
       ty = (e.clientY / window.innerHeight) * 2 - 1;
     });
 
-    // ---------- 动画循环（离屏暂停） ----------
+    // ---------- 动画循环（离屏暂停 + 省电：30fps + 标签页隐藏即停） ----------
     let raf = 0;
     let t = 0;
+    let tick = 0;
+    let inView = false;
     const clock = new THREE.Clock();
     const animate = () => {
-      const dt = Math.min(clock.getDelta(), 0.05);
+      raf = requestAnimationFrame(animate);
+      // 省电：跳帧渲染 30fps（月球/卫星轨道周期翻倍补偿）
+      if (++tick % 2) return;
+      const dt = Math.min(clock.getDelta(), 0.05) * 2;
       t += dt;
-      mx += (tx - mx) * 0.045;
-      my += (ty - my) * 0.045;
+      mx += (tx - mx) * 0.09;
+      my += (ty - my) * 0.09;
 
       if (!reduced) {
         globe.rotation.y += dt * 0.12;
@@ -224,18 +229,23 @@ import maskB64 from './landmask.b64?raw';
         satellite.position.set(Math.cos(a2) * 2.2, 0, Math.sin(a2) * 0.8);
       }
       renderer.render(scene, camera);
-      raf = requestAnimationFrame(animate);
     };
 
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        if (!raf) { clock.getDelta(); raf = requestAnimationFrame(animate); }
-      } else {
-        cancelAnimationFrame(raf);
-        raf = 0;
+    const play = () => {
+      if (!raf && inView && !document.hidden) {
+        tick = 0;
+        clock.getDelta();
+        raf = requestAnimationFrame(animate);
       }
+    };
+    const pause = () => { cancelAnimationFrame(raf); raf = 0; };
+
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      inView ? play() : pause();
     });
     io.observe(canvas);
+    document.addEventListener('visibilitychange', () => { document.hidden ? pause() : play(); });
 
     // ---------- 工具：加载并采样陆地遮罩 ----------
     async function loadLandMask(uri: string): Promise<ImageData> {

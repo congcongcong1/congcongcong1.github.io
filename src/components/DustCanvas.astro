@@ -74,10 +74,14 @@
       ].map((o) => ({ ...o, sprite: makeSprite(o.r, PALETTE[o.ci]) }));
     }
 
+    let tick = 0;
     function frame() {
-      time += 1 / 60;
-      mx += (tmx - mx) * 0.03;
-      my += (tmy - my) * 0.03;
+      if (running) raf = requestAnimationFrame(frame);
+      // 省电：跳帧渲染 30fps
+      if (++tick % 2) return;
+      time += 1 / 30;
+      mx += (tmx - mx) * 0.06;
+      my += (tmy - my) * 0.06;
       ctx.clearRect(0, 0, w, h);
       const night = document.body.classList.contains('night');
       const boost = night ? 1.6 : 1;
@@ -111,9 +115,13 @@
       tmy = (e.clientY / window.innerHeight - 0.5) * 2;
     }, { passive: true });
 
+    let inView = false;
+    const update = () => { (inView && !document.hidden) ? start() : stop(); };
     new IntersectionObserver((entries) => {
-      entries[0].isIntersecting ? start() : stop();
+      inView = entries[0].isIntersecting;
+      update();
     }, { rootMargin: '80px' }).observe(parent);
+    document.addEventListener('visibilitychange', update);
 
     resize();
     if (reduced) frame();

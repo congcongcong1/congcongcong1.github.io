@@ -328,5 +328,13 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
         document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
       });
     })();
+
+    // 省电：分区滚出视口时暂停区内的无限 CSS 动画（黑胶旋转、圆点脉动等）
+    (function () {
+      const psIO = new IntersectionObserver((es) => {
+        es.forEach((en) => en.target.classList.toggle('ps-off', !en.isIntersecting));
+      }, { rootMargin: '100px' });
+      document.querySelectorAll('.shelf-anchor').forEach((el) => psIO.observe(el));
+    })();
   </script>
 </Base>

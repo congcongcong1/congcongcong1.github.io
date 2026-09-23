@@ -129,7 +129,12 @@
       }, { passive: true });
     })();
 
-    /* ---------- 7) 不蒜子计数兜底：服务异常时隐藏 ---------- */
+    /* ---------- 7) 省电：标签页隐藏时暂停全部 CSS 动画 ---------- */
+    document.addEventListener('visibilitychange', () => {
+      document.documentElement.classList.toggle('ps-hidden', document.hidden);
+    });
+
+    /* ---------- 8) 不蒜子计数兜底：服务异常时隐藏 ---------- */
     window.addEventListener('load', () => {
       setTimeout(() => {
         const pv = document.getElementById('busuanzi_value_site_pv');
