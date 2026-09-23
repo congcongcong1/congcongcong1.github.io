@@ -11,6 +11,7 @@ images:
   - /shelf/iron-fist-2.png
   - /shelf/iron-fist-3.png
   - /shelf/iron-fist-4.jpg
+  - /shelf/iron-fist-5.jpg
 ---
 
 > 不想上课就不上，不想学习就不学，那是你们自己的人生。
