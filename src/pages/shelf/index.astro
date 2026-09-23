@@ -184,6 +184,12 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                             )}
                           </>
                         )}
+                        {e.data.seeduck && (
+                          <>
+                            {' · '}
+                            <a class="uline" href={e.data.seeduck} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">seeduck ↗</a>
+                          </>
+                        )}
                       </p>
                       <div class="shelf-comment">
                         {e.data.kind === '旅行' ? (
@@ -212,4 +218,25 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
       })}
     </section>
   </div>
+  <noscript>
+    <style>
+      .shelf-title .about-marker { background-size: 100% 100% !important; }
+    </style>
+  </noscript>
+  <script>
+    // 滚动渐显：分区标题笔迹现场划一遍，目录卡片错峰浮起
+    const io = new IntersectionObserver((entries) => {
+      for (const en of entries) {
+        if (en.isIntersecting) {
+          en.target.classList.add('in-view');
+          io.unobserve(en.target);
+        }
+      }
+    }, { threshold: 0, rootMargin: '0px 0px -30% 0px' });
+    document.querySelectorAll('.shelf-anchor').forEach((el) => io.observe(el));
+    document.querySelectorAll('.shelf-stat-link').forEach((el, i) => {
+      el.style.setProperty('--sdelay', `${i * 0.08}s`);
+      io.observe(el);
+    });
+  </script>
 </Base>
