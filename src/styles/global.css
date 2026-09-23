@@ -1687,3 +1687,34 @@ body.night .shelf-chip { background: #241812; }
   .shelf-lb-nav { width: 44px; height: 44px; font-size: 1.5rem; }
   .shelf-lb-stage img { max-height: 68vh; }
 }
+
+/* ---------- 堆叠剧照轮播（拍立得叠放，框内呈现） ---------- */
+.shelf-media { position: relative; }
+.shelf-media.has-gallery .shelf-media-badge { z-index: 4; }
+.shelf-stack { position: absolute; inset: 0; pointer-events: none; }
+.shelf-stack .stk {
+  position: absolute;
+  inset: 3.5%;
+  background-size: cover;
+  background-position: center;
+  border-radius: 10px;
+  box-shadow: 0 0 0 5px rgba(253, 250, 243, 0.9), 0 6px 16px rgba(42, 22, 13, 0.16);
+}
+.shelf-stack .stk-1 { transform: rotate(-3.2deg); }
+.shelf-stack .stk-2 { transform: rotate(2.4deg); }
+.stk-front { position: relative; z-index: 2; }
+.stk-front.in-stack {
+  transform: scale(0.92);
+  border-radius: 10px;
+  box-shadow: 0 0 0 6px rgba(253, 250, 243, 0.96), 0 14px 30px rgba(42, 22, 13, 0.26);
+  transition: opacity 0.38s var(--ease-out), transform 0.45s var(--ease-out);
+}
+.stk-front.in-stack.swap { opacity: 0; }
+.shelf-card:hover .shelf-media .stk-front.in-stack { transform: scale(0.95); }
+body.night .shelf-stack .stk,
+body.night .stk-front.in-stack {
+  box-shadow: 0 0 0 5px rgba(46, 32, 22, 0.95), 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+body.night .stk-front.in-stack {
+  box-shadow: 0 0 0 6px rgba(46, 32, 22, 0.98), 0 14px 30px rgba(0, 0, 0, 0.5);
+}
