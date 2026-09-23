@@ -86,7 +86,7 @@ import { SITE } from '../site.config';
     <div class="aipet-attach" id="aipet-attach" hidden></div>
     <form class="aipet-form" id="aipet-form">
       <input type="file" id="aipet-file" multiple hidden
-        accept="image/*,.txt,.md,.markdown,.json,.js,.ts,.tsx,.jsx,.py,.csv,.log,.xml,.html,.css,.yml,.yaml,.toml,.ini,.sh,.c,.h,.cpp,.hpp,.java,.go,.rs,.sql,.vue,.astro" />
+        accept="image/*,.pdf,.txt,.md,.markdown,.json,.js,.ts,.tsx,.jsx,.py,.csv,.log,.xml,.html,.css,.yml,.yaml,.toml,.ini,.sh,.c,.h,.cpp,.hpp,.java,.go,.rs,.sql,.vue,.astro" />
       <button class="aipet-attach-btn" id="aipet-attach-btn" type="button" aria-label="添加图片或文件" title="添加图片或文件">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
       </button>
@@ -512,8 +512,8 @@ import { searchIndex } from '../lib/site-search';
       wrap.className = 'attach-item attach-file';
       const label = document.createElement('span');
       label.className = 'attach-file-name';
-      label.textContent = `📄 ${f.name}`;
-      label.title = f.name;
+      label.textContent = `${f.pdf ? '📕' : '📄'} ${f.name}`;
+      label.title = f.pdf ? `${f.name}（已提取文字，${f.pages} 页）` : f.name;
       const rm = document.createElement('button');
       rm.type = 'button'; rm.className = 'attach-rm'; rm.textContent = '×'; rm.setAttribute('aria-label', '移除文件');
       rm.addEventListener('click', () => { pendingFiles.splice(i, 1); renderAttach(); });
@@ -530,6 +530,28 @@ import { searchIndex } from '../lib/site-search';
   }
   async function addPendingFile(file) {
     if (pendingImages.length + pendingFiles.length >= MAX_ATTACH) return;
+    // PDF：浏览器本地提取文字（≤5MB），把文本作为附件发给 Kimi
+    if (/\.pdf$/i.test(file.name)) {
+      if (file.size > 5 * 1024 * 1024) { addMsg('PDF 太大啦，我只吃得下 5MB 以内的🥲', 'bot'); return; }
+      try {
+        addMsg(`正在读《${file.name}》…`, 'bot');
+        const pdfjs = await import('pdfjs-dist');
+        const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
+        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+        let out = '';
+        for (let p = 1; p <= Math.min(doc.numPages, 80); p++) {
+          const tc = await (await doc.getPage(p)).getTextContent();
+          out += tc.items.map((it) => it.str).join(' ') + '\n';
+          if (out.length > 15000) break;
+        }
+        pendingFiles.push({ name: file.name, size: file.size, text: out.slice(0, 15000), pdf: true, pages: doc.numPages });
+        renderAttach();
+      } catch (err) {
+        addMsg('这个 PDF 我解析失败😵 可能是扫描件（纯图片没有文字层），可以截图发我', 'bot');
+      }
+      return;
+    }
     if (file.size > 50 * 1024) { addMsg('文件太大啦，我只吃得下 50KB 以内的小文件🥲 大文件可以粘贴里面的文字给我', 'bot'); return; }
     try {
       const text = (await file.text()).slice(0, 8000);
