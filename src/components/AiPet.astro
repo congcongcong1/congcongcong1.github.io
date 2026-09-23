@@ -66,12 +66,17 @@ import { SITE } from '../site.config';
         <strong>小聪</strong>
         <em class="mono-meta" id="aipet-status">数字分身 · 离线中</em>
       </span>
+      <button class="aipet-clear" id="aipet-clear" type="button" aria-label="清空对话" title="清空对话">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 4h4M7 7l1 13h8l1-13M10 11v6M14 11v6"/></svg>
+      </button>
       <button class="aipet-close" id="aipet-close" type="button" aria-label="收起对话">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </header>
+    <div class="aipet-scope" id="aipet-scope" hidden><span id="aipet-scope-label"></span><button id="aipet-scope-exit" type="button">退出本页</button></div>
     <div class="aipet-msgs" id="aipet-msgs" aria-live="polite"></div>
     <div class="aipet-chips" id="aipet-chips"></div>
+    <p class="aipet-privacy">对话保存在本机；在线时消息和图片会发送到 Kimi。</p>
     <div class="aipet-attach" id="aipet-attach" hidden></div>
     <form class="aipet-form" id="aipet-form">
       <input class="aipet-input" id="aipet-input" type="text" autocomplete="off" maxlength="2000"
@@ -161,6 +166,12 @@ import { SITE } from '../site.config';
     background: none; border: 0; color: var(--ink-60); cursor: pointer; border-radius: 10px;
   }
 #aipet .aipet-close:hover{ background: var(--ink-10); color: var(--ink); }
+#aipet .aipet-clear{ flex: none; width: 32px; height: 32px; display: grid; place-items: center; background: none; border: 0; color: var(--ink-60); cursor: pointer; border-radius: 8px; }
+#aipet .aipet-clear:hover{ background: var(--ink-10); color: var(--ink); }
+#aipet .aipet-scope{ display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; padding: 0.35rem 0.85rem; background: var(--paper-sunken); border-bottom: 1px solid var(--ink-10); color: var(--ink-80); font-size: 0.72rem; }
+#aipet .aipet-scope[hidden]{ display: none; }
+#aipet .aipet-scope span{ overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#aipet .aipet-scope button{ flex: none; border: 0; background: none; color: var(--ink-60); font: inherit; text-decoration: underline; cursor: pointer; }
 
 #aipet .aipet-msgs{ flex: 1; overflow-y: auto; padding: 0.95rem 0.9rem; display: flex; flex-direction: column; gap: 0.7rem; scroll-behavior: smooth; }
 
@@ -192,6 +203,9 @@ import { SITE } from '../site.config';
   }
 #aipet .msg-img{ display: block; max-width: 200px; max-height: 140px; border-radius: 10px; margin-top: 0.4rem; border: 1px solid var(--ink-10); object-fit: cover; }
 #aipet .msg.user .msg-img{ border-color: rgba(252, 252, 248, 0.25); }
+#aipet .aipet-sources{ display: flex; flex-wrap: wrap; gap: 0.35rem; padding-left: 2.2rem; }
+#aipet .aipet-sources a{ max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.18rem 0.4rem; border: 1px solid var(--ink-20); border-radius: 4px; color: var(--ink-80); font-size: 0.7rem; text-decoration: none; }
+#aipet .aipet-sources a:hover{ border-color: var(--ink-60); }
 #aipet .msg.typing{ display: inline-flex; gap: 4px; align-items: center; padding: 0.75rem 0.85rem; }
 #aipet .msg.typing i{ width: 6px; height: 6px; border-radius: 50%; background: var(--ink-60); animation: aipet-dot 1s ease-in-out infinite; }
 #aipet .msg.typing i:nth-child(2){ animation-delay: 0.15s; }
@@ -215,6 +229,7 @@ import { SITE } from '../site.config';
     transition: color 0.2s, border-color 0.2s;
   }
 #aipet .chip:hover{ color: var(--ink); border-color: var(--ink-60); }
+#aipet .aipet-privacy{ padding: 0.4rem 0.8rem; border-top: 1px solid var(--ink-10); color: var(--ink-60); font-size: 0.66rem; line-height: 1.35; }
 
 #aipet .aipet-form{ display: flex; gap: 0.5rem; padding: 0.65rem 0.8rem; border-top: 1.5px solid var(--ink-10); }
   #aipet .aipet-input {
@@ -242,7 +257,8 @@ import { SITE } from '../site.config';
   }
 </style>
 
-<script is:inline>
+<script>
+import { searchIndex } from '../lib/site-search';
 (() => {
   const root = document.getElementById('aipet');
   if (!root) return;
@@ -255,7 +271,19 @@ import { SITE } from '../site.config';
   const form = document.getElementById('aipet-form');
   const input = document.getElementById('aipet-input');
   const statusEl = document.getElementById('aipet-status');
+  const clearBtn = document.getElementById('aipet-clear');
+  const scopeBox = document.getElementById('aipet-scope');
+  const scopeLabel = document.getElementById('aipet-scope-label');
+  const scopeExit = document.getElementById('aipet-scope-exit');
+  const sendBtn = form.querySelector('button[type="submit"]');
   const eyes = document.getElementById('aipet-eyes');
+  let siteIndex = [];
+  let scopedId = '';
+  let sending = false;
+  const indexReady = fetch('/site-index.json').then((response) => {
+    if (!response.ok) throw new Error('site index unavailable');
+    return response.json();
+  }).then((entries) => { siteIndex = entries; }).catch(() => {});
 
   /* ============ 生命力：随机眨眼 + 眼睛跟光标 ============ */
   (function blinkLoop() {
@@ -309,6 +337,17 @@ import { SITE } from '../site.config';
   face.addEventListener('click', () => setOpen(!opened));
   closeBtn.addEventListener('click', () => setOpen(false));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && opened) setOpen(false); });
+  document.querySelectorAll('[data-ask-note], [data-ask-project]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.askNote || button.dataset.askProject;
+      const entry = siteIndex.find((item) => item.id === id);
+      scopedId = id;
+      scopeLabel.textContent = `只问本页 · ${entry?.title || document.title.split(' · ')[0]}`;
+      scopeBox.hidden = false;
+      setOpen(true);
+    });
+  });
+  scopeExit.addEventListener('click', () => { scopedId = ''; scopeBox.hidden = true; });
 
   /* ============ 消息渲染 ============ */
   function esc(s) {
@@ -384,6 +423,23 @@ import { SITE } from '../site.config';
     msgs.scrollTop = msgs.scrollHeight;
     return row;
   }
+  function addSources(hits) {
+    if (!hits.length) return;
+    const box = document.createElement('div');
+    box.className = 'aipet-sources';
+    const seen = new Set();
+    for (const hit of hits) {
+      if (seen.has(hit.section.url)) continue;
+      seen.add(hit.section.url);
+      const link = document.createElement('a');
+      link.href = hit.section.url;
+      link.textContent = hit.entry.title === hit.section.title ? hit.entry.title : `${hit.entry.title} · ${hit.section.title}`;
+      link.title = `查看相关内容：${link.textContent}`;
+      box.appendChild(link);
+    }
+    msgs.appendChild(box);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
 
   /* ============ 待发送图片（粘贴/附件） ============ */
   const attachBox = document.getElementById('aipet-attach');
@@ -458,6 +514,7 @@ import { SITE } from '../site.config';
   const HISTORY_KEY = 'xiaocong-history';
   let history = [];
   try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) { history = []; }
+  if (!Array.isArray(history)) history = [];
   function saveHistory() {
     // localStorage 只有 5MB：除最近一条 user 消息外，旧消息里的图片降级为占位文本
     const slim = history.slice(-20).map((m, i, arr) => {
@@ -496,6 +553,20 @@ import { SITE } from '../site.config';
       addMsg('你好呀陌生人🥰！我是小聪，Kaiser 的数字分身～点击下面的快捷问题，或者随便和我聊聊！粘贴图片链接我还能看图哦～', 'bot');
     }
   }
+  clearBtn.addEventListener('click', () => {
+    if (sending) return;
+    history = [];
+    pendingImages = [];
+    renderAttach();
+    localStorage.removeItem(HISTORY_KEY);
+    msgs.replaceChildren();
+    greet();
+  });
+
+  async function relevantContent(query) {
+    await indexReady;
+    return searchIndex(siteIndex, query, 3, scopedId);
+  }
 
   function setStatus(t) { statusEl.textContent = t; }
 
@@ -524,7 +595,7 @@ import { SITE } from '../site.config';
   }
 
   /* ============ 发送：优先走 Worker 代理（Kimi），失败回退本地 ============ */
-  async function askKimi(userMsg) {
+  async function askKimi(userMsg, hits) {
     // 8 秒超时：代理不可达（如部分地区访问不了）时快速回退本地人格，不让用户干等
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
@@ -533,7 +604,13 @@ import { SITE } from '../site.config';
       res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history.concat([userMsg]).slice(-12) }),
+        body: JSON.stringify({
+          messages: history.concat([userMsg]).slice(-12),
+          context: {
+            scope: scopedId ? 'current-page' : 'site',
+            passages: hits.map((hit) => ({ title: hit.entry.title, url: hit.section.url, text: hit.section.text.slice(0, 900) })),
+          },
+        }),
         signal: ctrl.signal,
       });
     } finally {
@@ -565,7 +642,8 @@ import { SITE } from '../site.config';
           } catch (e) {}
         }
       }
-      return { text: full || reply.textContent, rendered: true };
+      if (!full.trim()) { reply.closest('.msg-row').remove(); throw new Error('empty stream'); }
+      return { text: full, rendered: true };
     }
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content;
@@ -575,8 +653,11 @@ import { SITE } from '../site.config';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (sending) return;
     const raw = input.value.trim();
     if (!raw && !pendingImages.length) return;
+    sending = true;
+    sendBtn.disabled = true;
     input.value = '';
     // 图片 = 粘贴/附件 + 输入里的图片链接（尝试转 base64；跨域抓不到就提示用户直接粘贴）
     const { text, images: urlImages } = extractImages(raw);
@@ -589,7 +670,12 @@ import { SITE } from '../site.config';
     }
     const images = pendingImages.splice(0).concat(converted);
     renderAttach();
-    if (!text && !images.length) { if (notes.length) addMsg(notes.join('\n'), 'bot'); return; }
+    if (!text && !images.length) {
+      if (notes.length) addMsg(notes.join('\n'), 'bot');
+      sending = false; sendBtn.disabled = false;
+      return;
+    }
+    const hits = await relevantContent(text);
     const userMsg = buildUserMessage(text || (images.length ? '（分享了一张图片）' : ''), images);
     addMsg(text || (images.length ? '（分享了一张图片）' : ''), 'user', images);
     history.push(userMsg);
@@ -602,17 +688,20 @@ import { SITE } from '../site.config';
     let reply, rendered = false;
     try {
       if (endpoint && online) {
-        const r = await askKimi(userMsg);
+        const r = await askKimi(userMsg, hits);
         reply = r.text; rendered = r.rendered;
         if (!reply.trim()) throw new Error('empty');
       } else {
         await new Promise((r) => setTimeout(r, 500 + Math.random() * 500));
         reply = images.length
           ? '图片我看到了但还没法欣赏🥺 等主人给我接上 Kimi 的大脑（带视觉的那种），我就能看图说话啦！'
-          : localBrain(text);
+          : hits.length
+            ? `我找到一段相关的站内内容：${hits[0].section.text.slice(0, 130)}${hits[0].section.text.length > 130 ? '…' : ''}`
+            : localBrain(text);
       }
     } catch (err) {
-      reply = localBrain(text) + '\n\n（Kimi 的大脑这会儿连不上，先用我自带的百科顶着～）';
+      online = false;
+      reply = (hits.length ? `我找到一段相关的站内内容：${hits[0].section.text.slice(0, 130)}…` : localBrain(text)) + '\n\n（在线回答暂时不可用）';
     }
     if (!rendered && notes.length) reply += '\n\n' + notes.join('\n'); // 非流式路径维持原行为：提示并入回复文本
     typing.remove();
@@ -622,9 +711,12 @@ import { SITE } from '../site.config';
     setTimeout(() => {
       if (!rendered) addMsg(reply, 'bot');
       else if (notes.length) addMsg(notes.join('\n'), 'bot'); // 流式气泡已渲染，图片链接提示单独成泡
+      addSources(hits);
       history.push({ role: 'assistant', content: reply });
       saveHistory();
       setStatus(online ? '数字分身 · Kimi 在线' : '数字分身 · 离线模式');
+      sending = false;
+      sendBtn.disabled = false;
     }, wait);
   });
 
