@@ -2,6 +2,7 @@
 import { SITE } from '../site.config';
 import SiteFx from '../components/SiteFx.astro';
 import EdgeIcons from '../components/EdgeIcons.astro';
+import AiPet from '../components/AiPet.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -104,6 +105,7 @@ const isActive = (href: string) =>
     <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     <EdgeIcons />
     <SiteFx />
+    <AiPet />
     <script is:inline>
       // PWA：生产环境注册 Service Worker（开发环境不注册，避免缓存干扰热更新）
       if ('serviceWorker' in navigator && !location.port) {

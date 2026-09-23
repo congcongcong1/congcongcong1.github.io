@@ -83,44 +83,44 @@ import { SITE } from '../site.config';
   </section>
 </div>
 
-<style>
+<style is:global>
   /* ---------- 悬浮小生物 ---------- */
-  .aipet { position: fixed; right: clamp(0.9rem, 3vw, 2.2rem); bottom: clamp(0.9rem, 3vw, 2.2rem); z-index: 60; }
-  .aipet-face {
+#aipet .aipet{ position: fixed; right: clamp(0.9rem, 3vw, 2.2rem); bottom: clamp(0.9rem, 3vw, 2.2rem); z-index: 60; }
+  #aipet .aipet-face {
     display: block; width: 86px; height: 86px; padding: 0;
     background: none; border: 0; cursor: pointer; position: relative;
     filter: drop-shadow(0 6px 18px rgba(42, 22, 13, 0.18));
     transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     -webkit-tap-highlight-color: transparent;
   }
-  .aipet-face:hover { transform: scale(1.07); }
-  .aipet-face svg { width: 100%; height: 100%; overflow: visible; display: block; }
-  .aipet-body-g { animation: aipet-bob 4.6s ease-in-out infinite; transform-origin: 60px 66px; }
+#aipet .aipet-face:hover{ transform: scale(1.07); }
+#aipet .aipet-face svg{ width: 100%; height: 100%; overflow: visible; display: block; }
+#aipet .aipet-body-g{ animation: aipet-bob 4.6s ease-in-out infinite; transform-origin: 60px 66px; }
   @keyframes aipet-bob {
     0%, 100% { transform: translateY(0) rotate(-2deg); }
     50%      { transform: translateY(-7px) rotate(2.4deg); }
   }
-  .aipet-body-shadow { fill: var(--ink); opacity: 0.12; transform: translate(2.5px, 4px); }
-  .aipet-body { fill: var(--paper); stroke: var(--ink); stroke-width: 3.4; stroke-linejoin: round; }
-  .aipet-hair { stroke: var(--ink); stroke-width: 3.2; }
-  .eye-white { fill: var(--paper); stroke: var(--ink); stroke-width: 3; }
-  .eye-pupil circle:first-child { fill: var(--ink); }
-  .eye-glint { fill: var(--paper); }
-  .aipet-eyes { transform-origin: 60px 55px; transform-box: view-box; }
-  .aipet.blinking .aipet-eyes { animation: aipet-blink 0.22s ease-in-out; }
+#aipet .aipet-body-shadow{ fill: var(--ink); opacity: 0.12; transform: translate(2.5px, 4px); }
+#aipet .aipet-body{ fill: var(--paper); stroke: var(--ink); stroke-width: 3.4; stroke-linejoin: round; }
+#aipet .aipet-hair{ stroke: var(--ink); stroke-width: 3.2; }
+#aipet .eye-white{ fill: var(--paper); stroke: var(--ink); stroke-width: 3; }
+#aipet .eye-pupil circle:first-child{ fill: var(--ink); }
+#aipet .eye-glint{ fill: var(--paper); }
+#aipet .aipet-eyes{ transform-origin: 60px 55px; transform-box: view-box; }
+#aipet.blinking .aipet-eyes{ animation: aipet-blink 0.22s ease-in-out; }
   @keyframes aipet-blink { 50% { transform: scaleY(0.08); } }
-  .aipet-eyes, .eye-pupil { transition: transform 0.12s ease-out; }
-  .aipet-mouth { stroke: var(--ink); stroke-width: 3; fill: var(--ink); }
-  .mouth-talk { stroke: none; }
-  .aipet.talking .mouth-idle { opacity: 0; }
-  .aipet.talking .mouth-talk { opacity: 1 !important; animation: aipet-chatter 0.32s ease-in-out infinite; }
+#aipet .aipet-eyes,#aipet .eye-pupil{ transition: transform 0.12s ease-out; }
+#aipet .aipet-mouth{ stroke: var(--ink); stroke-width: 3; fill: var(--ink); }
+#aipet .mouth-talk{ stroke: none; }
+#aipet.talking .mouth-idle{ opacity: 0; }
+#aipet.talking .mouth-talk{ opacity: 1 !important; animation: aipet-chatter 0.32s ease-in-out infinite; }
   @keyframes aipet-chatter { 50% { transform: scaleY(0.45); } }
-  .aipet-orbits .aipet-star { fill: var(--marker, #eebe7a); transform-origin: center; transform-box: fill-box; }
-  .s1 { animation: aipet-twinkle 2.8s ease-in-out infinite; }
-  .s2 { animation: aipet-twinkle 3.6s ease-in-out 0.8s infinite; }
-  .s3 { animation: aipet-twinkle 3.1s ease-in-out 1.5s infinite; }
+#aipet .aipet-orbits .aipet-star{ fill: var(--marker, #eebe7a); transform-origin: center; transform-box: fill-box; }
+#aipet .s1{ animation: aipet-twinkle 2.8s ease-in-out infinite; }
+#aipet .s2{ animation: aipet-twinkle 3.6s ease-in-out 0.8s infinite; }
+#aipet .s3{ animation: aipet-twinkle 3.1s ease-in-out 1.5s infinite; }
   @keyframes aipet-twinkle { 50% { transform: scale(0.4) rotate(40deg); opacity: 0.35; } }
-  .aipet-tag {
+#aipet .aipet-tag{
     position: absolute; top: -4px; right: -6px;
     background: var(--ink); color: var(--paper);
     font-size: 0.62rem; letter-spacing: 0.14em; padding: 0.15em 0.55em;
@@ -128,7 +128,7 @@ import { SITE } from '../site.config';
   }
 
   /* ---------- 对话面板 ---------- */
-  .aipet-panel {
+  #aipet .aipet-panel {
     position: absolute; right: 0; bottom: 100px;
     width: min(348px, calc(100vw - 2rem)); height: min(500px, calc(100dvh - 9rem));
     display: flex; flex-direction: column;
@@ -138,80 +138,105 @@ import { SITE } from '../site.config';
     overflow: hidden; transform-origin: bottom right;
     transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
   }
-  .aipet-panel[hidden] { display: flex; transform: scale(0.6) translateY(24px); opacity: 0; pointer-events: none; }
-  .aipet-head {
+#aipet .aipet-panel[hidden]{ display: flex; transform: scale(0.6) translateY(24px); opacity: 0; pointer-events: none; }
+  #aipet .aipet-head {
     display: flex; align-items: center; gap: 0.6rem;
     padding: 0.65rem 0.8rem; border-bottom: 1.5px solid var(--ink-10);
     background: var(--paper-sunken);
   }
-  .aipet-mini { width: 34px; height: 34px; flex: none; }
-  .aipet-mini svg { width: 100%; height: 100%; overflow: visible; display: block; }
-  .aipet-mini .aipet-body { stroke-width: 6; }
-  .mini-pupil { fill: var(--ink); }
-  .mini-mouth { stroke: var(--ink); stroke-width: 5; }
-  .aipet-eyes-mini { transform-origin: 60px 56px; transform-box: view-box; animation: aipet-blink-mini 4.2s infinite; }
+#aipet .aipet-mini{ width: 34px; height: 34px; flex: none; }
+#aipet .aipet-mini svg{ width: 100%; height: 100%; overflow: visible; display: block; }
+#aipet .aipet-mini .aipet-body{ stroke-width: 6; }
+#aipet .mini-pupil{ fill: var(--ink); }
+#aipet .mini-mouth{ stroke: var(--ink); stroke-width: 5; }
+#aipet .aipet-eyes-mini{ transform-origin: 60px 56px; transform-box: view-box; animation: aipet-blink-mini 4.2s infinite; }
   @keyframes aipet-blink-mini { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
-  .aipet-title { flex: 1; line-height: 1.25; display: flex; flex-direction: column; }
-  .aipet-title strong { font-size: 0.95rem; }
-  .aipet-title em { font-style: normal; color: var(--ink-60); font-size: 0.62rem; letter-spacing: 0.1em; }
-  .aipet-close {
+#aipet .aipet-title{ flex: 1; line-height: 1.25; display: flex; flex-direction: column; }
+#aipet .aipet-title strong{ font-size: 0.95rem; }
+#aipet .aipet-title em{ font-style: normal; color: var(--ink-60); font-size: 0.62rem; letter-spacing: 0.1em; }
+#aipet .aipet-close{
     flex: none; width: 32px; height: 32px; display: grid; place-items: center;
     background: none; border: 0; color: var(--ink-60); cursor: pointer; border-radius: 10px;
   }
-  .aipet-close:hover { background: var(--ink-10); color: var(--ink); }
+#aipet .aipet-close:hover{ background: var(--ink-10); color: var(--ink); }
 
-  .aipet-msgs { flex: 1; overflow-y: auto; padding: 0.85rem 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; scroll-behavior: smooth; }
-  .msg { max-width: 84%; padding: 0.5rem 0.75rem; border-radius: 14px; font-size: 0.88rem; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
-  .msg-img { display: block; max-width: 200px; max-height: 140px; border-radius: 8px; margin-top: 0.4rem; border: 1px solid var(--ink-10); object-fit: cover; }
-  .msg.bot { align-self: flex-start; background: var(--paper-sunken); border: 1px solid var(--ink-10); border-bottom-left-radius: 4px; }
-  .msg.user { align-self: flex-end; background: var(--ink); color: var(--paper); border-bottom-right-radius: 4px; }
-  .msg.typing { display: inline-flex; gap: 4px; align-items: center; padding: 0.7rem 0.8rem; }
-  .msg.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-60); animation: aipet-dot 1s ease-in-out infinite; }
-  .msg.typing i:nth-child(2) { animation-delay: 0.15s; }
-  .msg.typing i:nth-child(3) { animation-delay: 0.3s; }
+#aipet .aipet-msgs{ flex: 1; overflow-y: auto; padding: 0.95rem 0.9rem; display: flex; flex-direction: column; gap: 0.7rem; scroll-behavior: smooth; }
+
+  /* 消息行：头像 + 气泡，左右分明 */
+#aipet .msg-row{ display: flex; align-items: flex-end; gap: 0.45rem; max-width: 100%; animation: msg-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1); }
+#aipet .msg-row.user{ flex-direction: row-reverse; }
+  @keyframes msg-pop {
+    from { opacity: 0; transform: translateY(8px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  #aipet .msg-avatar {
+    width: 26px; height: 26px; flex: none; border-radius: 50%;
+    display: grid; place-items: center; font-size: 0.66rem; user-select: none;
+  }
+#aipet .msg-row.bot .msg-avatar{ background: var(--paper-sunken); border: 1px solid var(--ink-10); color: var(--ink); padding: 2.5px; }
+#aipet .msg-row.bot .msg-avatar svg{ width: 100%; height: 100%; display: block; }
+#aipet .msg-row.user .msg-avatar{ background: var(--ink); color: var(--paper); font-weight: 600; }
+
+#aipet .msg{ max-width: 76%; padding: 0.55rem 0.8rem; border-radius: 16px; font-size: 0.88rem; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+  #aipet .msg.bot {
+    background: var(--paper-sunken); color: var(--ink);
+    border: 1px solid var(--ink-10); border-bottom-left-radius: 5px;
+    box-shadow: 0 1px 3px rgba(42, 22, 13, 0.06);
+  }
+  #aipet .msg.user {
+    background: var(--ink); color: var(--paper);
+    border-bottom-right-radius: 5px;
+    box-shadow: 0 2px 7px rgba(42, 22, 13, 0.2);
+  }
+#aipet .msg-img{ display: block; max-width: 200px; max-height: 140px; border-radius: 10px; margin-top: 0.4rem; border: 1px solid var(--ink-10); object-fit: cover; }
+#aipet .msg.user .msg-img{ border-color: rgba(252, 252, 248, 0.25); }
+#aipet .msg.typing{ display: inline-flex; gap: 4px; align-items: center; padding: 0.75rem 0.85rem; }
+#aipet .msg.typing i{ width: 6px; height: 6px; border-radius: 50%; background: var(--ink-60); animation: aipet-dot 1s ease-in-out infinite; }
+#aipet .msg.typing i:nth-child(2){ animation-delay: 0.15s; }
+#aipet .msg.typing i:nth-child(3){ animation-delay: 0.3s; }
   @keyframes aipet-dot { 40% { transform: translateY(-4px); opacity: 1; } 0%, 100% { opacity: 0.4; } }
 
-  .aipet-chips { display: flex; gap: 0.4rem; padding: 0 0.8rem 0.55rem; flex-wrap: wrap; }
-  .aipet-chips:empty { display: none; }
-  .aipet-attach { display: flex; gap: 0.4rem; padding: 0 0.8rem 0.55rem; flex-wrap: wrap; }
-  .aipet-attach[hidden] { display: none; }
-  .attach-item { position: relative; width: 52px; height: 52px; }
-  .attach-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--ink-20); }
-  .attach-rm {
+#aipet .aipet-chips{ display: flex; gap: 0.4rem; padding: 0 0.8rem 0.55rem; flex-wrap: wrap; }
+#aipet .aipet-chips:empty{ display: none; }
+#aipet .aipet-attach{ display: flex; gap: 0.4rem; padding: 0 0.8rem 0.55rem; flex-wrap: wrap; }
+#aipet .aipet-attach[hidden]{ display: none; }
+#aipet .attach-item{ position: relative; width: 52px; height: 52px; }
+#aipet .attach-item img{ width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--ink-20); }
+#aipet .attach-rm{
     position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
     border-radius: 50%; border: 0; background: var(--ink); color: var(--paper);
     font-size: 12px; line-height: 1; cursor: pointer; display: grid; place-items: center;
   }
-  .chip {
+  #aipet .chip {
     font-size: 0.74rem; padding: 0.28em 0.75em; border-radius: 99px; cursor: pointer;
     background: none; border: 1px solid var(--ink-20); color: var(--ink-60); font-family: inherit;
     transition: color 0.2s, border-color 0.2s;
   }
-  .chip:hover { color: var(--ink); border-color: var(--ink-60); }
+#aipet .chip:hover{ color: var(--ink); border-color: var(--ink-60); }
 
-  .aipet-form { display: flex; gap: 0.5rem; padding: 0.65rem 0.8rem; border-top: 1.5px solid var(--ink-10); }
-  .aipet-input {
+#aipet .aipet-form{ display: flex; gap: 0.5rem; padding: 0.65rem 0.8rem; border-top: 1.5px solid var(--ink-10); }
+  #aipet .aipet-input {
     flex: 1; min-width: 0; padding: 0.5rem 0.75rem; font: inherit; font-size: 0.88rem;
     background: var(--paper-sunken); color: var(--ink);
     border: 1px solid var(--ink-10); border-radius: 12px; outline: none;
   }
-  .aipet-input:focus { border-color: var(--ink-40); }
-  .aipet-send {
+#aipet .aipet-input:focus{ border-color: var(--ink-40); }
+  #aipet .aipet-send {
     flex: none; width: 40px; height: 40px; display: grid; place-items: center;
     background: var(--ink); color: var(--paper); border: 0; border-radius: 12px; cursor: pointer;
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .aipet-send:hover { transform: translateY(-2px) rotate(-8deg); }
+#aipet .aipet-send:hover{ transform: translateY(-2px) rotate(-8deg); }
 
   /* 夜间模式：加一层暖光晕，让它在夜空中发光 */
-  body.night .aipet-face { filter: drop-shadow(0 0 16px rgba(238, 190, 122, 0.5)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.4)); }
-  body.night .aipet-body { fill: #332216; }
-  body.night .eye-white { fill: #332216; }
-  body.night .aipet-panel { border-color: rgba(238, 190, 122, 0.25); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); }
+  body.night #aipet .aipet-face { filter: drop-shadow(0 0 16px rgba(238, 190, 122, 0.5)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.4)); }
+  body.night #aipet .aipet-body { fill: #332216; }
+  body.night #aipet .eye-white { fill: #332216; }
+  body.night #aipet .aipet-panel { border-color: rgba(238, 190, 122, 0.25); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); }
 
   @media (max-width: 390px) {
-    .aipet-face { width: 70px; height: 70px; }
-    .aipet-panel { right: -0.2rem; }
+#aipet .aipet-face{ width: 70px; height: 70px; }
+#aipet .aipet-panel{ right: -0.2rem; }
   }
 </style>
 
@@ -322,23 +347,40 @@ import { SITE } from '../site.config';
       return await shrinkImage(await r.blob());
     } catch (e) { return null; }
   }
+  // 小聪的迷你头像（气泡旁的小脸）
+  const BOT_AVATAR = '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M60 20c7 0 11 4 15 5s9-2 13 3 3 9 5 13 7 5 6 11-5 7-6 13 2 9-3 12-10 0-15 3-7 6-14 6-10-4-15-5-10 2-14-3-2-9-4-13-7-6-6-12 6-7 7-12-2-9 2-12 10 1 15-2 7-6 14-6Z" fill="none" stroke="currentColor" stroke-width="8" stroke-linejoin="round"/><circle cx="46" cy="56" r="6.5" fill="currentColor"/><circle cx="74" cy="56" r="6.5" fill="currentColor"/><path d="M55 71q5 4 10 0" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg>';
   function addMsg(text, who, images) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${who}`;
+    const av = document.createElement('span');
+    av.className = 'msg-avatar';
+    if (who === 'bot') { av.innerHTML = BOT_AVATAR; av.setAttribute('aria-hidden', 'true'); }
+    else { av.textContent = '你'; av.setAttribute('aria-label', '我'); }
     const div = document.createElement('div');
     div.className = `msg ${who}`;
     let html = esc(text);
     (images || []).forEach((u) => { html += `<img class="msg-img" src="${esc(u)}" alt="用户分享的图片" loading="lazy" />`; });
     div.innerHTML = html;
-    msgs.appendChild(div);
+    row.appendChild(av);
+    row.appendChild(div);
+    msgs.appendChild(row);
     msgs.scrollTop = msgs.scrollHeight;
     return div;
   }
   function showTyping() {
+    const row = document.createElement('div');
+    row.className = 'msg-row bot';
+    const av = document.createElement('span');
+    av.className = 'msg-avatar';
+    av.innerHTML = BOT_AVATAR; av.setAttribute('aria-hidden', 'true');
     const div = document.createElement('div');
     div.className = 'msg bot typing';
     div.innerHTML = '<i></i><i></i><i></i>';
-    msgs.appendChild(div);
+    row.appendChild(av);
+    row.appendChild(div);
+    msgs.appendChild(row);
     msgs.scrollTop = msgs.scrollHeight;
-    return div;
+    return row;
   }
 
   /* ============ 待发送图片（粘贴/附件） ============ */
