@@ -1,0 +1,588 @@
+---
+// 「小聪」— Kaiser 的 AI 数字分身：悬浮在主页角落的小生物，点击打开对话面板。
+// 形象：手绘感 SVG 团状小生物（层叠有机形体 + 平面填色），眼睛跟随光标、随机眨眼，
+// 待机时轻轻漂浮；对话时嘴巴开合。
+// 模式：data-endpoint 为空走本地离线人格；接入 Worker 后走 Kimi 真身。
+import { SITE } from '../site.config';
+---
+
+<div class="aipet" id="aipet" data-endpoint={SITE.aiEndpoint} data-name={SITE.name}>
+  <!-- ============ 悬浮小生物 ============ -->
+  <button class="aipet-face" id="aipet-face" type="button" aria-label="叫醒小聪，和它聊聊" aria-expanded="false">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <radialGradient id="aipet-blush" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#e8927c" stop-opacity="0.55" />
+          <stop offset="100%" stop-color="#e8927c" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <!-- 环绕小星星 -->
+      <g class="aipet-orbits">
+        <path class="aipet-star s1" d="M14 30l1.8 4.2L20 36l-4.2 1.8L14 42l-1.8-4.2L8 36l4.2-1.8Z" />
+        <path class="aipet-star s2" d="M104 20l1.4 3.2 3.2 1.4-3.2 1.4-1.4 3.2-1.4-3.2-3.2-1.4 3.2-1.4Z" />
+        <circle class="aipet-star s3" cx="108" cy="88" r="2.2" />
+      </g>
+      <!-- 身体：手绘感团状轮廓（双层描边制造笨拙的呼吸感） -->
+      <g class="aipet-body-g">
+        <path class="aipet-body-shadow" d="M60 16c8 0 12 5 17 6s10-2 15 3 3 10 6 15 8 6 7 13-6 8-7 14 2 10-3 14-11 0-17 3-8 7-16 7-11-5-17-6-11 2-16-3-2-10-5-15-8-7-7-14 7-8 8-14-3-10 2-14 11 1 17-2 8-7 16-7Z" />
+        <path class="aipet-body" d="M60 20c7 0 11 4 15 5s9-2 13 3 3 9 5 13 7 5 6 11-5 7-6 13 2 9-3 12-10 0-15 3-7 6-14 6-10-4-15-5-10 2-14-3-2-9-4-13-7-6-6-12 6-7 7-12-2-9 2-12 10 1 15-2 7-6 14-6Z" />
+        <!-- 呆毛 -->
+        <path class="aipet-hair" d="M58 21c-1-6 1-10 5-13" fill="none" stroke-linecap="round" />
+        <!-- 眼睛（整组眨眼缩放） -->
+        <g class="aipet-eyes" id="aipet-eyes">
+          <g class="aipet-eye" data-eye>
+            <ellipse class="eye-white" cx="45" cy="55" rx="9.5" ry="10.5" />
+            <g class="eye-pupil"><circle cx="46.5" cy="57" r="4.6" /><circle class="eye-glint" cx="48.3" cy="54.8" r="1.5" /></g>
+          </g>
+          <g class="aipet-eye" data-eye>
+            <ellipse class="eye-white" cx="75" cy="55" rx="9.5" ry="10.5" />
+            <g class="eye-pupil"><circle cx="76.5" cy="57" r="4.6" /><circle class="eye-glint" cx="78.3" cy="54.8" r="1.5" /></g>
+          </g>
+        </g>
+        <!-- 腮红 -->
+        <ellipse cx="34" cy="68" rx="7" ry="4.5" fill="url(#aipet-blush)" />
+        <ellipse cx="86" cy="68" rx="7" ry="4.5" fill="url(#aipet-blush)" />
+        <!-- 嘴巴：待机弧线 / 说话圆嘴，切换透明度 -->
+        <path class="aipet-mouth mouth-idle" d="M54 72q6 5 12 0" fill="none" stroke-linecap="round" />
+        <ellipse class="aipet-mouth mouth-talk" cx="60" cy="74" rx="4" ry="5" style="opacity:0" />
+      </g>
+    </svg>
+    <span class="aipet-tag mono-meta">小聪</span>
+  </button>
+
+  <!-- ============ 对话面板 ============ -->
+  <section class="aipet-panel" id="aipet-panel" role="dialog" aria-modal="false" aria-label="和小聪对话" hidden>
+    <header class="aipet-head">
+      <span class="aipet-mini" aria-hidden="true">
+        <svg viewBox="0 0 120 120">
+          <path class="aipet-body" d="M60 20c7 0 11 4 15 5s9-2 13 3 3 9 5 13 7 5 6 11-5 7-6 13 2 9-3 12-10 0-15 3-7 6-14 6-10-4-15-5-10 2-14-3-2-9-4-13-7-6-6-12 6-7 7-12-2-9 2-12 10 1 15-2 7-6 14-6Z" />
+          <g class="aipet-eyes-mini">
+            <circle class="mini-pupil" cx="46" cy="56" r="4.4" /><circle class="mini-pupil" cx="74" cy="56" r="4.4" />
+          </g>
+          <path d="M55 71q5 4 10 0" fill="none" stroke-linecap="round" class="mini-mouth" />
+        </svg>
+      </span>
+      <span class="aipet-title">
+        <strong>小聪</strong>
+        <em class="mono-meta" id="aipet-status">数字分身 · 离线中</em>
+      </span>
+      <button class="aipet-close" id="aipet-close" type="button" aria-label="收起对话">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </header>
+    <div class="aipet-msgs" id="aipet-msgs" aria-live="polite"></div>
+    <div class="aipet-chips" id="aipet-chips"></div>
+    <div class="aipet-attach" id="aipet-attach" hidden></div>
+    <form class="aipet-form" id="aipet-form">
+      <input class="aipet-input" id="aipet-input" type="text" autocomplete="off" maxlength="2000"
+        placeholder="和小聪说点什么…（可直接粘贴截图）" aria-label="输入消息" />
+      <button class="aipet-send" type="submit" aria-label="发送">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+      </button>
+    </form>
+  </section>
+</div>
+
+<style>
+  /* ---------- 悬浮小生物 ---------- */
+  .aipet { position: fixed; right: clamp(0.9rem, 3vw, 2.2rem); bottom: clamp(0.9rem, 3vw, 2.2rem); z-index: 60; }
+  .aipet-face {
+    display: block; width: 86px; height: 86px; padding: 0;
+    background: none; border: 0; cursor: pointer; position: relative;
+    filter: drop-shadow(0 6px 18px rgba(42, 22, 13, 0.18));
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .aipet-face:hover { transform: scale(1.07); }
+  .aipet-face svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .aipet-body-g { animation: aipet-bob 4.6s ease-in-out infinite; transform-origin: 60px 66px; }
+  @keyframes aipet-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-7px) rotate(2.4deg); }
+  }
+  .aipet-body-shadow { fill: var(--ink); opacity: 0.12; transform: translate(2.5px, 4px); }
+  .aipet-body { fill: var(--paper); stroke: var(--ink); stroke-width: 3.4; stroke-linejoin: round; }
+  .aipet-hair { stroke: var(--ink); stroke-width: 3.2; }
+  .eye-white { fill: var(--paper); stroke: var(--ink); stroke-width: 3; }
+  .eye-pupil circle:first-child { fill: var(--ink); }
+  .eye-glint { fill: var(--paper); }
+  .aipet-eyes { transform-origin: 60px 55px; transform-box: view-box; }
+  .aipet.blinking .aipet-eyes { animation: aipet-blink 0.22s ease-in-out; }
+  @keyframes aipet-blink { 50% { transform: scaleY(0.08); } }
+  .aipet-eyes, .eye-pupil { transition: transform 0.12s ease-out; }
+  .aipet-mouth { stroke: var(--ink); stroke-width: 3; fill: var(--ink); }
+  .mouth-talk { stroke: none; }
+  .aipet.talking .mouth-idle { opacity: 0; }
+  .aipet.talking .mouth-talk { opacity: 1 !important; animation: aipet-chatter 0.32s ease-in-out infinite; }
+  @keyframes aipet-chatter { 50% { transform: scaleY(0.45); } }
+  .aipet-orbits .aipet-star { fill: var(--marker, #eebe7a); transform-origin: center; transform-box: fill-box; }
+  .s1 { animation: aipet-twinkle 2.8s ease-in-out infinite; }
+  .s2 { animation: aipet-twinkle 3.6s ease-in-out 0.8s infinite; }
+  .s3 { animation: aipet-twinkle 3.1s ease-in-out 1.5s infinite; }
+  @keyframes aipet-twinkle { 50% { transform: scale(0.4) rotate(40deg); opacity: 0.35; } }
+  .aipet-tag {
+    position: absolute; top: -4px; right: -6px;
+    background: var(--ink); color: var(--paper);
+    font-size: 0.62rem; letter-spacing: 0.14em; padding: 0.15em 0.55em;
+    border-radius: 99px; transform: rotate(6deg);
+  }
+
+  /* ---------- 对话面板 ---------- */
+  .aipet-panel {
+    position: absolute; right: 0; bottom: 100px;
+    width: min(348px, calc(100vw - 2rem)); height: min(500px, calc(100dvh - 9rem));
+    display: flex; flex-direction: column;
+    background: var(--paper); color: var(--ink);
+    border: 1.5px solid var(--ink-20); border-radius: 20px;
+    box-shadow: 0 18px 50px rgba(42, 22, 13, 0.22);
+    overflow: hidden; transform-origin: bottom right;
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
+  }
+  .aipet-panel[hidden] { display: flex; transform: scale(0.6) translateY(24px); opacity: 0; pointer-events: none; }
+  .aipet-head {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.65rem 0.8rem; border-bottom: 1.5px solid var(--ink-10);
+    background: var(--paper-sunken);
+  }
+  .aipet-mini { width: 34px; height: 34px; flex: none; }
+  .aipet-mini svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .aipet-mini .aipet-body { stroke-width: 6; }
+  .mini-pupil { fill: var(--ink); }
+  .mini-mouth { stroke: var(--ink); stroke-width: 5; }
+  .aipet-eyes-mini { transform-origin: 60px 56px; transform-box: view-box; animation: aipet-blink-mini 4.2s infinite; }
+  @keyframes aipet-blink-mini { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+  .aipet-title { flex: 1; line-height: 1.25; display: flex; flex-direction: column; }
+  .aipet-title strong { font-size: 0.95rem; }
+  .aipet-title em { font-style: normal; color: var(--ink-60); font-size: 0.62rem; letter-spacing: 0.1em; }
+  .aipet-close {
+    flex: none; width: 32px; height: 32px; display: grid; place-items: center;
+    background: none; border: 0; color: var(--ink-60); cursor: pointer; border-radius: 10px;
+  }
+  .aipet-close:hover { background: var(--ink-10); color: var(--ink); }
+
+  .aipet-msgs { flex: 1; overflow-y: auto; padding: 0.85rem 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; scroll-behavior: smooth; }
+  .msg { max-width: 84%; padding: 0.5rem 0.75rem; border-radius: 14px; font-size: 0.88rem; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+  .msg-img { display: block; max-width: 200px; max-height: 140px; border-radius: 8px; margin-top: 0.4rem; border: 1px solid var(--ink-10); object-fit: cover; }
+  .msg.bot { align-self: flex-start; background: var(--paper-sunken); border: 1px solid var(--ink-10); border-bottom-left-radius: 4px; }
+  .msg.user { align-self: flex-end; background: var(--ink); color: var(--paper); border-bottom-right-radius: 4px; }
+  .msg.typing { display: inline-flex; gap: 4px; align-items: center; padding: 0.7rem 0.8rem; }
+  .msg.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-60); animation: aipet-dot 1s ease-in-out infinite; }
+  .msg.typing i:nth-child(2) { animation-delay: 0.15s; }
+  .msg.typing i:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes aipet-dot { 40% { transform: translateY(-4px); opacity: 1; } 0%, 100% { opacity: 0.4; } }
+
+  .aipet-chips { display: flex; gap: 0.4rem; padding: 0 0.8rem 0.55rem; flex-wrap: wrap; }
+  .aipet-chips:empty { display: none; }
+  .aipet-attach { display: flex; gap: 0.4rem; padding: 0 0.8rem 0.55rem; flex-wrap: wrap; }
+  .aipet-attach[hidden] { display: none; }
+  .attach-item { position: relative; width: 52px; height: 52px; }
+  .attach-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--ink-20); }
+  .attach-rm {
+    position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
+    border-radius: 50%; border: 0; background: var(--ink); color: var(--paper);
+    font-size: 12px; line-height: 1; cursor: pointer; display: grid; place-items: center;
+  }
+  .chip {
+    font-size: 0.74rem; padding: 0.28em 0.75em; border-radius: 99px; cursor: pointer;
+    background: none; border: 1px solid var(--ink-20); color: var(--ink-60); font-family: inherit;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .chip:hover { color: var(--ink); border-color: var(--ink-60); }
+
+  .aipet-form { display: flex; gap: 0.5rem; padding: 0.65rem 0.8rem; border-top: 1.5px solid var(--ink-10); }
+  .aipet-input {
+    flex: 1; min-width: 0; padding: 0.5rem 0.75rem; font: inherit; font-size: 0.88rem;
+    background: var(--paper-sunken); color: var(--ink);
+    border: 1px solid var(--ink-10); border-radius: 12px; outline: none;
+  }
+  .aipet-input:focus { border-color: var(--ink-40); }
+  .aipet-send {
+    flex: none; width: 40px; height: 40px; display: grid; place-items: center;
+    background: var(--ink); color: var(--paper); border: 0; border-radius: 12px; cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .aipet-send:hover { transform: translateY(-2px) rotate(-8deg); }
+
+  /* 夜间模式：加一层暖光晕，让它在夜空中发光 */
+  body.night .aipet-face { filter: drop-shadow(0 0 16px rgba(238, 190, 122, 0.5)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.4)); }
+  body.night .aipet-body { fill: #332216; }
+  body.night .eye-white { fill: #332216; }
+  body.night .aipet-panel { border-color: rgba(238, 190, 122, 0.25); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); }
+
+  @media (max-width: 390px) {
+    .aipet-face { width: 70px; height: 70px; }
+    .aipet-panel { right: -0.2rem; }
+  }
+</style>
+
+<script is:inline>
+(() => {
+  const root = document.getElementById('aipet');
+  if (!root) return;
+  const endpoint = (root.dataset.endpoint || '').trim();
+  const face = document.getElementById('aipet-face');
+  const panel = document.getElementById('aipet-panel');
+  const closeBtn = document.getElementById('aipet-close');
+  const msgs = document.getElementById('aipet-msgs');
+  const chipsBox = document.getElementById('aipet-chips');
+  const form = document.getElementById('aipet-form');
+  const input = document.getElementById('aipet-input');
+  const statusEl = document.getElementById('aipet-status');
+  const eyes = document.getElementById('aipet-eyes');
+
+  /* ============ 生命力：随机眨眼 + 眼睛跟光标 ============ */
+  (function blinkLoop() {
+    const wait = 2400 + Math.random() * 3600;
+    setTimeout(() => {
+      root.classList.add('blinking');
+      setTimeout(() => { root.classList.remove('blinking'); blinkLoop(); }, 240);
+    }, wait);
+  })();
+
+  const pupils = Array.from(root.querySelectorAll('.eye-pupil'));
+  const eyeCenters = [];
+  function measureEyes() {
+    eyeCenters.length = 0;
+    root.querySelectorAll('[data-eye]').forEach((eye) => {
+      const r = eye.getBoundingClientRect();
+      eyeCenters.push({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    });
+  }
+  window.addEventListener('resize', measureEyes);
+  document.addEventListener('mousemove', (e) => {
+    if (!eyeCenters.length || !panel.hidden) return;
+    pupils.forEach((p, i) => {
+      const c = eyeCenters[i];
+      const dx = e.clientX - c.x, dy = e.clientY - c.y;
+      const d = Math.hypot(dx, dy) || 1;
+      const r = Math.min(d / 14, 1) * 3.4; // 受限移动范围
+      p.style.transform = `translate(${(dx / d) * r}px, ${(dy / d) * r}px)`;
+    });
+  }, { passive: true });
+
+  /* ============ 打开/收起面板 ============ */
+  let opened = false;
+  function setOpen(open) {
+    opened = open;
+    if (open) {
+      panel.hidden = false;
+      face.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(() => { panel.style.opacity = ''; panel.style.transform = ''; });
+      measureEyes();
+      if (!msgs.children.length) greet();
+      probe();
+      input.focus({ preventScroll: true });
+    } else {
+      face.setAttribute('aria-expanded', 'false');
+      panel.style.opacity = '0';
+      panel.style.transform = 'scale(0.6) translateY(24px)';
+      setTimeout(() => { if (!opened) panel.hidden = true; }, 380);
+    }
+  }
+  face.addEventListener('click', () => setOpen(!opened));
+  closeBtn.addEventListener('click', () => setOpen(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && opened) setOpen(false); });
+
+  /* ============ 消息渲染 ============ */
+  function esc(s) {
+    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  // 从输入里提取图片链接（.png/.jpg/.webp/.gif/.avif），返回 {text, images}
+  function extractImages(text) {
+    const images = [];
+    const cleaned = text.replace(/https?:\/\/\S+?\.(?:png|jpe?g|webp|gif|avif)(?:\?\S*)?/gi, (url) => {
+      if (images.length < 4) images.push(url);
+      return '';
+    }).replace(/\s{2,}/g, ' ').trim();
+    return { text: cleaned, images };
+  }
+  // 把图片文件/Blob 压成 base64 dataURL（长边 ≤960px，JPEG，控制在 ~1.5MB 内）
+  function shrinkImage(blob) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 960 / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(cv.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode failed')); };
+      img.src = url;
+    });
+  }
+  async function urlToDataUrl(url) {
+    try {
+      const r = await fetch(url, { mode: 'cors' });
+      if (!r.ok) return null;
+      return await shrinkImage(await r.blob());
+    } catch (e) { return null; }
+  }
+  function addMsg(text, who, images) {
+    const div = document.createElement('div');
+    div.className = `msg ${who}`;
+    let html = esc(text);
+    (images || []).forEach((u) => { html += `<img class="msg-img" src="${esc(u)}" alt="用户分享的图片" loading="lazy" />`; });
+    div.innerHTML = html;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'msg bot typing';
+    div.innerHTML = '<i></i><i></i><i></i>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  /* ============ 待发送图片（粘贴/附件） ============ */
+  const attachBox = document.getElementById('aipet-attach');
+  let pendingImages = [];
+  function renderAttach() {
+    attachBox.innerHTML = '';
+    attachBox.hidden = pendingImages.length === 0;
+    pendingImages.forEach((dataUrl, i) => {
+      const wrap = document.createElement('span');
+      wrap.className = 'attach-item';
+      const img = document.createElement('img');
+      img.src = dataUrl; img.alt = '待发送图片';
+      const rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'attach-rm'; rm.textContent = '×'; rm.setAttribute('aria-label', '移除图片');
+      rm.addEventListener('click', () => { pendingImages.splice(i, 1); renderAttach(); });
+      wrap.appendChild(img); wrap.appendChild(rm);
+      attachBox.appendChild(wrap);
+    });
+  }
+  async function addPendingImage(blob) {
+    if (pendingImages.length >= 3) return;
+    try {
+      pendingImages.push(await shrinkImage(blob));
+      renderAttach();
+    } catch (e) {}
+  }
+  input.addEventListener('paste', (e) => {
+    const files = Array.from(e.clipboardData?.files || []).filter((f) => f.type.startsWith('image/'));
+    if (!files.length) return;
+    e.preventDefault();
+    files.forEach(addPendingImage);
+  });
+
+  /* ============ 本地离线人格（内置站点知识的小聪大脑） ============ */
+  const BRAIN = [
+    { re: /你是谁|你叫什么|介绍.*自己|what.*are.*you/i, r: '我是小聪，主人 Kaiser（罗子聪）的数字分身🥰 他不在的时候由我替他站岗聊天。我肚子里装着他网站的所有家当——笔记、游戏、电影、歌单、去过的城市，随便问！' },
+    { re: /主人|kaiser|子聪|罗子聪|站长/i, r: '我主人是罗子聪，武汉大学本科，现在是南京大学研0，研究方向是强化学习和视频编码/码率控制。他自称懒大王，但其实这个网站就是他一行行代码敲出来的🤗 想深入了解可以去「关于」页，或者发邮件 zicongluo@smail.nju.edu.cn 给他。' },
+    { re: /研究|方向|专业|强化学习|编码|码率|rl\b/i, r: '主人在做强化学习（RL）和视频编码方向的科研，网站「笔记」栏里有他写的《RL Quick Start》快速上手教程，还有 SAC、PPO 算法的配套代码和论文 PDF，感兴趣可以去翻翻～' },
+    { re: /游戏|打游戏|玩什么|推荐.*游戏/i, r: '主人的游戏库可丰富了！《艾尔登法环》《赛博朋克2077》《荒野大镖客2》《最后生还者》《战神》《P5R》《P3R》都是他的心头好，最近还沉迷《光与影：33号远征队》和《Pragmata》。完整列表在「拾光」的游戏分区，每款都有他的评分和 Steam 链接～' },
+    { re: /电影|片子|看片|推荐.*电影/i, r: '主人爱看院线片：《奥本海默》《蜘蛛侠：英雄无归》《功夫足球》《龙餐馆》《八星报喜》还有《给阿嬷的一封信》。「拾光」的电影区有他的短评和豆瓣链接🎬' },
+    { re: /歌|音乐|听什么|推荐.*歌|单曲/i, r: '主人的歌单粤味很浓：陈奕迅的《富士山下》《最佳损友》《葡萄成熟时》、杨千嬅《再见二丁目》（在「遇见」里）、梁汉文《半边生命》……每首歌下面都抄了一句他最爱的歌词，去「拾光」的歌曲区边听边看呀🎵' },
+    { re: /书|读书|推荐.*书/i, r: '主人最近在读《被讨厌的勇气》《不抱怨的世界》《人间草木》《外婆的道歉信》《我是你的遗物》。每本都写了读后感，在「拾光」的书籍分区📚' },
+    { re: /旅行|去过|城市|旅游|玩.*地方/i, r: '主人已经点亮了 15 座城市：南京、上海、苏州、杭州、宁波、合肥、武汉、长沙、昆明、大理、丽江、香格里拉、厦门、广州、深圳、香港！游记他正在慢慢写，「拾光」里可以先看到城市占位卡✈️' },
+    { re: /拾光|精神食粮|shelf/i, r: '「拾光」是主人给精神食粮区起的名字～里面有游戏、电影、歌曲、书籍、韩剧（《学习小组》8/10、《铁拳教育》9/10）和他的旅行城市，入口在首页 04 号位。' },
+    { re: /网站|怎么做|技术|搭建|astro|源码/i, r: '这个网站是 Astro 静态站点 + 原生 CSS/JS 动效，主页有个 three.js 点阵地球，部署在 GitHub Pages，源码在 github.com/congcongcong1。主人还专门写了篇笔记《building-this-site》记录建站过程，在「笔记」栏第一篇！' },
+    { re: /笔记|文章|写了什么|博文/i, r: '「笔记」栏里有主人的学习碎片和碎碎念：《RL Quick Start》《为什么写作》《相遇与离别》《生活问题的答案》《玩笑与诗》《身份与特权》《磁力网站合集》还有备忘录金句集。主页「墨迹未干」区能看到最近的更新～' },
+    { re: /项目|开源|仓库|代码/i, r: '主人在 GitHub 上开源了不少项目，首页「键盘余温」区列了他最常更新的仓库，页脚有 GitHub 链接，全部仓库都能翻到。' },
+    { re: /怎么联系|邮箱|联系|email/i, r: '发邮件到 zicongluo@smail.nju.edu.cn，或者在 GitHub 上给主人提 Issue 都可以，他看到就会回的！「关于」页底部也有联系方式📮' },
+    { re: /韩剧|电视剧|学习小组|铁拳/i, r: '主人韩剧看得不多但都很精：《学习小组》给了 8/10，《铁拳教育》（黑色素的铁拳）给了 9/10 的高分！剧评在「拾光」里。' },
+    { re: /你好|hi|hello|嗨|在吗|在么/i, r: '你好呀陌生人🥰！欢迎来到懒大王的网站～我是小聪，有什么想聊的尽管开口！' },
+    { re: /谢谢|感谢|thx|thanks/i, r: '不客气呀🤗 能帮上忙我就开心！' },
+    { re: /再见|拜拜|bye|晚安/i, r: '拜拜～有空常来坐坐，我会一直在这里漂着的🌙' },
+    { re: /喜欢什么|爱好|兴趣/i, r: '主人喜欢打单机游戏、看院线电影、听粤语歌、读点闲书，还喜欢到处旅行拍照。这些全都在「拾光」里存着档呢～' },
+    { re: /懒大王| Kaiser/i, r: '懒大王就是我主人 Kaiser 的自称啦😆 听着懒，建站的时候可一点都不懒。' },
+    { re: /你是谁.*做|会什么|能干什么|功能/i, r: '我可以陪你聊天、介绍这个网站的每个角落、讲讲主人的爱好和近况～如果主人给我接上了 Kimi 的大脑，我还能变得更聪明，现在先靠肚子里的站点百科营业🤗' },
+  ];
+  const FALLBACKS = [
+    '唔……这个问题超出了我肚子里百科的范围🥺 等我主人给我接上 Kimi 的大脑再回答你！先换个话题嘛——要不要听听他的歌单？',
+    '这个我不太会答诶……不过我知道主人游戏库里藏着《艾尔登法环》，要不要聊聊游戏？',
+    '嗯嗯，我记下了（其实没完全懂🥺）。你可以问我：主人的研究方向、爱玩的游戏、旅行去过的城市，这些我门儿清！',
+    '小聪的离线脑容量有限哈哈哈～等接上真·AI 大脑我再来挑战这道题。要不先问问我「这个网站是怎么做的」？',
+  ];
+  let fallbackIdx = 0;
+  function localBrain(text) {
+    for (const item of BRAIN) {
+      if (item.re.test(text)) return item.r;
+    }
+    return FALLBACKS[(fallbackIdx++) % FALLBACKS.length];
+  }
+
+  /* ============ 对话状态 ============ */
+  const HISTORY_KEY = 'xiaocong-history';
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) { history = []; }
+  function saveHistory() {
+    // localStorage 只有 5MB：除最近一条 user 消息外，旧消息里的图片降级为占位文本
+    const slim = history.slice(-20).map((m, i, arr) => {
+      if (Array.isArray(m.content) && !(i === arr.length - 1 && m.role === 'user')) {
+        return { role: m.role, content: m.content.map((p) => p.type === 'image_url' ? { type: 'text', text: '[图片]' } : p) };
+      }
+      return m;
+    });
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(slim)); } catch (e) {}
+  }
+
+  const CHIPS = ['你是谁？', '推荐一首歌', '最近在玩什么游戏？', '这个网站是怎么做的？', '怎么联系你主人？'];
+  function renderChips() {
+    chipsBox.innerHTML = '';
+    CHIPS.forEach((c) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = c;
+      b.addEventListener('click', () => { input.value = c; form.requestSubmit(); });
+      chipsBox.appendChild(b);
+    });
+  }
+
+  function greet() {
+    renderChips();
+    if (history.length) {
+      history.slice(-6).forEach((m) => {
+        if (typeof m.content === 'string') {
+          addMsg(m.content, m.role === 'user' ? 'user' : 'bot');
+        } else if (Array.isArray(m.content)) {
+          const text = m.content.filter((p) => p.type === 'text').map((p) => p.text).join(' ');
+          const imgs = m.content.filter((p) => p.type === 'image_url').map((p) => p.image_url.url);
+          addMsg(text, m.role === 'user' ? 'user' : 'bot', imgs);
+        }
+      });
+    } else {
+      addMsg('你好呀陌生人🥰！我是小聪，Kaiser 的数字分身～点击下面的快捷问题，或者随便和我聊聊！粘贴图片链接我还能看图哦～', 'bot');
+    }
+  }
+
+  function setStatus(t) { statusEl.textContent = t; }
+
+  // 打开面板时探活：3 秒内连不上代理就本会话走离线人格，不让访客干等
+  let online = false;
+  async function probe() {
+    if (!endpoint) { online = false; setStatus('数字分身 · 离线模式'); return; }
+    setStatus('数字分身 · 连接中…');
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 3000);
+      const r = await fetch(endpoint, { method: 'OPTIONS', signal: ctrl.signal });
+      clearTimeout(timer);
+      online = r.ok;
+    } catch (e) { online = false; }
+    setStatus(online ? '数字分身 · Kimi 在线' : '数字分身 · 离线模式');
+  }
+
+  // 组装发给 Worker 的消息体：有图片时用多模态 parts
+  function buildUserMessage(text, images) {
+    if (!images.length) return { role: 'user', content: text };
+    const parts = [];
+    if (text) parts.push({ type: 'text', text });
+    images.forEach((u) => parts.push({ type: 'image_url', image_url: { url: u } }));
+    return { role: 'user', content: parts };
+  }
+
+  /* ============ 发送：优先走 Worker 代理（Kimi），失败回退本地 ============ */
+  async function askKimi(userMsg) {
+    // 8 秒超时：代理不可达（如部分地区访问不了）时快速回退本地人格，不让用户干等
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    let res;
+    try {
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history.concat([userMsg]).slice(-12) }),
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const ct = res.headers.get('content-type') || '';
+    if (ct.includes('text/event-stream')) {
+      // 流式：逐段渲染
+      const reply = addMsg('', 'bot');
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '', full = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data:')) continue;
+          const payload = line.slice(5).trim();
+          if (payload === '[DONE]') continue;
+          try {
+            const delta = JSON.parse(payload).choices?.[0]?.delta?.content || '';
+            full += delta;
+            reply.innerHTML = esc(full);
+            msgs.scrollTop = msgs.scrollHeight;
+          } catch (e) {}
+        }
+      }
+      return full || reply.textContent;
+    }
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) throw new Error('bad payload');
+    return content;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const raw = input.value.trim();
+    if (!raw && !pendingImages.length) return;
+    input.value = '';
+    // 图片 = 粘贴/附件 + 输入里的图片链接（尝试转 base64；跨域抓不到就提示用户直接粘贴）
+    const { text, images: urlImages } = extractImages(raw);
+    const notes = [];
+    const converted = [];
+    for (const u of urlImages) {
+      const d = await urlToDataUrl(u);
+      if (d) converted.push(d);
+      else notes.push(`链接图片 ${u.slice(0, 40)}… 跨域抓不到，直接把图片复制粘贴进来我就能看啦`);
+    }
+    const images = pendingImages.splice(0).concat(converted);
+    renderAttach();
+    if (!text && !images.length) { if (notes.length) addMsg(notes.join('\n'), 'bot'); return; }
+    const userMsg = buildUserMessage(text || (images.length ? '（分享了一张图片）' : ''), images);
+    addMsg(text || (images.length ? '（分享了一张图片）' : ''), 'user', images);
+    history.push(userMsg);
+    saveHistory();
+
+    const typing = showTyping();
+    root.classList.add('talking');
+    setStatus(endpoint ? '数字分身 · 思考中…' : '数字分身 · 离线模式');
+    const t0 = Date.now();
+    let reply;
+    try {
+      if (endpoint && online) {
+        reply = await askKimi(userMsg);
+        if (!reply.trim()) throw new Error('empty');
+      } else {
+        await new Promise((r) => setTimeout(r, 500 + Math.random() * 500));
+        reply = images.length
+          ? '图片我看到了但还没法欣赏🥺 等主人给我接上 Kimi 的大脑（带视觉的那种），我就能看图说话啦！'
+          : localBrain(text);
+      }
+    } catch (err) {
+      reply = localBrain(text) + '\n\n（Kimi 的大脑这会儿连不上，先用我自带的百科顶着～）';
+    }
+    if (notes.length) reply += '\n\n' + notes.join('\n');
+    typing.remove();
+    root.classList.remove('talking');
+    // 模拟一点“打字感”的下限，避免秒回显得机械
+    const wait = Math.max(0, 650 - (Date.now() - t0));
+    setTimeout(() => {
+      addMsg(reply, 'bot');
+      history.push({ role: 'assistant', content: reply });
+      saveHistory();
+      setStatus(online ? '数字分身 · Kimi 在线' : '数字分身 · 离线模式');
+    }, wait);
+  });
+
+  setStatus('数字分身 · 点我聊天');
+  setTimeout(measureEyes, 600);
+})();
+</script>

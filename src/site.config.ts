@@ -9,4 +9,7 @@ export const SITE = {
   since: '2026',
   // 最近更新、笔记列表在首页展示的数量
   recentCount: 4,
+  // 「小聪」AI 分身的对话代理地址（Cloudflare Worker，密钥只存在 Worker 环境变量里）。
+  // 留空 = 本地离线人格模式（不联网也能聊）；接入 Kimi 后填 Worker 地址即可。
+  aiEndpoint: 'https://xiaocong-chat.zicongluo45.workers.dev',
 };

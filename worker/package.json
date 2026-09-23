@@ -1,0 +1,16 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "description": "网站是 GitHub Pages 纯静态托管，**API 密钥绝对不能出现在仓库里**——任何人打开 DevTools 就能扒走你的 key 拿去反代刷额度。 所以架构是：前端 → 本 Worker（密钥只存在它的环境变量里）→ Kimi API。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "wrangler": "^4.136.3"
+  }
+}

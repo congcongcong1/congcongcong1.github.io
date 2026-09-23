@@ -2,3 +2,7 @@ node_modules/
 dist/
 .astro/
 .DS_Store
+# 「小聪」Worker：本地测试密钥文件，绝不入库
+worker/.dev.vars
+worker/node_modules/
+worker/.wrangler/

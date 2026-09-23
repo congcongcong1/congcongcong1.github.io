@@ -4,6 +4,7 @@ import Globe from '../components/Globe.astro';
 import HeroIcons from '../components/HeroIcons.astro';
 import LangIcon from '../components/LangIcon.astro';
 import DustCanvas from '../components/DustCanvas.astro';
+import AiPet from '../components/AiPet.astro';
 import { SITE } from '../site.config';
 import { projects, repoTotal } from '../data/projects';
 import { getCollection } from 'astro:content';
@@ -119,4 +120,7 @@ const fmt = (d: Date) =>
     </p>
   </section>
   </div>
+
+  <!-- 小聪：AI 数字分身，悬浮在角落 -->
+  <AiPet />
 </Base>

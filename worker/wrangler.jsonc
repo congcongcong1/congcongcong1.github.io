@@ -1,0 +1,11 @@
+{
+  "name": "xiaocong-chat",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "vars": {
+    "MODEL": "kimi-k2.8-preview",
+    "ALLOWED_ORIGINS": "https://zicongluo.cn,https://www.zicongluo.cn,http://localhost:7100,http://127.0.0.1:7100",
+    "RATE_LIMIT_PER_MIN": "12",
+    "MAX_TOKENS": "8192"
+  }
+}
