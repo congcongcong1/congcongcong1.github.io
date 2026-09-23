@@ -1140,30 +1140,70 @@ body.night .card-lang { background: #241812; }
 
 /* ---------- 精神食粮影音架 ---------- */
 .shelf-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem 3.5rem;
-  padding: 1.1rem 0;
-  border-top: 1px solid var(--ink-10);
-  border-bottom: 1px solid var(--ink-10);
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.85rem;
 }
+@media (max-width: 900px) { .shelf-stats { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 520px) { .shelf-stats { grid-template-columns: repeat(2, 1fr); } }
 .shelf-stat-link {
-  display: block;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.95rem 1.05rem 0.9rem;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.3s var(--ease-out);
+  background: var(--paper);
+  border: 1px solid var(--ink-10);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), border-color 0.3s var(--ease-out);
 }
-.shelf-stat-link:hover { transform: translateY(-2px); }
+.shelf-stat-link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 34%;
+  border-radius: 0 3px 3px 0;
+  background: var(--stat, var(--ink-20));
+  transition: width 0.4s var(--ease-out);
+}
+.shelf-stat-link:hover {
+  transform: translateY(-3px);
+  border-color: var(--ink-20);
+  box-shadow: 0 12px 26px rgba(42, 22, 13, 0.12);
+}
+.shelf-stat-link:hover::before { width: 100%; }
 .shelf-stat-link:hover .shelf-stats-num { color: var(--ink); }
-.shelf-stat-link:hover .mono-meta { color: var(--ink-80); }
+.shelf-stat-link:hover .shelf-stats-tag { color: var(--ink-80); }
 .shelf-anchor { scroll-margin-top: 4.5rem; }
 .shelf-stats-num {
   font-family: var(--serif);
-  font-size: 1.55rem;
+  font-size: 1.7rem;
   line-height: 1.1;
-  display: block;
+  color: var(--ink-80);
   transition: color 0.3s var(--ease-out);
 }
+.shelf-stats-num small {
+  font-size: 0.72rem;
+  margin-left: 0.3rem;
+  color: var(--ink-40);
+  font-family: var(--sans);
+}
+.shelf-stats-tag {
+  font-family: var(--serif);
+  font-size: 0.88rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-60);
+  transition: color 0.3s var(--ease-out);
+}
+body.night .shelf-stat-link { background: #241812; }
+body.night .shelf-stat-link:hover { box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45); }
+body.night .shelf-stats-num { color: rgba(242, 229, 216, 0.85); }
+body.night .shelf-stats-tag { color: rgba(242, 229, 216, 0.55); }
 
 .shelf-grid {
   display: grid;
