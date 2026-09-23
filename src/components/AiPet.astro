@@ -542,7 +542,7 @@ import { SITE } from '../site.config';
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const ct = res.headers.get('content-type') || '';
     if (ct.includes('text/event-stream')) {
-      // 流式：逐段渲染
+      // 流式：逐段渲染（气泡已实时建在 DOM 里，返回值带 rendered 标记，调用方不再 addMsg）
       const reply = addMsg('', 'bot');
       const reader = res.body.getReader();
       const dec = new TextDecoder();
@@ -565,12 +565,12 @@ import { SITE } from '../site.config';
           } catch (e) {}
         }
       }
-      return full || reply.textContent;
+      return { text: full || reply.textContent, rendered: true };
     }
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content;
     if (!content) throw new Error('bad payload');
-    return content;
+    return { text: content, rendered: false };
   }
 
   form.addEventListener('submit', async (e) => {
@@ -599,10 +599,11 @@ import { SITE } from '../site.config';
     root.classList.add('talking');
     setStatus(endpoint ? '数字分身 · 思考中…' : '数字分身 · 离线模式');
     const t0 = Date.now();
-    let reply;
+    let reply, rendered = false;
     try {
       if (endpoint && online) {
-        reply = await askKimi(userMsg);
+        const r = await askKimi(userMsg);
+        reply = r.text; rendered = r.rendered;
         if (!reply.trim()) throw new Error('empty');
       } else {
         await new Promise((r) => setTimeout(r, 500 + Math.random() * 500));
@@ -613,13 +614,14 @@ import { SITE } from '../site.config';
     } catch (err) {
       reply = localBrain(text) + '\n\n（Kimi 的大脑这会儿连不上，先用我自带的百科顶着～）';
     }
-    if (notes.length) reply += '\n\n' + notes.join('\n');
+    if (!rendered && notes.length) reply += '\n\n' + notes.join('\n'); // 非流式路径维持原行为：提示并入回复文本
     typing.remove();
     root.classList.remove('talking');
     // 模拟一点“打字感”的下限，避免秒回显得机械
     const wait = Math.max(0, 650 - (Date.now() - t0));
     setTimeout(() => {
-      addMsg(reply, 'bot');
+      if (!rendered) addMsg(reply, 'bot');
+      else if (notes.length) addMsg(notes.join('\n'), 'bot'); // 流式气泡已渲染，图片链接提示单独成泡
       history.push({ role: 'assistant', content: reply });
       saveHistory();
       setStatus(online ? '数字分身 · Kimi 在线' : '数字分身 · 离线模式');
