@@ -69,6 +69,12 @@ import { SITE } from '../site.config';
       <button class="aipet-clear" id="aipet-clear" type="button" aria-label="清空本机对话" title="清空本机对话">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 4h4M7 7l1 13h8l1-13M10 11v6M14 11v6"/></svg>
       </button>
+      <button class="aipet-expand" id="aipet-expand" type="button" aria-label="放大对话窗口" title="放大对话窗口" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <g class="icon-expand"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/></g>
+          <g class="icon-compress" style="display:none"><path d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6"/></g>
+        </svg>
+      </button>
       <button class="aipet-close" id="aipet-close" type="button" aria-label="收起对话">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </button>
@@ -143,7 +149,12 @@ import { SITE } from '../site.config';
     border: 1.5px solid var(--ink-20); border-radius: 20px;
     box-shadow: 0 18px 50px rgba(42, 22, 13, 0.22);
     overflow: hidden; transform-origin: bottom right;
-    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
+    transition: width 0.35s cubic-bezier(0.23, 1, 0.32, 1), height 0.35s cubic-bezier(0.23, 1, 0.32, 1), transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
+  }
+  /* 放大模式：大窗口，小屏接近全屏 */
+  #aipet .aipet-panel.expanded {
+    width: min(720px, calc(100vw - 2rem)); height: min(760px, calc(100dvh - 4rem));
+    border-radius: 24px;
   }
 #aipet .aipet-panel[hidden]{ display: flex; transform: scale(0.6) translateY(24px); opacity: 0; pointer-events: none; }
   #aipet .aipet-head {
@@ -168,6 +179,9 @@ import { SITE } from '../site.config';
 #aipet .aipet-close:hover{ background: var(--ink-10); color: var(--ink); }
 #aipet .aipet-clear{ flex: none; width: 32px; height: 32px; display: grid; place-items: center; background: none; border: 0; color: var(--ink-60); cursor: pointer; border-radius: 8px; }
 #aipet .aipet-clear:hover{ background: var(--ink-10); color: var(--ink); }
+#aipet .aipet-expand{ flex: none; width: 32px; height: 32px; display: grid; place-items: center; background: none; border: 0; color: var(--ink-60); cursor: pointer; border-radius: 8px; }
+#aipet .aipet-expand:hover{ background: var(--ink-10); color: var(--ink); }
+#aipet .aipet-expand[aria-pressed="true"]{ color: var(--ink); background: var(--ink-10); }
 #aipet .aipet-scope{ display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; padding: 0.35rem 0.85rem; background: var(--paper-sunken); border-bottom: 1px solid var(--ink-10); color: var(--ink-80); font-size: 0.72rem; }
 #aipet .aipet-scope[hidden]{ display: none; }
 #aipet .aipet-scope span{ overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -338,7 +352,11 @@ import { searchIndex } from '../lib/site-search';
   }
   face.addEventListener('click', () => setOpen(!opened));
   closeBtn.addEventListener('click', () => setOpen(false));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && opened) setOpen(false); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !opened) return;
+    if (panel.classList.contains('expanded')) setExpanded(false); // 放大时先缩回窗口，再按一次才收起
+    else setOpen(false);
+  });
   document.querySelectorAll('[data-ask-note], [data-ask-project]').forEach((button) => {
     button.addEventListener('click', () => {
       const id = button.dataset.askNote || button.dataset.askProject;
@@ -571,6 +589,22 @@ import { searchIndex } from '../lib/site-search';
     msgs.replaceChildren();
     greet();
   });
+
+  // 放大/缩小对话窗口
+  const expandBtn = document.getElementById('aipet-expand');
+  function setExpanded(on) {
+    panel.classList.toggle('expanded', on);
+    expandBtn.setAttribute('aria-pressed', String(on));
+    expandBtn.setAttribute('aria-label', on ? '缩小对话窗口' : '放大对话窗口');
+    expandBtn.title = on ? '缩小对话窗口' : '放大对话窗口';
+    expandBtn.querySelector('.icon-expand').style.display = on ? 'none' : '';
+    expandBtn.querySelector('.icon-compress').style.display = on ? '' : 'none';
+    try { localStorage.setItem('xiaocong-expanded', on ? '1' : '0'); } catch (e) {}
+  }
+  if (expandBtn) {
+    try { if (localStorage.getItem('xiaocong-expanded') === '1') setExpanded(true); } catch (e) {}
+    expandBtn.addEventListener('click', () => setExpanded(!panel.classList.contains('expanded')));
+  }
 
   async function relevantContent(query) {
     await indexReady;
