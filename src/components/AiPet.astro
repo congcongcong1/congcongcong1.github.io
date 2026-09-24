@@ -980,6 +980,7 @@ import { searchIndex } from '../lib/site-search';
   const FEST_SOLAR: Record<string, string[]> = {
     '01-01': ['新年快乐！万事胜意🎆', '跨年快乐！今年也要闪闪发光✨'],
     '02-14': ['情人节快乐💐 有没有人陪都要快乐', '愿天下有情人终成眷属💕'],
+    '03-15': ['今天是罗少生日！🎂 排面拉满！', '生日快乐我滴主人🎂 又帅了一岁', '3·15 出生，官方认证正品😎 生日快乐！', '寿星最大！今天小聪全程贺寿🎉'],
     '05-01': ['五一快乐！去哪玩呀✈️', '劳动最光荣，放假更光荣🎉'],
     '06-01': ['六一快乐！谁还不是个宝宝🎈', '童心未泯，一切皆甜🍭'],
     '10-01': ['国庆快乐！🇨🇳', '假期快乐！路上堵不堵🚗'],
@@ -996,18 +997,22 @@ import { searchIndex } from '../lib/site-search';
     '12-8': ['腊八快乐！记得喝腊八粥🥣'],
     '12-last': ['除夕快乐！今晚守岁吗🧨', '辞旧迎新，万事顺遂🏮'],
   };
-  function festivalToday(): string[] | null {
+  function festivalToday(): { lines: string[]; weight: number } | null {
     const now = new Date();
     const p2 = (n: number) => String(n).padStart(2, '0');
-    const solar = FEST_SOLAR[`${p2(now.getMonth() + 1)}-${p2(now.getDate())}`];
+    const md = `${p2(now.getMonth() + 1)}-${p2(now.getDate())}`;
+    // 主人生日 3·15：最大排面，92% 概率持续贺寿
+    if (md === '03-15') return { lines: FEST_SOLAR['03-15'], weight: 0.92 };
+    const solar = FEST_SOLAR[md];
     const l = solarToLunar(now);
     let lunar: string[] | undefined;
     if (!l.isLeap) {
       lunar = FEST_LUNAR[`${l.month}-${l.day}`];
       if (!lunar && l.month === 12 && l.day === lunarMonthDays(l.year, 12)) lunar = FEST_LUNAR['12-last'];
     }
-    if (solar && lunar) return Math.random() < 0.5 ? solar : lunar; // 双节同日（如中秋逢国庆）
-    return lunar || solar || null;
+    if (solar && lunar) return { lines: Math.random() < 0.5 ? solar : lunar, weight: 0.75 }; // 双节同日（如中秋逢国庆）
+    const lines = lunar || solar;
+    return lines ? { lines, weight: 0.75 } : null;
   }
   const MOODS = {
     base: ['在发呆，勿扰…', '漂着漂着🌙', '数星星中✨', '在假装学习📖', '摸鱼间隙', '思考吃什么', '刚睡醒，懵的', '在修炼悬浮术'],
@@ -1091,10 +1096,10 @@ import { searchIndex } from '../lib/site-search';
   function rotateMood() {
     if (moodForced) { showMood(moodForced); return; }
     moodCount++;
-    // 节日期间：首条必是祝福语，之后 75% 概率继续过节
+    // 节日期间：首条必是祝福语，之后按节日权重继续过节（生日 0.92 > 普通 0.75）
     const fest = festivalToday();
-    if (fest && (moodCount === 1 || Math.random() < 0.75)) {
-      showMood(fest[Math.floor(Math.random() * fest.length)]);
+    if (fest && (moodCount === 1 || Math.random() < fest.weight)) {
+      showMood(fest.lines[Math.floor(Math.random() * fest.lines.length)]);
       return;
     }
     // 40% 概率来一句格言，其余按情境池挑
