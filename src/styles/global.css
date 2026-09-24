@@ -1379,6 +1379,8 @@ body.night .shelf-play-btn {
   border-top: 1px dashed var(--ink-20);
 }
 .shelf-comment .prose p { font-size: 0.92rem; color: var(--ink-80); margin: 0.4rem 0; }
+.shelf-comment .prose.shelf-quotes ol { margin: 0; padding-left: 1.2rem; }
+.shelf-comment .prose.shelf-quotes li { font-size: 0.92rem; color: var(--ink-80); line-height: 1.7; margin: 0.25rem 0; }
 .shelf-empty { color: var(--ink-40); font-style: italic; font-size: 0.92rem; }
 
 /* ---------- 藏书阁：通栏书卡，封面立起 + 衬线引文 ---------- */

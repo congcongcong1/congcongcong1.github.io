@@ -61,6 +61,14 @@ const isNow = ['在看', '在听', '在玩', '想去'].includes(d.status);
         </div>
       )}
       <div class="prose travel-body">
+        {d.quotes.length > 0 && (
+          <>
+            <h2>金句摘抄</h2>
+            <ol>
+              {d.quotes.map((q) => <li>{q}</li>)}
+            </ol>
+          </>
+        )}
         <Content />
       </div>
       <p style="margin-top: 2.5rem;">

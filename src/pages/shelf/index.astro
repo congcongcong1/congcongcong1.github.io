@@ -92,7 +92,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                     </div>
                     <div class="song-info">
                       <div class="shelf-book-head">
-                        <h3>《{e.data.title}》</h3>
+                        <h3><a class="uline" href={`/shelf/${e.id}/`}>《{e.data.title}》</a></h3>
                         {e.data.alt && <span class="shelf-alt">{e.data.alt}</span>}
                         <span class="shelf-headmeta">
                           <span class:list={['shelf-chip', { now: isNow(e.data.status) }]}>
@@ -118,7 +118,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                     </div>
                     <div class="shelf-book-info">
                       <div class="shelf-book-head">
-                        <h3>《{e.data.title}》</h3>
+                        <h3><a class="uline" href={`/shelf/${e.id}/`}>《{e.data.title}》</a></h3>
                         {e.data.alt && <span class="shelf-alt">{e.data.alt}</span>}
                         <span class="shelf-headmeta">
                           <span class="shelf-chip"><span class="dot"></span>{e.data.status}</span>
@@ -157,11 +157,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                     <div class="shelf-body">
                       <div class="shelf-head">
                         <h3>
-                          {e.data.kind === '旅行' ? (
-                            <a class="uline" href={`/shelf/${e.id}/`}>《{e.data.title}》</a>
-                          ) : (
-                            <>《{e.data.title}》</>
-                          )}
+                          <a class="uline" href={`/shelf/${e.id}/`}>《{e.data.title}》</a>
                           {e.data.alt && <span class="shelf-alt">/ {e.data.alt}</span>}
                         </h3>
                         <span class="shelf-headmeta">
@@ -206,7 +202,29 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                         )}
                       </p>
                       <div class="shelf-comment">
-                        {e.data.kind === '旅行' ? (
+                        {e.data.kind === '韩剧' ? (
+                          <>
+                            {e.data.quotes.length > 0 ? (
+                              <>
+                                <p class="mono-meta" style="margin-bottom: 0.4rem;">金句摘抄</p>
+                                <div class="prose shelf-quotes">
+                                  <ol>
+                                    {e.data.quotes.map((q) => <li>{q}</li>)}
+                                  </ol>
+                                </div>
+                              </>
+                            ) : hasBody ? (
+                              <div class="prose"><Content /></div>
+                            ) : (
+                              <p class="shelf-empty">（先占个位置，碎碎念慢慢长出来……）</p>
+                            )}
+                            {hasBody && (
+                              <p class="shelf-travel-cta" style="margin-top: 0.7rem;">
+                                <a class="uline" href={`/shelf/${e.id}/`}>观后感全文 →</a>
+                              </p>
+                            )}
+                          </>
+                        ) : e.data.kind === '旅行' ? (
                           <p class="shelf-travel-cta">
                             <a class="uline" href={`/shelf/${e.id}/`}>点开这座城：攻略 · 照片 · 感想 →</a>
                           </p>
@@ -214,7 +232,12 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                           <>
                             <p class="mono-meta" style="margin-bottom: 0.4rem;">碎碎念</p>
                             {hasBody ? (
-                              <div class="prose"><Content /></div>
+                              <>
+                                <div class="prose"><Content /></div>
+                                <p class="shelf-travel-cta" style="margin-top: 0.7rem;">
+                                  <a class="uline" href={`/shelf/${e.id}/`}>全文 →</a>
+                                </p>
+                              </>
                             ) : (
                               <p class="shelf-empty">（先占个位置，碎碎念慢慢长出来……）</p>
                             )}
