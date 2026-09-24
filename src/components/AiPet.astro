@@ -400,6 +400,27 @@ import { searchIndex } from '../lib/site-search';
   function esc(s) {
     return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
+  // Kimi 偶尔会输出斜杠表情命令（/咖啡），前端是纯文本渲染会原样显示；把常见的映射回 emoji，不在表里的原样保留
+  const SLASH_EMOJI = {
+    咖啡: '☕', 茶: '🍵', 奶茶: '🧋', 啤酒: '🍺', 酒: '🍷', 饭: '🍚', 面条: '🍜', 火锅: '🍲',
+    鸡腿: '🍗', 披萨: '🍕', 汉堡: '🍔', 寿司: '🍣', 蛋糕: '🎂', 冰淇淋: '🍦', 西瓜: '🍉',
+    草莓: '🍓', 苹果: '🍎', 玫瑰: '🌹', 花: '🌸', 礼物: '🎁', 音乐: '🎵', 电影: '🎬', 游戏: '🎮',
+    火: '🔥', 星星: '⭐', 太阳: '☀️', 月亮: '🌙', 下雨: '🌧️', 彩虹: '🌈', 闪电: '⚡',
+    笑脸: '😄', 笑: '😄', 大笑: '😂', 微笑: '😊', 眨眼: '😉', 飞吻: '😘', 酷: '😎', 困: '😴',
+    哭: '😭', 伤心: '💔', 心碎: '💔', 委屈: '🥺', 晕: '😵', 生气: '😠',
+    爱心: '❤️', 心: '❤️', 红心: '❤️', 粉心: '🩷', 粉色爱心: '🩷', 蓝心: '💙', 绿心: '💚',
+    黄心: '💛', 紫心: '💜', 橙心: '🧡', 白心: '🤍', 黑心: '🖤', 棕心: '🤎',
+    两颗心: '💕', 心心相印: '💕', 旋转爱心: '💞', 心动: '💓', 心跳: '💓', 一箭穿心: '💘',
+    爱心箭: '💘', 花痴: '😍', 爱心眼: '😍', 花心眼: '😍', 亲亲: '😘', 么么哒: '😘',
+    贴贴: '🤗', 抱抱: '🤗', 比心: '🫰', 笔芯: '🫰', 爱你: '🤟', 花束: '💐', 蝴蝶结: '🎀',
+    烟花: '🎆', 庆祝: '🎉', 彩带: '🎊', 气球: '🎈', 害羞: '😳', 脸红: '😳', 天使: '😇',
+    点赞: '👍', 棒: '👍', 鼓掌: '👏', 加油: '💪', 握手: '🤝', 抱: '🤗', 好的: '👌', OK: '👌',
+    耶: '✌️', 胜利: '✌️', 石头剪刀布: '✊', 合十: '🙏', 拜托: '🙏', 感谢: '🙏',
+    问号: '❓', 感叹号: '❗', 狗: '🐶', 猫: '🐱', 鱼: '🐟', 兔: '🐰',
+  };
+  function fixEmoji(s) {
+    return s.replace(/\/([A-Za-z\u4e00-\u9fff]{1,6})(?![A-Za-z\u4e00-\u9fff])/g, (m, w) => SLASH_EMOJI[w] ?? m);
+  }
   // 从输入里提取图片链接（.png/.jpg/.webp/.gif/.avif），返回 {text, images}
   function extractImages(text) {
     const images = [];
@@ -446,7 +467,7 @@ import { searchIndex } from '../lib/site-search';
     else { av.textContent = '你'; av.setAttribute('aria-label', '我'); }
     const div = document.createElement('div');
     div.className = `msg ${who}`;
-    let html = esc(text);
+    let html = esc(fixEmoji(text));
     (images || []).forEach((u) => { html += `<img class="msg-img" src="${esc(u)}" alt="用户分享的图片" loading="lazy" />`; });
     div.innerHTML = html;
     row.appendChild(av);
@@ -777,7 +798,7 @@ import { searchIndex } from '../lib/site-search';
           try {
             const delta = JSON.parse(payload).choices?.[0]?.delta?.content || '';
             full += delta;
-            reply.innerHTML = esc(full);
+            reply.innerHTML = esc(fixEmoji(full));
             msgs.scrollTop = msgs.scrollHeight;
           } catch (e) {}
         }
