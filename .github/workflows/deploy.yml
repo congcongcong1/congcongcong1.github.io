@@ -24,6 +24,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Sync repo metadata from GitHub API
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/sync-repos.mjs
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

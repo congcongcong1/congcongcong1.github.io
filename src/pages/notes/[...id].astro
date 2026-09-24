@@ -49,7 +49,7 @@ for (const n of allNotes) {
 }
 ---
 
-<Base title={`${note.data.title} · kaiser`} description={note.data.description}>
+<Base title={`${note.data.title} · kaiser`} description={note.data.description} ogImage={`/og/note-${note.id}.png`} ogType="article" articleDate={note.data.date}>
   <!-- 移动端：折叠导航（桌面端隐藏） -->
   <details class="wrap notes-mobile-nav">
     <summary class="mono-meta">全部笔记 / 本页目录</summary>

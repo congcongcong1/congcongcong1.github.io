@@ -8,11 +8,14 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  ogImage?: string;     // 站内路径（如 /og/note-xxx.png），默认用站点品牌卡片
+  ogType?: string;      // website | article
+  articleDate?: Date;   // og:type=article 时的发布时间
 }
 
-const { title = SITE.title, description = SITE.description } = Astro.props;
+const { title = SITE.title, description = SITE.description, ogImage: ogImagePath = '/og/default.png', ogType = 'website', articleDate } = Astro.props;
 const canonical = new URL(Astro.url.pathname, SITE.url).href;
-const ogImage = new URL('/avatar.jpg', SITE.url).href;
+const ogImage = new URL(ogImagePath, SITE.url).href;
 const nav = [
   { label: '笔记', href: '/notes/', icon: '<path d="M12 6.5C10.5 5 8.5 4.5 4 4.5v14c4.5 0 6.5.5 8 2 1.5-1.5 3.5-2 8-2v-14c-4.5 0-6.5.5-8 2Z"/><path d="M12 6.5v14"/>' },
   { label: '专题', href: '/topics/', icon: '<path d="M3 11.5 11.5 3H21v9.5L12.5 21a1.8 1.8 0 0 1-2.5 0l-7-7a1.8 1.8 0 0 1 0-2.5Z"/><circle cx="16.5" cy="7.5" r="1.3"/>' },
@@ -48,12 +51,19 @@ const isActive = (href: string) =>
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.name} · 笔记`} href="/rss.xml" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE.name} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="zh_CN" />
+    {ogType === 'article' && articleDate && (
+      <>
+        <meta property="article:published_time" content={articleDate.toISOString()} />
+        <meta property="article:author" content={SITE.name} />
+      </>
+    )}
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />

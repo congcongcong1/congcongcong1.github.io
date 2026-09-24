@@ -5,7 +5,7 @@ status: 想看
 link: https://movie.douban.com/subject/37508847/
 date: 2026-09-22
 images:
-  - /shelf/movie-kong-qiang.jpg
+  - /shelf/movie-kong-qiang.webp
 ---
 
 （先占个位置，观后感看完慢慢写……）

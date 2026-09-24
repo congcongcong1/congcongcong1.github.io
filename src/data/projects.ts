@@ -1,5 +1,15 @@
 // 项目展示数据：精选自 github.com/congcongcong1，按最近更新排序
-// 想刷新数据时重新运行抓取脚本，或直接手动改这里
+// 手动资料（slug/name/description/overview/topics/highlights/doc/language）都在本文件维护；
+// updated / license / repoTotal 由 scripts/sync-repos.mjs 从 GitHub API 刷新到 repo-meta.json，
+// 构建时合并：updated 与 license 以 API 为准，language 以本文件为准（如站点仓被 linguist 误判成 Jupyter）。
+import metaJson from './repo-meta.json';
+
+interface RepoMeta {
+  repoTotal: number;
+  repos: Record<string, { language: string; license: string | null; updated: string }>;
+}
+
+const meta = (metaJson ?? {}) as Partial<RepoMeta>;
 export interface Project {
   slug: string;
   name: string;
@@ -14,9 +24,9 @@ export interface Project {
   updated: string; // YYYY-MM
 }
 
-export const repoTotal = 12; // GitHub 上非 fork 仓库总数
+export const repoTotal = meta.repoTotal ?? 12; // GitHub 上非 fork 仓库总数（API 刷新失败时退回手写值）
 
-export const projects: Project[] = [
+const rawProjects: Project[] = [
   {
     slug: 'personal-site',
     name: 'congcongcong1.github.io',
@@ -86,3 +96,15 @@ export const projects: Project[] = [
     updated: '2026-01',
   },
 ];
+
+// 与 repo-meta.json 合并：updated / license 以 GitHub API 为准，language 以本文件为准
+export const projects: Project[] = rawProjects.map((p) => {
+  const m = meta.repos?.[p.slug];
+  if (!m) return p;
+  return {
+    ...p,
+    updated: m.updated || p.updated,
+    license: m.license !== undefined ? m.license : p.license,
+    language: p.language || (m.language !== '—' ? m.language : p.language),
+  };
+});

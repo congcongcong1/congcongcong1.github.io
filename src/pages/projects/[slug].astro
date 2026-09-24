@@ -11,7 +11,7 @@ export function getStaticPaths() {
 const { project } = Astro.props;
 ---
 
-<Base title={`${project.name} · 项目 · kaiser`} description={project.description}>
+<Base title={`${project.name} · 项目 · kaiser`} description={project.description} ogImage={`/og/project-${project.slug}.png`}>
   <div class="dust-zone">
     <DustCanvas />
     <article class="wrap project-detail">

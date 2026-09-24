@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-09-24",
+  "repoTotal": 8,
+  "repos": {
+    "personal-site": {
+      "language": "Jupyter Notebook",
+      "license": null,
+      "updated": "2026-09"
+    },
+    "proxunroll": {
+      "language": "Python",
+      "license": "Apache-2.0",
+      "updated": "2026-09"
+    },
+    "git-stats": {
+      "language": "—",
+      "license": null,
+      "updated": "2026-05"
+    },
+    "graduation-thesis": {
+      "language": "TeX",
+      "license": "LPPL-1.3c",
+      "updated": "2026-05"
+    },
+    "leetcode-exercise": {
+      "language": "Python",
+      "license": null,
+      "updated": "2026-03"
+    },
+    "yq-qt-mvs": {
+      "language": "—",
+      "license": null,
+      "updated": "2026-01"
+    }
+  }
+}

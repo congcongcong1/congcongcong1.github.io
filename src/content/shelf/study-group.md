@@ -7,7 +7,7 @@ link: https://seeduck.cc/movies/119792/
 rating: 8
 date: 2026-09-22
 images:
-  - /shelf/study-group-1.png
+  - /shelf/study-group-1.webp
 quotes:
   - 怀抱梦想是很累的——但，值得。
   - 没有什么事是绝对的——所以，不要信这种告诉你肯定怎样的话。
