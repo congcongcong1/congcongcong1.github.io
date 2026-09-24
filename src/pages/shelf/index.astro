@@ -40,6 +40,24 @@ const entries = await Promise.all(
   all.map(async (e) => ({ e, Content: (await render(e)).Content, hasBody: e.body.trim().replace(/[（(].{0,30}(待补充|还没看完|占位).{0,30}[)）]/, '').trim().length > 0 }))
 );
 const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
+
+// 「今晚看点啥」放映机奖池：排除「旅行」（15 座城是游记占位，不适合摇）。
+// line = 金句第一条，否则正文去 markdown 后截 80 字
+const plain = (s: string) =>
+  s.replace(/!\[[^\]]*\]\([^)]*\)/g, ' ').replace(/\[[^\]]*\]\([^)]*\)/g, ' ').replace(/[`*#>|\[\]()-]/g, ' ').replace(/\s+/g, ' ').trim();
+const slotPool = entries
+  .filter((x) => x.e.data.kind !== '旅行')
+  .map((x) => ({
+    id: x.e.id,
+    kind: x.e.data.kind,
+    title: x.e.data.title,
+    alt: x.e.data.alt,
+    rating: x.e.data.rating,
+    status: x.e.data.status,
+    image: x.e.data.images[0] || '',
+    url: `/shelf/${x.e.id}/`,
+    line: x.e.data.quotes[0] || plain(x.e.body).slice(0, 80),
+  }));
 ---
 
 <Base title={`拾光 · ${'kaiser'}`} description="精神食粮架：韩剧、电影、书、音乐、游戏、旅行与碎碎念。">
@@ -51,6 +69,9 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
       </h1>
       <p style="margin-top: 1rem; color: var(--ink-60); max-width: 30em;">
         追过的剧、看过的书、循环的歌、玩过的游戏，以及每一格下面慢慢生长的碎碎念。
+      </p>
+      <p style="margin-top: 1.3rem;">
+        <button class="slot-btn" id="slot-btn" type="button">🎰 今晚看点啥？让架子替你决定</button>
       </p>
     </div>
   </section>
@@ -255,6 +276,167 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
       })}
     </section>
   </div>
+
+  <!-- 「今晚看点啥」放映机：雪花屏 → 抽出一张拍立得 -->
+  <div class="slot-overlay" id="slot-overlay" hidden>
+    <div class="slot-stage">
+      <div class="slot-card" id="slot-card">
+        <canvas class="slot-noise" id="slot-noise" width="96" height="64" hidden></canvas>
+        <div class="slot-face" id="slot-face" hidden>
+          <img id="slot-img" alt="" loading="lazy" />
+          <div class="slot-cap">
+            <span class="slot-kind mono-meta" id="slot-kind"></span>
+            <h3 id="slot-title"></h3>
+            <p class="slot-line" id="slot-line"></p>
+            <p class="slot-meta" id="slot-meta"></p>
+          </div>
+        </div>
+      </div>
+      <div class="slot-actions">
+        <button class="slot-act" id="slot-again" type="button">🔁 换一个</button>
+        <a class="slot-act slot-go" id="slot-go" href="#">就它了 →</a>
+        <button class="slot-act slot-x" id="slot-close" type="button" aria-label="关闭">×</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .slot-btn {
+      font: inherit; font-size: 0.88rem; padding: 0.5rem 1.3rem; cursor: pointer;
+      background: var(--ink); color: var(--paper); border: 0; border-radius: 99px;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .slot-btn:hover { transform: translateY(-2px) rotate(-1.5deg); }
+    .slot-overlay {
+      position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center;
+      padding: 1rem; box-sizing: border-box;
+      background: rgba(26, 16, 38, 0.55);
+      backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    }
+    .slot-overlay[hidden] { display: none; }
+    .slot-stage {
+      display: flex; flex-direction: column; align-items: center; gap: 1.1rem; padding: 0.5rem;
+      margin: auto; max-height: 100%; overflow-y: auto;
+    }
+    .slot-card {
+      width: min(300px, 82vw); background: var(--paper); border-radius: 8px;
+      padding: 12px 12px 16px; transform: rotate(-1.6deg);
+      border: 1.5px solid var(--ink-10);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      animation: slot-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes slot-in { from { opacity: 0; transform: rotate(-6deg) translateY(30px) scale(0.8); } }
+    .slot-card.rolling { animation: slot-shake 0.12s linear infinite; }
+    @keyframes slot-shake {
+      0%, 100% { transform: rotate(-1.6deg) translate(0, 0); }
+      25% { transform: rotate(-2.6deg) translate(-2px, 1px); }
+      75% { transform: rotate(-0.6deg) translate(2px, -1px); }
+    }
+    .slot-noise { display: block; width: 100%; aspect-ratio: 3 / 4; border-radius: 3px; background: #111; image-rendering: pixelated; }
+    .slot-noise[hidden], .slot-face[hidden] { display: none; }
+    .slot-face.reveal { animation: slot-flip 0.5s ease; }
+    @keyframes slot-flip { from { opacity: 0; transform: perspective(600px) rotateY(70deg); } }
+    .slot-face img { display: block; width: 100%; max-height: 46vh; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 3px; background: var(--paper-sunken); }
+    .slot-cap { padding: 0.7rem 0.2rem 0; }
+    .slot-kind { color: var(--ink-60); }
+    .slot-cap h3 { font-family: var(--serif); font-weight: 400; font-size: 1.15rem; margin: 0.25rem 0 0.2rem; }
+    .slot-line {
+      font-size: 0.8rem; color: var(--ink-80); line-height: 1.6; margin: 0 0 0.4rem;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .slot-meta { font-size: 0.72rem; color: var(--ink-60); margin: 0; letter-spacing: 0.06em; }
+    .slot-actions { display: flex; gap: 0.6rem; align-items: center; }
+    .slot-act {
+      font: inherit; font-size: 0.85rem; padding: 0.45rem 1.1rem; border-radius: 99px; cursor: pointer;
+      background: var(--paper); color: var(--ink); border: 1.5px solid var(--ink-20); text-decoration: none;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .slot-act:hover { transform: translateY(-2px); }
+    .slot-go { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .slot-x { padding: 0.45rem 0.85rem; }
+  </style>
+  <script define:vars={{ slotPool }}>
+    // 「今晚看点啥」：雪花屏 0.95s → 抽出一张拍立得（奖池由 frontmatter 注入）
+    (function () {
+      const btn = document.getElementById('slot-btn');
+      const overlay = document.getElementById('slot-overlay');
+      const card = document.getElementById('slot-card');
+      const face = document.getElementById('slot-face');
+      const noise = document.getElementById('slot-noise');
+      const img = document.getElementById('slot-img');
+      const kindEl = document.getElementById('slot-kind');
+      const titleEl = document.getElementById('slot-title');
+      const lineEl = document.getElementById('slot-line');
+      const metaEl = document.getElementById('slot-meta');
+      const go = document.getElementById('slot-go');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let noiseTimer = 0;
+
+      function noiseFrame() {
+        const x = noise.getContext('2d');
+        const d = x.createImageData(96, 64);
+        for (let i = 0; i < d.data.length; i += 4) {
+          const v = (Math.random() * 255) | 0;
+          d.data[i] = d.data[i + 1] = d.data[i + 2] = v;
+          d.data[i + 3] = 255;
+        }
+        x.putImageData(d, 0, 0);
+      }
+      function startNoise() {
+        face.hidden = true;
+        noise.hidden = false;
+        noiseFrame();
+        noiseTimer = window.setInterval(noiseFrame, 90);
+        card.classList.add('rolling');
+      }
+      function stopNoise() {
+        window.clearInterval(noiseTimer);
+        noiseTimer = 0;
+        card.classList.remove('rolling');
+      }
+      function starsOf(r) {
+        const n = Math.round(r / 2);
+        return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+      }
+      function roll() {
+        if (noiseTimer || !slotPool.length) return;
+        startNoise();
+        window.setTimeout(() => {
+          const it = slotPool[Math.floor(Math.random() * slotPool.length)];
+          stopNoise();
+          img.src = it.image;
+          img.alt = `《${it.title}》封面`;
+          kindEl.textContent = `${it.kind} · ${it.status}`;
+          titleEl.textContent = it.alt ? `${it.title} / ${it.alt}` : it.title;
+          lineEl.textContent = it.line || '（还没写碎碎念，先去详情页坐坐）';
+          metaEl.textContent = it.rating > 0 ? `${starsOf(it.rating)} ${it.rating}/10` : '';
+          go.href = it.url;
+          noise.hidden = true;
+          face.hidden = false;
+          face.classList.remove('reveal');
+          void face.offsetWidth;
+          face.classList.add('reveal');
+        }, reduced ? 60 : 950);
+      }
+      function open() {
+        overlay.hidden = false;
+        document.body.style.overflow = 'hidden';
+        roll();
+      }
+      function close() {
+        overlay.hidden = true;
+        document.body.style.overflow = '';
+        stopNoise();
+      }
+      btn.addEventListener('click', open);
+      document.getElementById('slot-again').addEventListener('click', roll);
+      document.getElementById('slot-close').addEventListener('click', close);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !overlay.hidden) close();
+      });
+    })();
+  </script>
   <script>
     // 图片灯箱：点击多图卡片的剧照，左右切换 / 滑动 / 方向键浏览
     (function () {

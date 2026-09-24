@@ -14,6 +14,14 @@ import { SITE } from '../../site.config';
     </div>
   </section>
 
+  <section class="wrap gb-sky-sec">
+    <p class="mono-meta gb-sky-hint" id="gb-sky-hint">这片星空由大家的留言组成 —— 点一颗星星，看看那句话</p>
+    <div class="gb-sky-wrap" id="gb-sky-wrap" hidden>
+      <canvas id="gb-sky" aria-label="留言星空"></canvas>
+      <div class="gb-sky-tip" id="gb-sky-tip" hidden></div>
+    </div>
+  </section>
+
   <section class="wrap gb-body">
     <form class="gb-form" id="gb-form">
       <input class="gb-name" id="gb-name" type="text" maxlength="24" placeholder="昵称（可留空，默认路人甲）" aria-label="昵称" />
@@ -30,6 +38,24 @@ import { SITE } from '../../site.config';
 
   <style>
     .gb-body { max-width: 46rem; padding-bottom: 4rem; }
+    .gb-sky-sec { padding-top: 0.2rem; padding-bottom: 1.4rem; }
+    .gb-sky-hint { margin-bottom: 0.6rem; }
+    .gb-sky-wrap {
+      position: relative; height: 230px; border-radius: 18px; overflow: hidden;
+      border: 1.5px solid var(--ink-10);
+      background: radial-gradient(120% 140% at 20% 0%, #2b1d3d 0%, #1d1430 45%, #140e22 100%);
+    }
+    body.night .gb-sky-wrap { border-color: rgba(238, 190, 122, 0.22); }
+    .gb-sky-wrap canvas { display: block; width: 100%; height: 100%; }
+    .gb-sky-tip {
+      position: absolute; z-index: 2; max-width: 240px; padding: 0.6rem 0.75rem;
+      background: var(--paper); color: var(--ink); border: 1.5px solid var(--ink-20);
+      border-radius: 12px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      font-size: 0.78rem; line-height: 1.55; pointer-events: none;
+    }
+    .gb-sky-tip .tip-name { display: flex; justify-content: space-between; gap: 0.6rem; font-weight: 600; font-size: 0.72rem; color: var(--ink-80); margin-bottom: 0.25rem; }
+    .gb-sky-tip .tip-time { color: var(--ink-60); font-weight: 400; font-size: 0.66rem; white-space: nowrap; }
+    .gb-sky-tip .tip-msg { word-break: break-word; white-space: pre-wrap; }
     .gb-form {
       background: var(--paper); border: 1.5px solid var(--ink-20); border-radius: 16px;
       padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
@@ -74,6 +100,8 @@ import { SITE } from '../../site.config';
     }
 
     function render(messages) {
+      // 同步给星空画布（render 可能在 catch 外被多次调用，星空始终拿最新一份）
+      document.dispatchEvent(new CustomEvent('gb:messages', { detail: messages }));
       listEl.innerHTML = '';
       loadingEl.style.display = 'none';
       if (!messages.length) {
@@ -137,5 +165,181 @@ import { SITE } from '../../site.config';
     });
 
     load();
+  </script>
+
+  <script>
+    // 留言星空：每条留言是一颗星星（监听上面 render 派发的 gb:messages，数据零重复请求）
+    (function () {
+      const wrap = document.getElementById('gb-sky-wrap');
+      const canvas = document.getElementById('gb-sky');
+      const tip = document.getElementById('gb-sky-tip');
+      const hint = document.getElementById('gb-sky-hint');
+      if (!wrap || !canvas || !tip) return;
+      const ctx = canvas.getContext('2d');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let stars: Array<{ x: number; y: number; r: number; a: number; phase: number; speed: number; amber: boolean; pop: number; m: { name?: string; msg: string; ts: number } }> = [];
+      let ambient: Array<{ x: number; y: number; r: number; a: number }> = [];
+      let lastMessages: Array<{ name?: string; msg: string; ts: number }> = [];
+      let W = 0, H = 0, hoverStar: (typeof stars)[number] | null = null, prevMaxTs = 0, inView = false;
+
+      const rng = (seed: number) => () => {
+        seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+
+      // 预渲染星芒贴图，绘制走 drawImage，避免每帧为每颗星新建渐变
+      function makeGlow(r: number, g: number, b: number) {
+        const c = document.createElement('canvas');
+        c.width = c.height = 64;
+        const x = c.getContext('2d')!;
+        const grad = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+        grad.addColorStop(0, `rgba(${r},${g},${b},0.85)`);
+        grad.addColorStop(0.3, `rgba(${r},${g},${b},0.25)`);
+        grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+        x.fillStyle = grad;
+        x.fillRect(0, 0, 64, 64);
+        return c;
+      }
+      const GLOW_WARM = makeGlow(255, 224, 178);
+      const GLOW_AMBER = makeGlow(238, 190, 122);
+
+      // 背景星尘：固定 36 颗，位置用比例存储，resize 不用重建
+      (function () {
+        const r = rng(7);
+        ambient = Array.from({ length: 36 }, () => ({ x: r(), y: r(), r: 0.4 + r() * 0.9, a: 0.07 + r() * 0.16 }));
+      })();
+
+      const fmtTs = (ts: number) => {
+        const d = new Date(ts);
+        const p = (n: number) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+      };
+
+      function build(messages: typeof lastMessages) {
+        if (!W || !H) return;
+        const list = messages.slice(-150);
+        const n = list.length;
+        const maxTs = n ? list[n - 1].ts : 0;
+        stars = list.map((m, i) => {
+          const r = rng(m.ts * 7 + i * 131);
+          const fresh = prevMaxTs > 0 && m.ts > prevMaxTs;
+          return {
+            x: 16 + r() * (W - 32),
+            y: 14 + r() * (H - 52),
+            r: 1.5 + (i / Math.max(1, n - 1)) * 2.6 + r() * 0.6,
+            a: 0.45 + 0.55 * (i / Math.max(1, n - 1)),
+            phase: r() * Math.PI * 2,
+            speed: 0.6 + r() * 1.2,
+            amber: r() < 0.22,
+            pop: fresh ? performance.now() : 0,
+            m,
+          };
+        });
+        prevMaxTs = Math.max(prevMaxTs, maxTs);
+      }
+
+      function resize() {
+        const rect = wrap.getBoundingClientRect();
+        if (!rect.width) return;
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        W = rect.width; H = rect.height;
+        canvas.width = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        build(lastMessages);
+      }
+
+      function frame(now: number) {
+        requestAnimationFrame(frame);
+        if (!inView || !W) return;
+        ctx.clearRect(0, 0, W, H);
+        for (const s of ambient) {
+          ctx.globalAlpha = s.a;
+          ctx.fillStyle = '#cfc4e8';
+          ctx.beginPath();
+          ctx.arc(s.x * W, s.y * H, s.r, 0, 7);
+          ctx.fill();
+        }
+        for (const s of stars) {
+          let sc = 1;
+          if (s.pop) {
+            const p = Math.min(1, (now - s.pop) / 700);
+            sc = 0.2 + 0.8 * (1 - Math.pow(1 - p, 3));
+            if (p >= 1) s.pop = 0;
+          }
+          if (s === hoverStar) sc *= 1.5;
+          const tw = reduced ? 1 : 0.75 + 0.25 * Math.sin((now / 1000) * s.speed + s.phase);
+          const R = s.r * 3.4 * sc;
+          ctx.globalAlpha = s.a * tw;
+          ctx.drawImage(s.amber ? GLOW_AMBER : GLOW_WARM, s.x - R, s.y - R, R * 2, R * 2);
+          ctx.globalAlpha = Math.min(1, s.a * tw * 1.4);
+          ctx.fillStyle = s.amber ? '#eebe7a' : '#fff3df';
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r * sc, 0, 7);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+      requestAnimationFrame(frame);
+
+      new IntersectionObserver((entries) => { inView = entries[0].isIntersecting; }).observe(wrap);
+      window.addEventListener('resize', resize);
+
+      function starAt(mx: number, my: number) {
+        // 倒序找：更新的星星（后画）优先命中
+        for (let i = stars.length - 1; i >= 0; i--) {
+          const s = stars[i];
+          if (Math.hypot(mx - s.x, my - s.y) <= Math.max(10, s.r * 2.6)) return s;
+        }
+        return null;
+      }
+
+      canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        hoverStar = starAt(e.clientX - rect.left, e.clientY - rect.top);
+        canvas.style.cursor = hoverStar ? 'pointer' : 'default';
+      });
+      canvas.addEventListener('mouseleave', () => { hoverStar = null; canvas.style.cursor = 'default'; });
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const s = starAt(e.clientX - rect.left, e.clientY - rect.top);
+        if (!s) { tip.hidden = true; return; }
+        tip.replaceChildren();
+        const head = document.createElement('div');
+        head.className = 'tip-name';
+        const nm = document.createElement('span');
+        nm.textContent = s.m.name || '路人甲';
+        const tm = document.createElement('span');
+        tm.className = 'tip-time';
+        tm.textContent = fmtTs(s.m.ts);
+        const body = document.createElement('div');
+        body.className = 'tip-msg';
+        body.textContent = s.m.msg;
+        head.append(nm, tm);
+        tip.append(head, body);
+        tip.hidden = false;
+        const tw = tip.offsetWidth, th = tip.offsetHeight;
+        let left = Math.max(6, Math.min(W - tw - 6, s.x - tw / 2));
+        let top = s.y - th - 12;
+        if (top < 4) top = s.y + 14;
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
+      });
+
+      document.addEventListener('gb:messages', (e) => {
+        lastMessages = Array.isArray((e as CustomEvent).detail) ? (e as CustomEvent).detail : [];
+        if (wrap.hidden) {
+          wrap.hidden = false;
+          hint.textContent = lastMessages.length
+            ? `这片星空由大家的留言组成 —— ${lastMessages.length} 颗星星，点一颗看看那句话`
+            : '还没有星星 —— 来留第一条言，点亮第一颗星 ✨';
+          resize();
+        } else {
+          build(lastMessages);
+        }
+      });
+    })();
   </script>
 </Base>
