@@ -149,6 +149,7 @@ import { SITE } from '../site.config';
   /* ---------- 「此刻」签名档：气泡挂在脸上方，轮换签名 ---------- */
   #aipet .aipet-mood{
     position: absolute; right: 6px; bottom: 96px; z-index: 61;
+    width: max-content;   /* 关键：不设 width 会被 #aipet（56–86px）的 available 宽度压成竖条 */
     max-width: 230px; padding: 0.32em 0.7em; border-radius: 12px;
     background: var(--paper); color: var(--ink);
     border: 1.5px solid var(--ink-20); box-shadow: 0 8px 22px rgba(42, 22, 13, 0.18);
@@ -320,7 +321,8 @@ import { SITE } from '../site.config';
 #aipet .aipet-face{ width: 56px; height: 56px; }
 #aipet .aipet-panel{ right: -0.2rem; bottom: 72px; }
 #aipet .aipet-tag{ font-size: 0.55rem; }
-#aipet .aipet-mood{ bottom: 64px; font-size: 0.66rem; }
+/* 签名档在手机上放宽成横条：贴齐面板右边、最多 78vw，长句一两行放下 */
+#aipet .aipet-mood{ bottom: 64px; right: -0.2rem; font-size: 0.7rem; max-width: min(78vw, 330px); }
   }
 </style>
 
