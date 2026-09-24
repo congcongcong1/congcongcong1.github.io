@@ -135,6 +135,33 @@ const isActive = (href: string) =>
           navigator.serviceWorker.register('/sw.js').catch(() => {});
         });
       }
+      // 移动端边缘滑动：左缘右滑返回上一页 / 右缘左滑前进（PWA、微信 WebView 等没有原生返回手势的环境）
+      (function () {
+        if (!('ontouchstart' in window)) return;
+        const EDGE = 28, NEED = 72;
+        let sx = 0, sy = 0, dir = 0, consumed = false;
+        document.addEventListener('touchstart', (e) => {
+          consumed = false; dir = 0;
+          if (e.touches.length !== 1) return;
+          if (document.querySelector('.shelf-lb.open')) return;   // 图片灯箱有自带滑动手势
+          const aipet = document.getElementById('aipet');
+          if (aipet && aipet.classList.contains('expanded')) return; // 小聪全屏时别抢
+          const t = e.touches[0];
+          if (t.clientX <= EDGE) dir = 1;                          // 左缘右滑 → 返回
+          else if (t.clientX >= window.innerWidth - EDGE) dir = -1; // 右缘左滑 → 前进
+          sx = t.clientX; sy = t.clientY;
+        }, { passive: true });
+        document.addEventListener('touchmove', (e) => {
+          if (!dir || consumed) return;
+          const t = e.touches[0];
+          const dx = t.clientX - sx, dy = t.clientY - sy;
+          if (dir * dx > NEED && Math.abs(dx) > Math.abs(dy) * 1.6) {
+            consumed = true;
+            if (dir > 0) history.back(); else history.forward();
+          }
+        }, { passive: true });
+        document.addEventListener('touchcancel', () => { dir = 0; }, { passive: true });
+      })();
     </script>
   </body>
 </html>
