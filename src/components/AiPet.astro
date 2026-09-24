@@ -149,10 +149,10 @@ import { SITE } from '../site.config';
   /* ---------- 「此刻」签名档：气泡挂在脸上方，轮换签名 ---------- */
   #aipet .aipet-mood{
     position: absolute; right: 6px; bottom: 96px; z-index: 61;
-    max-width: 210px; padding: 0.32em 0.7em; border-radius: 12px;
+    max-width: 230px; padding: 0.32em 0.7em; border-radius: 12px;
     background: var(--paper); color: var(--ink);
     border: 1.5px solid var(--ink-20); box-shadow: 0 8px 22px rgba(42, 22, 13, 0.18);
-    font-size: 0.72rem; line-height: 1.4; white-space: nowrap;
+    font-size: 0.72rem; line-height: 1.4; white-space: normal; text-align: left;
     animation: aipet-mood-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   @keyframes aipet-mood-in { from { opacity: 0; transform: translateY(6px) scale(0.85); } }
@@ -919,11 +919,12 @@ import { searchIndex } from '../lib/site-search';
 
   setStatus('数字分身 · 点我聊天');
 
-  /* ============ 「此刻」签名档：按页面/时段/日夜轮换的 QQ 签名 ============ */
+  /* ============ 「此刻」签名档：情境感知 + 格言轮换的聪明签名 ============ */
   const moodEl = document.getElementById('aipet-mood');
   const MOODS = {
-    base: ['在发呆，勿扰…', '漂着漂着🌙', '数星星中✨', '在假装学习📖', '摸鱼间隙', '思考吃什么', '刚睡醒，懵的'],
-    lateNight: ['深夜了还在漂着🌙', '主人都睡了', '晚安世界💤', '这个时间还在卷？'],
+    base: ['在发呆，勿扰…', '漂着漂着🌙', '数星星中✨', '在假装学习📖', '摸鱼间隙', '思考吃什么', '刚睡醒，懵的', '在修炼悬浮术'],
+    lateNight: ['深夜了还在漂着🌙', '主人都睡了', '晚安世界💤', '这个点还在卷？佩服'],
+    morning: ['早！新的一天开卷', '早起的小聪有星星吃✨', '早上好，昨晚睡得好吗'],
     night: ['夜空模式下漂得更自在', '今天也是一颗小星星', '月亮不睡我不睡'],
     notes: ['在啃论文📄', '背书催人老…', '刚记完一篇笔记✍️', '文献看到眼花的程度'],
     shelf: ['在整理精神食粮', '循环陈奕迅🎵', '想打麻将了🀄', '火锅，真的想火锅🍲', '这段副歌绝了'],
@@ -932,10 +933,52 @@ import { searchIndex } from '../lib/site-search';
     search: ['帮你翻翻站内', '索引我都背下来了', '检索课代表上线'],
     about: ['在做自我介绍', '嗯，这就是我主人的主页', '被参观中，有点害羞'],
   };
+  // 格言警句池：中外混搭，编程梗浓度略高，符合站主人设
+  const APHORISMS = [
+    'Talk is cheap. Show me the code.',
+    'Stay hungry, stay foolish.',
+    '纸上得来终觉浅，绝知此事要躬行',
+    '路漫漫其修远兮，吾将上下而求索',
+    '人生苦短，我用 Python',
+    '先完成，再完美',
+    '代码能跑就不要动它——名言',
+    '失败是成功之母，debug 是亲爹',
+    '凡是过往，皆为序章',
+    '我思故我在',
+    '千里之行，始于足下',
+    '学而不思则罔，思而不学则殆',
+    '板凳要坐十年冷，文章不写一句空',
+    '保持热爱，奔赴山海',
+    '星光不问赶路人，时光不负有心人',
+    '乾坤未定，你我皆是黑马',
+    '种一棵树最好的时间是十年前，其次是现在',
+    '行到水穷处，坐看云起时',
+    '不以物喜，不以己悲',
+    '既然选择了远方，便只顾风雨兼程',
+    '世上无难事，只怕有心人',
+    '博学之，审问之，慎思之，明辨之，笃行之',
+    '满招损，谦受益',
+    '工欲善其事，必先利其器',
+    '穷则独善其身，达则兼济天下',
+    '生活不止眼前的代码，还有诗和远方',
+    'Bug 恒久远，一个永流传',
+    '读万卷书，行万里路',
+    '天行健，君子以自强不息',
+    '不积跬步，无以至千里',
+    '知者不惑，仁者不忧，勇者不惧',
+    '少壮不努力，老大徒伤悲',
+    '问渠那得清如许，为有源头活水来',
+    '山重水复疑无路，柳暗花明又一村',
+    '意外和明天，先写单元测试',
+    '一言既出，驷马难追',
+  ];
   let moodForced = '';
+  // 回头客识别：聊过天（有本机历史）就当老熟人
+  const isReturning = (() => { try { return !!localStorage.getItem('xiaocong-history-v2'); } catch (e) { return false; } })();
   function moodPool() {
     const p = location.pathname;
     let pool = MOODS.base.slice();
+    if (isReturning) pool = ['又是你！欢迎回来👋', '老熟人，随便坐～'].concat(pool);
     if (p.startsWith('/notes')) pool = MOODS.notes.concat(pool);
     else if (p.startsWith('/shelf')) pool = MOODS.shelf.concat(pool);
     else if (p.startsWith('/projects')) pool = MOODS.projects.concat(pool);
@@ -944,6 +987,7 @@ import { searchIndex } from '../lib/site-search';
     else if (p.startsWith('/about')) pool = MOODS.about.concat(pool);
     const h = new Date().getHours();
     if (h >= 23 || h < 5) pool = MOODS.lateNight.concat(pool);
+    else if (h >= 5 && h < 10) pool = MOODS.morning.concat(pool);
     if (document.body.classList.contains('night')) pool = MOODS.night.concat(pool);
     return pool;
   }
@@ -957,11 +1001,29 @@ import { searchIndex } from '../lib/site-search';
   }
   function rotateMood() {
     if (moodForced) { showMood(moodForced); return; }
+    // 40% 概率来一句格言，其余按情境池挑
+    if (Math.random() < 0.4) {
+      showMood(APHORISMS[Math.floor(Math.random() * APHORISMS.length)]);
+      return;
+    }
     const pool = moodPool();
     showMood(pool[Math.floor(Math.random() * pool.length)]);
   }
   setTimeout(rotateMood, 1600);
   setInterval(rotateMood, 18000);
+  // 火眼金睛：滑太快会被小聪吐槽（90 秒冷却）
+  let lastY = window.scrollY, lastScrollT = Date.now(), scrollWarned = 0;
+  window.addEventListener('scroll', () => {
+    const now = Date.now();
+    const dy = Math.abs(window.scrollY - lastY);
+    const dt = Math.max(now - lastScrollT, 1);
+    if (now - scrollWarned > 90000 && !moodForced && opened === false && dy / dt > 2.2 && dy > 600) {
+      scrollWarned = now;
+      showMood('滑慢点，字不会跑😂');
+    }
+    lastY = window.scrollY;
+    lastScrollT = now;
+  }, { passive: true });
 
   /* ============ 隐藏彩蛋：敲 luoshao / Konami，星星雨 + 小聪跳起 ============ */
   let eggCooldown = 0;
