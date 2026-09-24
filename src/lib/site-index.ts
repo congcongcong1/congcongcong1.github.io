@@ -81,7 +81,12 @@ export async function buildSiteIndex(): Promise<SiteEntry[]> {
         description: `${entry.data.kind} · ${entry.data.status}${entry.data.rating ? ` · ${entry.data.rating}/10` : ''}`,
         url,
         tags: [entry.data.kind, entry.data.status, entry.data.alt].filter(Boolean),
-        sections: sectionsFromMarkdown(entry.body, url, entry.data.title),
+        sections: [
+          ...sectionsFromMarkdown(entry.body, url, entry.data.title),
+          ...(entry.data.quotes.length > 0
+            ? [{ title: '金句摘抄', url, text: entry.data.quotes.join('\n') }]
+            : []),
+        ],
       };
     }),
     ...projects.map((project) => ({

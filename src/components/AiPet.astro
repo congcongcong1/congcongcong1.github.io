@@ -382,12 +382,12 @@ import { searchIndex } from '../lib/site-search';
     if (panel.classList.contains('expanded')) setExpanded(false); // 放大时先缩回窗口，再按一次才收起
     else setOpen(false);
   });
-  document.querySelectorAll('[data-ask-note], [data-ask-project]').forEach((button) => {
+  document.querySelectorAll('[data-ask-note], [data-ask-project], [data-ask-shelf]').forEach((button) => {
     button.addEventListener('click', () => {
-      const id = button.dataset.askNote || button.dataset.askProject;
+      const id = button.dataset.askNote || button.dataset.askProject || button.dataset.askShelf;
       const entry = siteIndex.find((item) => item.id === id);
       scopedId = id;
-      scopedKind = button.dataset.askProject ? 'project' : 'note';
+      scopedKind = button.dataset.askShelf ? 'shelf' : button.dataset.askProject ? 'project' : 'note';
       scopeLabel.textContent = `只问本页 · ${entry?.title || document.title.split(' · ')[0]}`;
       scopeBox.hidden = false;
       renderChips();
@@ -635,7 +635,9 @@ import { searchIndex } from '../lib/site-search';
     const prompts = scopedId
       ? (scopedKind === 'project'
         ? ['这个项目做什么？', '用了什么技术？']
-        : ['这篇文章讲什么？', '有哪些实践资料？'])
+        : scopedKind === 'shelf'
+          ? ['这部讲了什么？', '有什么金句？']
+          : ['这篇文章讲什么？', '有哪些实践资料？'])
       : CHIPS;
     prompts.forEach((c) => {
       const b = document.createElement('button');

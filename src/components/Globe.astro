@@ -10,7 +10,8 @@ import maskB64 from './landmask.b64?raw';
   import * as THREE from 'three';
 
   const canvas = document.getElementById('hero-canvas') as HTMLCanvasElement | null;
-  if (canvas) init(canvas, canvas.dataset.mask || '');
+  // 移动端（<720px）不渲染地球：点阵动画在窄屏上影响阅读，直接跳过初始化
+  if (canvas && window.matchMedia('(min-width: 721px)').matches) init(canvas, canvas.dataset.mask || '');
 
   async function init(canvas: HTMLCanvasElement, maskUri: string) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

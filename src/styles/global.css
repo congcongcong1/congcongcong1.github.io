@@ -577,6 +577,9 @@ body::before {
   display: block;
   pointer-events: none;           /* 不挡文字选择和点击 */
 }
+@media (max-width: 720px) {
+  #hero-canvas { display: none; } /* 移动端隐藏地球，只留文字 */
+}
 .hero-inner {
   position: relative;
   z-index: 1;

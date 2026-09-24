@@ -13,6 +13,7 @@ const { Content } = await render(entry);
 const d = entry.data;
 const fmt = (dt: Date) => `${dt.getFullYear()} 年 ${dt.getMonth() + 1} 月 ${dt.getDate()} 日`;
 const isNow = ['在看', '在听', '在玩', '想去'].includes(d.status);
+const askTarget = d.kind === '书' ? '这本书' : d.kind === '音乐' ? '这首歌' : d.kind === '旅行' ? '这座城' : '这部';
 ---
 
 <Base title={`${d.title} · 拾光 · kaiser`} description={`「${d.title}」的${d.kind}档案：攻略、照片与感想。`}>
@@ -46,6 +47,9 @@ const isNow = ['在看', '在听', '在玩', '想去'].includes(d.status);
             <a class="uline" href={d.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">相关链接 ↗</a>
           </>
         )}
+      </p>
+      <p style="margin-top: 0.9rem;">
+        <button class="note-ask" type="button" data-ask-shelf={entry.id}>问小聪{askTarget} ↗</button>
       </p>
     </div>
   </section>
