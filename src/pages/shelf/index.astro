@@ -4,10 +4,11 @@ import DustCanvas from '../../components/DustCanvas.astro';
 import { getCollection, render } from 'astro:content';
 
 const all = await getCollection('shelf');
-const kinds = ['韩剧', '电影', '书', '音乐', '游戏', '旅行'];
-const kindUnit: Record<string, string> = { 韩剧: '部', 电影: '部', 书: '本', 音乐: '首', 游戏: '场', 旅行: '座' };
+const kinds = ['韩剧', '美剧', '电影', '书', '音乐', '游戏', '旅行'];
+const kindUnit: Record<string, string> = { 韩剧: '部', 美剧: '部', 电影: '部', 书: '本', 音乐: '首', 游戏: '场', 旅行: '座' };
 const kindLabel: Record<string, string> = {
   韩剧: '未完<span class="about-marker">待续</span>',
+  美剧: '隔岸<span class="about-marker">火光</span>',
   电影: '银幕<span class="about-marker">往事</span>',
   书: '纸上<span class="about-marker">山河</span>',
   音乐: '声生<span class="about-marker">不息</span>',
@@ -16,6 +17,7 @@ const kindLabel: Record<string, string> = {
 };
 const kindMarker: Record<string, string> = {
   韩剧: 'rgba(163, 148, 194, 0.38)',
+  美剧: 'rgba(196, 90, 78, 0.38)',
   电影: 'rgba(169, 192, 220, 0.42)',
   书: 'rgba(124, 181, 144, 0.38)',
   音乐: 'rgba(240, 215, 140, 0.55)',
@@ -24,6 +26,7 @@ const kindMarker: Record<string, string> = {
 };
 const kindTag: Record<string, string> = {
   韩剧: '未完待续',
+  美剧: '隔岸火光',
   电影: '银幕往事',
   书: '纸上山河',
   音乐: '声生不息',
@@ -135,14 +138,14 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                     {e.data.images.length > 0 && (
                       <div
                         class:list={['shelf-media', { 'shelf-poster': e.data.kind === '电影', 'has-gallery': e.data.images.length > 1 }]}
-                        style={e.data.kind === '电影' ? `background-image:url('${e.data.images[0]}')` : undefined}
+                        data-background={e.data.kind === '电影' ? e.data.images[0] : undefined}
                         data-gallery={e.data.images.length > 1 ? JSON.stringify(e.data.images) : undefined}
                         data-title={e.data.images.length > 1 ? `《${e.data.title}》` : undefined}
                       >
                         {e.data.images.length > 1 && (
                           <span class="shelf-stack" aria-hidden="true">
-                            <span class="stk stk-1" style={`background-image:url('${e.data.images[1 % e.data.images.length]}')`}></span>
-                            <span class="stk stk-2" style={`background-image:url('${e.data.images[2 % e.data.images.length]}')`}></span>
+                            <span class="stk stk-1" data-background={e.data.images[1 % e.data.images.length]}></span>
+                            <span class="stk stk-2" data-background={e.data.images[2 % e.data.images.length]}></span>
                           </span>
                         )}
                         <img class:list={['stk-front', { 'in-stack': e.data.images.length > 1 }]} src={e.data.images[0]} alt={`《${e.data.title}》截图`} loading="lazy" decoding="async" />
@@ -190,7 +193,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                             {e.data.kind === '音乐' ? (
                               <a class="shelf-play-btn" href={e.data.link} target="_blank" rel="noopener">▶ 去网易云听</a>
                             ) : (
-                              <a class="uline" href={e.data.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">{e.data.kind === '电影' ? '豆瓣 ↗' : e.data.kind === '游戏' ? 'Steam ↗' : 'seeduck ↗'}</a>
+                              <a class="uline" href={e.data.link} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.04em;">{e.data.kind === '电影' || e.data.kind === '美剧' ? '豆瓣 ↗' : e.data.kind === '游戏' ? 'Steam ↗' : 'seeduck ↗'}</a>
                             )}
                           </>
                         )}
@@ -202,7 +205,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                         )}
                       </p>
                       <div class="shelf-comment">
-                        {e.data.kind === '韩剧' ? (
+                        {e.data.kind === '韩剧' || e.data.kind === '美剧' ? (
                           <>
                             {e.data.quotes.length > 0 ? (
                               <>
@@ -256,6 +259,28 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
     </section>
   </div>
   <script>
+    const backgrounds = document.querySelectorAll<HTMLElement>('[data-background]');
+    const loadBackground = (el: HTMLElement) => {
+      el.style.backgroundImage = `url(${JSON.stringify(el.dataset.background)})`;
+      delete el.dataset.background;
+    };
+    if ('IntersectionObserver' in window) {
+      const backgroundObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const media = entry.target as HTMLElement;
+          if (media.dataset.background) loadBackground(media);
+          media.querySelectorAll<HTMLElement>('[data-background]').forEach(loadBackground);
+          backgroundObserver.unobserve(media);
+        });
+      }, { rootMargin: '400px 0px' });
+      new Set(Array.from(backgrounds, (el) => el.closest<HTMLElement>('.shelf-media'))).forEach((media) => {
+        if (media) backgroundObserver.observe(media);
+      });
+    } else {
+      backgrounds.forEach(loadBackground);
+    }
+
     // 图片灯箱：点击多图卡片的剧照，左右切换 / 滑动 / 方向键浏览
     (function () {
       const medias = [...document.querySelectorAll('.shelf-media[data-gallery]')];
@@ -327,7 +352,13 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
     // 堆叠剧照轮播：底衬两张错位剧照，顶图每 3.6s 淡换下一张（悬停/开灯时暂停）
     (function () {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      document.querySelectorAll('.shelf-media.has-gallery').forEach((m) => {
+      const carouselObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const media = entry.target as HTMLElement;
+          media.dispatchEvent(new CustomEvent(entry.isIntersecting ? 'carousel-enter' : 'carousel-leave'));
+        });
+      }, { rootMargin: '100px 0px' });
+      document.querySelectorAll<HTMLElement>('.shelf-media.has-gallery').forEach((m) => {
         const imgs = JSON.parse(m.getAttribute('data-gallery') || '[]');
         if (imgs.length < 2) return;
         const front = m.querySelector('.stk-front');
@@ -342,13 +373,19 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
             window.setTimeout(() => front.classList.remove('swap'), 60);
           }, 380);
         };
-        const start = () => { if (timer === null) timer = window.setInterval(swap, 3600); };
+        let visible = false;
+        let hovered = false;
+        const start = () => {
+          if (visible && !hovered && !document.hidden && timer === null) timer = window.setInterval(swap, 3600);
+        };
         const stop = () => { if (timer !== null) { window.clearInterval(timer); timer = null; } };
-        start();
-        m.addEventListener('mouseenter', stop);
-        m.addEventListener('mouseleave', start);
+        m.addEventListener('carousel-enter', () => { visible = true; start(); });
+        m.addEventListener('carousel-leave', () => { visible = false; stop(); });
+        carouselObserver.observe(m);
+        m.addEventListener('mouseenter', () => { hovered = true; stop(); });
+        m.addEventListener('mouseleave', () => { hovered = false; start(); });
         m.addEventListener('click', stop);
-        document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
+        document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else if (visible) start(); });
       });
     })();
   </script>

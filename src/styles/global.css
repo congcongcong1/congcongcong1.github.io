@@ -1275,6 +1275,7 @@ body.night .shelf-stats-tag { color: rgba(242, 229, 216, 0.55); }
   z-index: 2;
 }
 .shelf-card[data-kind="韩剧"] { --kind-color: #a394c2; }
+.shelf-card[data-kind="美剧"] { --kind-color: #c45a4e; }
 .shelf-card[data-kind="电影"] { --kind-color: #a9c0dc; }
 .shelf-card[data-kind="书"] { --kind-color: #7cb590; }
 .shelf-card[data-kind="音乐"] { --kind-color: #e0c26a; }

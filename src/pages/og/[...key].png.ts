@@ -8,7 +8,7 @@ import { ogCardSvg } from '../../lib/og-card';
 // 路由：/og/default.png、/og/note-<id>.png、/og/shelf-<id>.png、/og/project-<slug>.png
 
 const KIND_LABEL: Record<string, string> = {
-  '韩剧': '韩剧', '电影': '电影', '书': '书', '音乐': '音乐', '游戏': '游戏', '旅行': '旅行',
+  '韩剧': '韩剧', '美剧': '美剧', '电影': '电影', '书': '书', '音乐': '音乐', '游戏': '游戏', '旅行': '旅行',
 };
 
 const fmtDate = (d: Date) => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
