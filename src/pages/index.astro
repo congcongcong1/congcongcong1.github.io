@@ -1,36 +1,50 @@
 ---
 import Base from '../layouts/Base.astro';
+import LabFeature from '../components/LabFeature.astro';
 import Globe from '../components/Globe.astro';
 import HeroIcons from '../components/HeroIcons.astro';
 import LangIcon from '../components/LangIcon.astro';
 import DustCanvas from '../components/DustCanvas.astro';
-import { SITE } from '../site.config';
-import { projects, repoTotal } from '../data/projects';
+import { projects } from '../data/projects';
 import { getCollection } from 'astro:content';
 
-const allNotes = await getCollection('notes', ({ data }) => !data.draft);
-const notes = allNotes
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, SITE.recentCount);
+const [allNotes, shelf] = await Promise.all([
+  getCollection('notes', ({ data }) => !data.draft),
+  getCollection('shelf'),
+]);
+const updates = [
+  ...allNotes.map(n => ({ title: n.data.title, description: n.data.description, date: n.data.date, href: `/notes/${n.id}/`, kind: '笔记', monthOnly: false })),
+  ...shelf.map(e => ({ title: e.data.title, description: `${e.data.kind} · ${e.data.status}${e.data.rating ? ` · ${e.data.rating}/10` : ''}`, date: e.data.date, href: `/shelf/${e.id}/`, kind: '拾光', monthOnly: false })),
+  ...projects.map(p => ({ title: p.name, description: p.description, date: new Date(`${p.updated}-01T00:00:00Z`), href: `/projects/${p.slug}/`, kind: '项目', monthOnly: true })),
+].sort((a, b) => b.date.valueOf() - a.date.valueOf());
+// Give each collection an entry before filling the remaining recent slots.
+const latestPerKind = ['笔记', '拾光', '项目'].map(kind => updates.find(item => item.kind === kind)).filter((item): item is typeof updates[number] => Boolean(item));
+const recent = [...latestPerKind, ...updates.filter(item => !latestPerKind.includes(item)).slice(0, 5 - latestPerKind.length)].sort((a,b) => b.date.valueOf() - a.date.valueOf());
+const fmt = (d: Date, monthOnly = false) => `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}${monthOnly ? '' : `.${String(d.getUTCDate()).padStart(2, '0')}`}`;
+const featured = [
+  { href: '/notes/photography-composition/', kind: '读一篇笔记', title: '把日常，拍得好看一点', description: '六种构图方法，下次举起手机时就能试试。', number: '01', symbol: '↗' },
+  { href: '/shelf/game-pragmata/', kind: '翻一格拾光', title: '游戏里的另一种生活', description: '从《识质存在》开始，聊聊让我舍不得退出的世界。', number: '02', symbol: '✳' },
+  { href: '/projects/bittalking/', kind: '认识一个项目', title: '让交流，自然靠近', description: '来看看我们实验室正在做的 BitTalking。', number: '03', symbol: '↔' },
+];
+const listening = shelf.filter(e => e.data.kind === '音乐' && e.data.status === '在听').sort((a,b) => b.data.date.valueOf() - a.data.date.valueOf())[0];
 
-const fmt = (d: Date) =>
-  `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
 ---
 
 <Base>
   <!-- ================= Hero：全视口点阵地球 ================= -->
-  <section class="hero">
+  <section class="hero home-hero">
     <Globe />
     <HeroIcons />
     <div class="wrap hero-inner">
       <div class="hero-copy">
         <p class="mono-meta" style="margin-bottom: 1.5rem;">Personal Site — 主站</p>
-        <h1 style="font-family: var(--serif); font-weight: 400; font-size: clamp(2.6rem, 5.5vw, 4.6rem); line-height: 1.12; letter-spacing: -0.02em;">
+        <h1 style="font-family: var(--serif); font-weight: 400; font-size: clamp(2.6rem, 5vw, 4.1rem); line-height: 1.12; letter-spacing: -0.02em;">
           你好，我是 <em style="font-style: italic;">Kaiser</em>。
         </h1>
         <p style="margin-top: 1.5rem; font-size: var(--fs-lead); color: var(--ink-60); max-width: 24em;">
-          你好啊陌生人🥰！这里是懒大王的个人网站，很高兴认识你！我会在这里分享我的一些日常想法和做的项目，如果你感兴趣的话请和我交流吧！🤗❤️
+          你好啊陌生人🥰，欢迎来到懒大王的数字小屋。写点笔记，做点项目，也收藏生活里舍不得忘记的瞬间。
         </p>
+        <p class="hero-context">南京大学在读 · 视频编码与强化学习 · 生活记录者</p>
         <nav class="entry-list" aria-label="站点入口">
           <a class="entry" href="/notes/">
             <span class="entry-no mono-meta">01</span>
@@ -41,7 +55,7 @@ const fmt = (d: Date) =>
           <a class="entry" href="/projects/">
             <span class="entry-no mono-meta">02</span>
             <span class="entry-title">项目</span>
-            <span class="entry-sub">开源代码与实现</span>
+            <span class="entry-sub">实验室与个人实践</span>
             <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
           </a>
           <a class="entry" href="/about/">
@@ -59,8 +73,8 @@ const fmt = (d: Date) =>
         </nav>
       </div>
     </div>
-    <a class="scroll-cue" href="#recent" aria-label="下滑查看更多">
-      <span class="mono-meta">了解更多</span>
+    <a class="scroll-cue" href="#start" aria-label="下滑查看更多">
+      <span class="mono-meta">从这里开始</span>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
     </a>
   </section>
@@ -69,24 +83,46 @@ const fmt = (d: Date) =>
   <div class="dust-zone">
     <DustCanvas />
 
+  <section class="wrap home-section" id="start" aria-labelledby="start-title">
+    <div class="section-head"><span class="mono-meta">A place to begin — 初次见面</span><h2 id="start-title">不妨从<span class="about-marker">这里开始</span></h2></div>
+    <div class="start-grid">
+      {featured.map(item => <a class="start-card" href={item.href}>
+        <span class="start-card-top mono-meta">{item.number} / {item.kind}<span aria-hidden="true">{item.symbol}</span></span>
+        <h3>{item.title}</h3><p>{item.description}</p><span class="start-card-link">去看看 <span aria-hidden="true">↗</span></span>
+      </a>)}
+    </div>
+  </section>
+
+  <section class="wrap home-section" aria-labelledby="now-title">
+    <div class="now-card">
+      <div class="now-heading"><p class="mono-meta"><span class="live-dot"></span> A little update</p><h2 id="now-title">此时<span class="about-marker">此刻</span></h2><p>小屋里的几条近况</p></div>
+      <div class="now-items">
+        <a href="/about/"><span class="now-label">在探索</span><strong>视频编码与强化学习</strong><span>研究方向与关于我 ↗</span></a>
+        <a href="/projects/bittalking/"><span class="now-label">在实验室</span><strong>BitTalking</strong><span>把消息与音视频通话带进日常 ↗</span></a>
+        {listening && <a href={`/shelf/${listening.id}/`}><span class="now-label">拾光 · 在听</span><strong>《{listening.data.title}》</strong><span>{listening.data.alt} · 翻翻我的歌单 ↗</span></a>}
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap home-section" aria-label="实验室项目推荐"><LabFeature /></section>
+
   <!-- ================= 最近更新 ================= -->
   <section class="wrap" id="recent" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
     <div class="section-head">
-      <span class="mono-meta">Fresh Ink — 最近更新</span>
+      <span class="mono-meta">Fresh Ink — 各板块最近更新</span>
       <h2>墨迹<span class="about-marker">未干</span></h2>
     </div>
-    {notes.map((note, i) => (
-      <a class="index-row" href={`/notes/${note.id}/`}>
+    <p class="section-intro">新写的笔记、新收录的拾光，还有项目的近况。</p>
+    {recent.map((item, i) => (
+      <a class="index-row" href={item.href}>
         <span class="row-no">{String(i + 1).padStart(2, '0')}</span>
-        <span>
-          <span class="row-title uline">{note.data.title}</span>
-          {note.data.description && <p class="row-sub">{note.data.description}</p>}
-        </span>
-        <span class="row-meta">{fmt(note.data.date)}</span>
+        <span><span class="content-kind">{item.kind}</span><span class="row-title uline">{item.title}</span><p class="row-sub">{item.description}</p></span>
+        <time class="row-meta" datetime={item.monthOnly ? item.date.toISOString().slice(0,7) : item.date.toISOString().slice(0,10)}>{fmt(item.date, item.monthOnly)}</time>
       </a>
     ))}
     <p style="margin-top: 1.25rem;">
-      <a class="uline mono-meta" href="/notes/" style="text-transform: none; letter-spacing: 0.06em;">查看全部笔记 →</a>
+      <a class="uline mono-meta" href="/notes/" style="text-transform: none; letter-spacing: 0.06em;">全部笔记 →</a>
+      {'　'}<a class="uline mono-meta" href="/shelf/" style="text-transform: none; letter-spacing: 0.06em;">更多拾光 →</a>
       {'　'}
       <a class="uline mono-meta" href="/topics/" style="text-transform: none; letter-spacing: 0.06em;">按专题浏览 →</a>
     </p>
@@ -95,17 +131,17 @@ const fmt = (d: Date) =>
   <!-- ================= 项目展示 ================= -->
   <section class="wrap" id="projects" style="padding-bottom: clamp(3rem, 7vw, 5rem);">
     <div class="section-head">
-      <span class="mono-meta">Open Source — 开源仓库</span>
+      <span class="mono-meta">Selected Projects — 项目选集</span>
       <h2>键盘<span class="about-marker">余温</span></h2>
     </div>
     <div class="card-grid">
-      {projects.map((p, i) => (
+      {projects.filter(p => ['personal-site', 'proxunroll'].includes(p.slug)).map((p, i) => (
         <a class="project-card" href={`/projects/${p.slug}/`}>
           <span class="card-top">
             <span class="mono-meta">{String(i + 1).padStart(2, '0')}</span>
             <span class="mono-meta card-lang"><LangIcon lang={p.language} />{p.language}</span>
           </span>
-          <span class="card-name uline">{p.name}</span>
+          <span class="card-name uline">{p.slug === 'personal-site' ? '这间数字小屋' : '计算成像 · 近端展开'}</span>
           <span class="card-desc">{p.description}</span>
           <span class="card-bottom mono-meta">
             <span>查看项目介绍 · {p.updated}</span>
@@ -115,7 +151,7 @@ const fmt = (d: Date) =>
       ))}
     </div>
     <p style="margin-top: 1.25rem;">
-      <a class="uline mono-meta" href={SITE.github} target="_blank" rel="noopener" style="text-transform: none; letter-spacing: 0.06em;">GitHub 主页（全部 {repoTotal} 个仓库）→</a>
+      <a class="uline mono-meta" href="/projects/" style="text-transform: none; letter-spacing: 0.06em;">查看全部项目 →</a>
     </p>
   </section>
   </div>

@@ -1,6 +1,6 @@
 // PWA Service Worker：预缓存核心页面，离线可访问
-// 策略：HTML 网络优先（永远拿最新，离线才回退缓存）；静态资源缓存优先（带 hash，安全）
-const CACHE = 'zicongluo-v10';
+// 策略：HTML 网络优先；带 hash 的构建资源缓存优先；其他静态资源后台更新。
+const CACHE = 'zicongluo-v11';
 const PRECACHE = [
   '/',
   '/notes/',
@@ -32,6 +32,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || !req.url.startsWith(self.location.origin)) return;
+  const path = new URL(req.url).pathname;
+  if (/\.(?:pdf|rar|zip|ipynb)$/i.test(path)) return;
   // 跳过带 hash 的锚点请求
   if (req.url.includes('#')) return;
 
@@ -54,24 +56,24 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // 静态资源（JS/CSS/图片）：stale-while-revalidate——
-  // 先回缓存立刻显示（秒开），同时后台拉新副本，下次访问自动换上
+  // 带 hash 的构建资源直接复用；其他静态资源在返回缓存后后台更新。
   e.respondWith(
     caches.match(req).then((hit) => {
+      if (hit && path.startsWith('/_astro/')) return hit;
       const update = fetch(req).then((res) => {
         if (res.ok) {
           const clone = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, clone));
+          e.waitUntil(caches.open(CACHE).then((c) => c.put(req, clone)));
         }
         return res;
       }).catch(() => hit);
       // 有缓存：立刻显示旧图，后台默默换新
       if (hit) {
-        update;
+        e.waitUntil(update);
         return hit;
       }
       // 无缓存：等网络，顺便写入缓存
-      return update.then((res) => res || caches.match('/'));
+      return update;
     })
   );
 });

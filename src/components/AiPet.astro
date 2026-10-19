@@ -350,10 +350,13 @@ import { searchIndex } from '../lib/site-search';
   let scopedId = '';
   let scopedKind = '';
   let sending = false;
-  const indexReady = fetch('/site-index.json').then((response) => {
-    if (!response.ok) throw new Error('site index unavailable');
-    return response.json();
-  }).then((entries) => { siteIndex = entries; }).catch(() => {});
+  let indexReady;
+  function ensureSiteIndex() {
+    return indexReady ||= fetch('/site-index.json').then((response) => {
+      if (!response.ok) throw new Error('site index unavailable');
+      return response.json();
+    }).then((entries) => { siteIndex = entries; }).catch(() => {});
+  }
 
   /* ============ 生命力：随机眨眼 + 眼睛跟光标 ============ */
   (function blinkLoop() {
@@ -389,7 +392,9 @@ import { searchIndex } from '../lib/site-search';
   let opened = false;
   function setOpen(open) {
     opened = open;
+    root.classList.toggle('chat-open', open);
     if (open) {
+      ensureSiteIndex();
       panel.hidden = false;
       face.setAttribute('aria-expanded', 'true');
       requestAnimationFrame(() => { panel.style.opacity = ''; panel.style.transform = ''; });
@@ -400,6 +405,7 @@ import { searchIndex } from '../lib/site-search';
       if (moodEl) moodEl.hidden = true;
     } else {
       face.setAttribute('aria-expanded', 'false');
+      if (panel.contains(document.activeElement)) face.focus({ preventScroll: true });
       panel.style.opacity = '0';
       panel.style.transform = 'scale(0.6) translateY(24px)';
       setTimeout(() => { if (!opened) panel.hidden = true; }, 380);
@@ -416,13 +422,18 @@ import { searchIndex } from '../lib/site-search';
   document.querySelectorAll('[data-ask-note], [data-ask-project], [data-ask-shelf]').forEach((button) => {
     button.addEventListener('click', () => {
       const id = button.dataset.askNote || button.dataset.askProject || button.dataset.askShelf;
-      const entry = siteIndex.find((item) => item.id === id);
       scopedId = id;
       scopedKind = button.dataset.askShelf ? 'shelf' : button.dataset.askProject ? 'project' : 'note';
-      scopeLabel.textContent = `只问本页 · ${entry?.title || document.title.split(' · ')[0]}`;
+      scopeLabel.textContent = `只问本页 · ${document.title.split(' · ')[0]}`;
       scopeBox.hidden = false;
       renderChips();
       setOpen(true);
+      ensureSiteIndex().then(() => {
+        if (scopedId === id) {
+          const entry = siteIndex.find((item) => item.id === id);
+          if (entry) scopeLabel.textContent = `只问本页 · ${entry.title}`;
+        }
+      });
     });
   });
   scopeExit.addEventListener('click', () => { scopedId = ''; scopedKind = ''; scopeBox.hidden = true; renderChips(); });
@@ -744,7 +755,7 @@ import { searchIndex } from '../lib/site-search';
   }
 
   async function relevantContent(query) {
-    await indexReady;
+    await ensureSiteIndex();
     return searchIndex(siteIndex, query, 3, scopedId);
   }
 

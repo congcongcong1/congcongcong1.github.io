@@ -4,6 +4,7 @@ import SiteFx from '../components/SiteFx.astro';
 import EdgeIcons from '../components/EdgeIcons.astro';
 import AiPet from '../components/AiPet.astro';
 import '../styles/global.css';
+import '../styles/refresh.css';
 
 interface Props {
   title?: string;
@@ -70,7 +71,7 @@ const isActive = (href: string) =>
     <meta name="twitter:image" content={ogImage} />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232a160d'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%23fcfcf8' font-family='Georgia'>K</text></svg>" />
   </head>
-  <body id="top">
+  <body id="top" class:list={{ 'reading-page': /^\/notes\/.+/.test(path) || /^\/shelf\/.+/.test(path) }}>
     <header class="site-header">
       <div class="wrap">
         <a class="brand" href="/">

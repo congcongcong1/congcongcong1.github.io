@@ -24,15 +24,6 @@ const kindMarker: Record<string, string> = {
   游戏: 'rgba(238, 190, 122, 0.45)',
   旅行: 'rgba(233, 170, 150, 0.38)',
 };
-const kindTag: Record<string, string> = {
-  韩剧: '未完待续',
-  美剧: '隔岸火光',
-  电影: '银幕往事',
-  书: '纸上山河',
-  音乐: '声生不息',
-  游戏: '游戏人间',
-  旅行: '步履不停',
-};
 const byKind = (k: string) =>
   all.filter((e) => e.data.kind === k).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
@@ -62,23 +53,34 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
     <DustCanvas />
     <section class="wrap" style="padding-top: clamp(2rem, 5vw, 3rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
 
-      <!-- 统计条：点击任意一格跳转到对应分区 -->
-      <div class="shelf-stats">
-        {kinds.map((k) => (
-          <a class="shelf-stat-link" href={`#shelf-${k}`} style={`--stat: ${kindMarker[k]}`}>
-            <span class="shelf-stats-num">{all.filter((e) => e.data.kind === k).length}<small>{kindUnit[k]}</small></span>
-            <span class="shelf-stats-tag">{kindTag[k]}</span>
-          </a>
-        ))}
+      <div class="shelf-browser" id="shelf-browser">
+        <nav class="shelf-categories" aria-label="拾光分类">
+          <a href="#shelf-content" data-shelf-kind="全部" aria-current="true">全部 <small>{all.length}</small></a>
+          {kinds.map(k => <a href={`#shelf-${k}`} data-shelf-kind={k}>{k}<small>{all.filter(e => e.data.kind === k).length}</small></a>)}
+        </nav>
+        <div class="shelf-filter-row" hidden id="shelf-filter-controls">
+          <div class="shelf-views" role="group" aria-label="拾光筛选">
+            <button type="button" data-shelf-view="recent" aria-pressed="true">最近收录</button>
+            <button type="button" data-shelf-view="favorites" aria-pressed="false">我的高分 · ≥ 9 分</button>
+            <button type="button" data-shelf-view="now" aria-pressed="false">正在看 / 玩 / 听</button>
+          </div>
+          <p id="shelf-result-count" role="status" aria-live="polite">共 {all.length} 条记录</p>
+        </div>
+      </div>
+      <div id="shelf-content"></div>
+      <div class="shelf-empty-state" id="shelf-empty-state" hidden>
+        <h2>这一格，暂时还没有记录。</h2>
+        <p>换个分类逛逛，或者看看全部拾光。</p>
+        <button class="solid-link" type="button" id="shelf-reset">查看全部拾光</button>
       </div>
 
       <!-- 六个分区（空格子也占位，等它慢慢长出来） -->
       {kinds.map((k, ki) => {
         const list = byKind(k);
         return (
-          <div class="shelf-anchor" id={`shelf-${k}`} style="margin-top: clamp(2.5rem, 6vw, 4rem);">
+          <div class="shelf-anchor" data-shelf-section={k} id={`shelf-${k}`} style="margin-top: clamp(2.5rem, 6vw, 4rem);">
             <div class="section-head">
-              <span class="mono-meta">{k} — {list.length} {kindUnit[k]}</span>
+              <span class="mono-meta" data-section-count data-total={list.length} data-unit={kindUnit[k]}>{k} — {list.length} {kindUnit[k]}</span>
               <h2 class="shelf-title" set:html={kindLabel[k]} style={`--marker: ${kindMarker[k]}; --mdelay: ${0.15 + ki * 0.14}s`} />
             </div>
             {list.length === 0 ? (
@@ -88,7 +90,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
               {list.map((e) => {
                 const { Content, hasBody } = findEntry(e.id);
                 if (e.data.kind === '音乐') return (
-                  <article class="shelf-card shelf-song" id={e.id}>
+                  <article class="shelf-card shelf-song" data-shelf-item data-rating={e.data.rating} data-date={e.data.date.valueOf()} data-status={e.data.status} id={e.id}>
                     <div class="song-disc">
                       <div class="song-vinyl" aria-hidden="true"><span class="song-vinyl-label"></span></div>
                       <img class="song-cover" src={e.data.images[0]} alt={`《${e.data.title}》专辑封面`} loading="lazy" decoding="async" />
@@ -115,7 +117,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                   </article>
                 );
                 if (e.data.kind === '书') return (
-                  <article class="shelf-card shelf-book" id={e.id}>
+                  <article class="shelf-card shelf-book" data-shelf-item data-rating={e.data.rating} data-date={e.data.date.valueOf()} data-status={e.data.status} id={e.id}>
                     <div class="shelf-book-cover">
                       <img src={e.data.images[0]} alt={`《${e.data.title}》封面`} loading="lazy" decoding="async" />
                     </div>
@@ -134,7 +136,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                   </article>
                 );
                 return (
-                  <article class="shelf-card" data-kind={e.data.kind} id={e.id}>
+                  <article class="shelf-card" data-shelf-item data-rating={e.data.rating} data-date={e.data.date.valueOf()} data-status={e.data.status} data-kind={e.data.kind} id={e.id}>
                     {e.data.images.length > 0 && (
                       <div
                         class:list={['shelf-media', { 'shelf-poster': e.data.kind === '电影', 'has-gallery': e.data.images.length > 1 }]}
@@ -210,20 +212,20 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                             {e.data.quotes.length > 0 ? (
                               <>
                                 <p class="mono-meta" style="margin-bottom: 0.4rem;">金句摘抄</p>
-                                <div class="prose shelf-quotes">
+                                <div class="prose shelf-quotes shelf-excerpt">
                                   <ol>
                                     {e.data.quotes.map((q) => <li>{q}</li>)}
                                   </ol>
                                 </div>
                               </>
                             ) : hasBody ? (
-                              <div class="prose"><Content /></div>
+                              <div class="prose shelf-excerpt"><Content /></div>
                             ) : (
                               <p class="shelf-empty">（先占个位置，碎碎念慢慢长出来……）</p>
                             )}
-                            {hasBody && (
+                            {(hasBody || e.data.quotes.length > 0) && (
                               <p class="shelf-travel-cta" style="margin-top: 0.7rem;">
-                                <a class="uline" href={`/shelf/${e.id}/`}>观后感全文 →</a>
+                                <a class="uline" href={`/shelf/${e.id}/`}>展开记录 →</a>
                               </p>
                             )}
                           </>
@@ -236,7 +238,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                             <p class="mono-meta" style="margin-bottom: 0.4rem;">碎碎念</p>
                             {hasBody ? (
                               <>
-                                <div class="prose"><Content /></div>
+                                <div class="prose shelf-excerpt"><Content /></div>
                                 <p class="shelf-travel-cta" style="margin-top: 0.7rem;">
                                   <a class="uline" href={`/shelf/${e.id}/`}>全文 →</a>
                                 </p>
@@ -259,6 +261,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
     </section>
   </div>
   <script>
+    import '../../scripts/shelf-browser';
     const backgrounds = document.querySelectorAll<HTMLElement>('[data-background]');
     const loadBackground = (el: HTMLElement) => {
       el.style.backgroundImage = `url(${JSON.stringify(el.dataset.background)})`;

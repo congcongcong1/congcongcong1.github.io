@@ -1,7 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
-import GithubSlugger from 'github-slugger';
 
 export async function getStaticPaths() {
   const notes = await getCollection('notes', ({ data }) => !data.draft);
@@ -18,7 +17,8 @@ export async function getStaticPaths() {
 }
 
 const { note, allNotes, prev, next } = Astro.props;
-const { Content } = await render(note);
+const { Content, headings: renderedHeadings } = await render(note);
+const related = allNotes.filter(n => n.id !== note.id).map(n => ({ note: n, score: n.data.tags.filter(t => note.data.tags.includes(t)).length })).filter(n => n.score > 0).sort((a,b) => b.score - a.score).slice(0, 2);
 
 const fmt = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
 const fmtShort = (d: Date) => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -28,16 +28,8 @@ const cjk = (note.body.match(/[一-鿿]/g) || []).length;
 const words = (note.body.replace(/[一-鿿]/g, ' ').match(/[a-zA-Z0-9]+/g) || []).length;
 const minutes = Math.max(1, Math.round(cjk / 400 + words / 250));
 
-// 页内目录：提取 h2/h3，用与 rehype-slug 相同的规则生成锚点
-const slugger = new GithubSlugger();
-const headings: { depth: number; text: string; slug: string }[] = [];
-for (const line of note.body.split('\n')) {
-  const m = /^(#{2,3})\s+(.+?)\s*$/.exec(line);
-  if (m) {
-    const text = m[2].replace(/[*`[\]]/g, '');
-    headings.push({ depth: m[1].length, text, slug: slugger.slug(text) });
-  }
-}
+// Use Astro's rendered headings so links match the actual Markdown heading IDs.
+const headings = renderedHeadings.filter(h => h.depth === 2 || h.depth === 3);
 
 // 侧栏按年份分组
 const yearOf = (d: Date) => d.getFullYear();
@@ -50,29 +42,20 @@ for (const n of allNotes) {
 ---
 
 <Base title={`${note.data.title} · kaiser`} description={note.data.description} ogImage={`/og/note-${note.id}.png`} ogType="article" articleDate={note.data.date}>
-  <!-- 移动端：折叠导航（桌面端隐藏） -->
-  <details class="wrap notes-mobile-nav">
-    <summary class="mono-meta">全部笔记 / 本页目录</summary>
-    {years.map((g) => (
-      <div class="side-group">
-        <p class="mono-meta side-year">{g.year}</p>
-        {g.items.map((n) => (
-          <a class:list={['side-link', { active: n.id === note.id }]} href={`/notes/${n.id}/`}>
-            <span class="side-title">{n.data.title}</span>
-            <span class="side-date mono-meta">{fmtShort(n.data.date)}</span>
-          </a>
-        ))}
-      </div>
-    ))}
-    {headings.length > 0 && (
-      <div class="side-group">
-        <p class="mono-meta side-year">本页</p>
-        {headings.map((h) => (
-          <a class="toc-link" href={`#${h.slug}`}>{h.text}</a>
-        ))}
-      </div>
-    )}
-  </details>
+  <div class="wrap reading-nav">
+    {headings.length > 0 && <details class="reading-toc">
+      <summary>本篇目录 <span>{headings.length} 个章节</span></summary>
+      <nav aria-label="本篇目录" class="reading-nav-content">
+        {headings.map(h => <a class:list={['toc-link', `toc-h${h.depth}`]} href={`#${h.slug}`}>{h.text}</a>)}
+      </nav>
+    </details>}
+    <details class="reading-archive">
+      <summary>其他笔记 <span>随便翻翻</span></summary>
+      <nav aria-label="其他笔记" class="reading-nav-content">
+        {allNotes.filter(n => n.id !== note.id).map(n => <a class="side-link" href={`/notes/${n.id}/`}>{n.data.title}</a>)}
+      </nav>
+    </details>
+  </div>
 
   <div class="wrap notes-layout">
     <!-- 左栏：全部笔记 -->
@@ -114,6 +97,10 @@ for (const n of allNotes) {
       </p>
       <Content />
 
+      {related.length > 0 && <aside class="related-notes" aria-label="相关阅读">
+        <p class="mono-meta">沿着这个话题，再读一篇</p>
+        {related.map(({note: n}) => <a href={`/notes/${n.id}/`}><strong>{n.data.title}</strong><span>{n.data.description}</span><span aria-hidden="true">↗</span></a>)}
+      </aside>}
       <hr />
       <nav class="prev-next" aria-label="上一篇 / 下一篇">
         {prev ? (
@@ -141,4 +128,7 @@ for (const n of allNotes) {
       </aside>
     )}
   </div>
+  <script>
+    import '../../scripts/reading';
+  </script>
 </Base>

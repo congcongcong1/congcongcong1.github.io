@@ -7,36 +7,48 @@ import maskB64 from './landmask.b64?raw';
 <canvas id="hero-canvas" data-mask={`data:image/png;base64,${maskB64}`} aria-hidden="true"></canvas>
 
 <script>
-  import * as THREE from 'three';
-
   const canvas = document.getElementById('hero-canvas') as HTMLCanvasElement | null;
   // 移动端（<720px）不渲染地球：点阵动画在窄屏上影响阅读，直接跳过初始化
-  if (canvas && window.matchMedia('(min-width: 721px)').matches) init(canvas, canvas.dataset.mask || '');
+  const desktopMedia = window.matchMedia('(min-width: 721px)');
+  let initialized = false;
+  const startIfDesktop = () => {
+    if (!canvas || !desktopMedia.matches || initialized) return;
+    initialized = true;
+    init(canvas, canvas.dataset.mask || '');
+  };
+  startIfDesktop();
+  desktopMedia.addEventListener('change', startIfDesktop);
 
   async function init(canvas: HTMLCanvasElement, maskUri: string) {
+    const {
+      BufferAttribute, BufferGeometry, Clock, Color, Group, Line,
+      LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial,
+      PerspectiveCamera, Points, PointsMaterial, Scene, ShaderMaterial,
+      SphereGeometry, Vector3, WebGLRenderer,
+    } = await import('three');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isMobile = window.innerWidth < 720;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    const scene = new Scene();
+    const camera = new PerspectiveCamera(38, 1, 0.1, 100);
     camera.position.set(0, 0, isMobile ? 9.6 : 7.8);
 
     // root：鼠标视差作用层；globe：自转层
-    const root = new THREE.Group();
-    const globe = new THREE.Group();
+    const root = new Group();
+    const globe = new Group();
     root.add(globe);
     scene.add(root);
 
     // 粉彩系（取自参考图的薄荷绿 / 粉末蓝 / 薰衣草紫，加深一档保证浅底对比度）
-    const OCEAN = new THREE.Color('#a9c0dc');  // 海洋：粉末蓝
-    const LAND  = new THREE.Color('#7cb590');  // 陆地：薄荷绿
-    const DIM   = new THREE.Color('#b3aac6');  // 背光面：薰衣草灰
-    const LILAC = new THREE.Color('#a394c2');  // 轨道/卫星：薰衣草紫
-    const MOON  = new THREE.Color('#f0d78c');  // 月球：淡黄
+    const OCEAN = new Color('#a9c0dc');  // 海洋：粉末蓝
+    const LAND  = new Color('#7cb590');  // 陆地：薄荷绿
+    const DIM   = new Color('#b3aac6');  // 背光面：薰衣草灰
+    const LILAC = new Color('#a394c2');  // 轨道/卫星：薰衣草紫
+    const MOON  = new Color('#f0d78c');  // 月球：淡黄
 
     // ---------- 陆地遮罩：等距柱状投影 → 球面逐点采样 ----------
     const landFlags = await loadLandMask(maskUri);
@@ -63,15 +75,15 @@ import maskB64 from './landmask.b64?raw';
       const v = (Math.PI / 2 - lat) / Math.PI;
       land[i] = sampleMask(landFlags, u, v);
     }
-    const dotGeo = new THREE.BufferGeometry();
-    dotGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    dotGeo.setAttribute('aLand', new THREE.BufferAttribute(land, 1));
+    const dotGeo = new BufferGeometry();
+    dotGeo.setAttribute('position', new BufferAttribute(pos, 3));
+    dotGeo.setAttribute('aLand', new BufferAttribute(land, 1));
 
-    const dotMat = new THREE.ShaderMaterial({
+    const dotMat = new ShaderMaterial({
       transparent: true,
       depthWrite: false,
       uniforms: {
-        uLight: { value: new THREE.Vector3(-0.55, 0.75, 0.8).normalize() },
+        uLight: { value: new Vector3(-0.55, 0.75, 0.8).normalize() },
         uOcean: { value: OCEAN },
         uLand: { value: LAND },
         uDim: { value: DIM },
@@ -105,10 +117,10 @@ import maskB64 from './landmask.b64?raw';
         }
       `,
     });
-    globe.add(new THREE.Points(dotGeo, dotMat));
+    globe.add(new Points(dotGeo, dotMat));
 
     // ---------- 经纬线（淡薰衣草发丝线） ----------
-    const gratMat = new THREE.LineBasicMaterial({ color: LILAC, transparent: true, opacity: 0.16 });
+    const gratMat = new LineBasicMaterial({ color: LILAC, transparent: true, opacity: 0.16 });
     const grat: number[] = [];
     const seg = 96;
     for (let lat = -60; lat <= 60; lat += 30) {
@@ -132,31 +144,31 @@ import maskB64 from './landmask.b64?raw';
         );
       }
     }
-    const gratGeo = new THREE.BufferGeometry();
-    gratGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(grat), 3));
-    globe.add(new THREE.LineSegments(gratGeo, gratMat));
+    const gratGeo = new BufferGeometry();
+    gratGeo.setAttribute('position', new BufferAttribute(new Float32Array(grat), 3));
+    globe.add(new LineSegments(gratGeo, gratMat));
 
     // ---------- 轨道 + 卫星 / 月球 ----------
-    const orbitGroup = new THREE.Group();
+    const orbitGroup = new Group();
     orbitGroup.rotation.set(-0.42, 0.28, 0);
     root.add(orbitGroup);
 
     const mkOrbit = (rx: number, ry: number, opacity: number) => {
-      const pts: THREE.Vector3[] = [];
+      const pts: import('three').Vector3[] = [];
       for (let i = 0; i <= 128; i++) {
         const t = (i / 128) * Math.PI * 2;
-        pts.push(new THREE.Vector3(Math.cos(t) * rx, 0, Math.sin(t) * ry));
+        pts.push(new Vector3(Math.cos(t) * rx, 0, Math.sin(t) * ry));
       }
-      const g = new THREE.BufferGeometry().setFromPoints(pts);
-      return new THREE.Line(g, new THREE.LineBasicMaterial({ color: LILAC, transparent: true, opacity }));
+      const g = new BufferGeometry().setFromPoints(pts);
+      return new Line(g, new LineBasicMaterial({ color: LILAC, transparent: true, opacity }));
     };
     orbitGroup.add(mkOrbit(2.6, 0.95, 0.3));
     orbitGroup.add(mkOrbit(2.2, 0.8, 0.14));
 
-    const mkBody = (size: number, color: THREE.Color, opacity = 1) =>
-      new THREE.Mesh(
-        new THREE.SphereGeometry(size, 16, 16),
-        new THREE.MeshBasicMaterial({ color, transparent: opacity < 1, opacity })
+    const mkBody = (size: number, color: import('three').Color, opacity = 1) =>
+      new Mesh(
+        new SphereGeometry(size, 16, 16),
+        new MeshBasicMaterial({ color, transparent: opacity < 1, opacity })
       );
     const moon = mkBody(0.09, MOON);
     const satellite = mkBody(0.045, LILAC, 0.85);
@@ -170,11 +182,11 @@ import maskB64 from './landmask.b64?raw';
       sPos[i * 3 + 1] = (Math.random() - 0.5) * 10;
       sPos[i * 3 + 2] = -2 - Math.random() * 6;
     }
-    const starGeo = new THREE.BufferGeometry();
-    starGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
-    const stars = new THREE.Points(
+    const starGeo = new BufferGeometry();
+    starGeo.setAttribute('position', new BufferAttribute(sPos, 3));
+    const stars = new Points(
       starGeo,
-      new THREE.PointsMaterial({ color: LILAC, size: 0.05, transparent: true, opacity: 0.45, depthWrite: false })
+      new PointsMaterial({ color: LILAC, size: 0.05, transparent: true, opacity: 0.45, depthWrite: false })
     );
     scene.add(stars);
 
@@ -206,7 +218,7 @@ import maskB64 from './landmask.b64?raw';
     // ---------- 动画循环（离屏暂停） ----------
     let raf = 0;
     let t = 0;
-    const clock = new THREE.Clock();
+    const clock = new Clock();
     const animate = () => {
       const dt = Math.min(clock.getDelta(), 0.05);
       t += dt;
@@ -225,18 +237,24 @@ import maskB64 from './landmask.b64?raw';
         satellite.position.set(Math.cos(a2) * 2.2, 0, Math.sin(a2) * 0.8);
       }
       renderer.render(scene, camera);
-      raf = requestAnimationFrame(animate);
+      raf = reduced ? 0 : requestAnimationFrame(animate);
     };
 
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        if (!raf) { clock.getDelta(); raf = requestAnimationFrame(animate); }
-      } else {
-        cancelAnimationFrame(raf);
-        raf = 0;
+    let inView = false;
+    const syncAnimation = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      if (inView && !document.hidden) {
+        clock.getDelta();
+        raf = requestAnimationFrame(animate);
       }
+    };
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      syncAnimation();
     });
     io.observe(canvas);
+    document.addEventListener('visibilitychange', syncAnimation);
 
     // ---------- 工具：加载并采样陆地遮罩 ----------
     async function loadLandMask(uri: string): Promise<ImageData> {

@@ -1,0 +1,39 @@
+---
+import Base from '../../layouts/Base.astro';
+import LabFeature from '../../components/LabFeature.astro';
+import { bittalking } from '../../data/lab';
+---
+
+<Base title="BitTalking · 实验室项目 · kaiser" description={bittalking.description}>
+  <div class="wrap lab-page">
+    <a class="uline mono-meta" href="/projects/">← 返回项目列表</a>
+    <h1 class="lab-page-title">BitTalking <span>实验室项目推荐</span></h1>
+    <LabFeature />
+    <div class="lab-details">
+      <section>
+        <p class="mono-meta">01 / 沟通</p>
+        <h2>想说的话，都有地方安放</h2>
+        <p>通过文字、图片、语音和文件分享想法。既可以一对一聊天，也可以在群聊里一起讨论。</p>
+      </section>
+      <section>
+        <p class="mono-meta">02 / 通话</p>
+        <h2>从打字，到听见与看见</h2>
+        <p>从聊天进入语音或视频通话，根据需要切换摄像头和扬声器，让交流更直接。</p>
+      </section>
+      <section>
+        <p class="mono-meta">03 / 设备</p>
+        <h2>手机与桌面，各有从容</h2>
+        <p>面向 Android、macOS 和 iPhone 打磨跨平台体验。不同平台的开放进度、设备要求和安装方式以官网为准。</p>
+      </section>
+    </div>
+    <section class="lab-invite">
+      <h2>欢迎来试试，也欢迎提建议。</h2>
+      <p>这是我们实验室正在做的项目。目前通过邀请码提供体验，申请和下载都在官方页面完成。</p>
+      <div class="lab-actions">
+        <a class="solid-link" href={bittalking.inviteUrl} target="_blank" rel="noopener noreferrer">前往官网申请邀请码 ↗</a>
+        <a class="uline" href={`${bittalking.url}#changelog`} target="_blank" rel="noopener noreferrer">查看官方更新记录 ↗</a>
+      </div>
+      <p class="lab-footnote">功能介绍整理自 BitTalking 官网。</p>
+    </section>
+  </div>
+</Base>

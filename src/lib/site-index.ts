@@ -4,6 +4,7 @@ import { toString } from 'mdast-util-to-string';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 import { projects } from '../data/projects';
+import { bittalking } from '../data/lab';
 
 export interface SiteSection {
   title: string;
@@ -60,6 +61,7 @@ export async function buildSiteIndex(): Promise<SiteEntry[]> {
   ]);
 
   return [
+    { id: 'bittalking', kind: 'project', title: bittalking.name, description: bittalking.description, url: '/projects/bittalking/', tags: bittalking.topics, sections: [{ title: bittalking.name, url: '/projects/bittalking/', text: `${bittalking.description} 文字、图片、语音、文件分享。面向 Android、macOS 和 iPhone 打磨跨平台体验，平台开放情况以官网为准。通过官网申请邀请码。官网：${bittalking.url}` }] },
     ...notes.map((note) => {
       const url = `/notes/${note.id}/`;
       return {

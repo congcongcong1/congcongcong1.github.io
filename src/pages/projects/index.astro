@@ -1,19 +1,22 @@
 ---
 import Base from '../../layouts/Base.astro';
+import LabFeature from '../../components/LabFeature.astro';
 import LangIcon from '../../components/LangIcon.astro';
 import DustCanvas from '../../components/DustCanvas.astro';
 import { SITE } from '../../site.config';
 import { projects, repoTotal } from '../../data/projects';
 ---
 
-<Base title={`项目 · ${SITE.name}`} description="开源项目与代码实现">
+<Base title={`项目 · ${SITE.name}`} description="实验室项目推荐、开源项目与代码实现">
   <div class="dust-zone">
     <DustCanvas />
   <section class="wrap" style="padding-top: clamp(3rem, 8vw, 5.5rem); padding-bottom: clamp(3rem, 8vw, 6rem);">
     <div class="section-head">
-      <span class="mono-meta">Open Source — 全部仓库</span>
+      <span class="mono-meta">Projects — 项目与实验</span>
       <h1>键盘<span class="about-marker">余温</span></h1>
     </div>
+    <LabFeature />
+    <h2 class="project-list-heading">开源与个人实践</h2>
     <div class="card-grid" style="margin-top: 0;">
       {projects.map((p, i) => (
         <a class="project-card" href={`/projects/${p.slug}/`}>

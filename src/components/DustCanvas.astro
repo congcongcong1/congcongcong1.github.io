@@ -74,8 +74,14 @@
       ].map((o) => ({ ...o, sprite: makeSprite(o.r, PALETTE[o.ci]) }));
     }
 
-    function frame() {
-      time += 1 / 60;
+    let lastPaint = 0;
+    function frame(now = performance.now()) {
+      if (running && now - lastPaint < 32) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+      time += lastPaint ? Math.min((now - lastPaint) / 1000, 0.05) : 1 / 60;
+      lastPaint = now;
       mx += (tmx - mx) * 0.03;
       my += (tmy - my) * 0.03;
       ctx.clearRect(0, 0, w, h);
@@ -96,8 +102,9 @@
     }
 
     function start() {
-      if (running || reduced) return;
+      if (running || reduced || document.hidden) return;
       running = true;
+      lastPaint = 0;
       raf = requestAnimationFrame(frame);
     }
     function stop() {
@@ -111,9 +118,15 @@
       tmy = (e.clientY / window.innerHeight - 0.5) * 2;
     }, { passive: true });
 
+    let inView = false;
     new IntersectionObserver((entries) => {
-      entries[0].isIntersecting ? start() : stop();
+      inView = entries[0].isIntersecting;
+      inView ? start() : stop();
     }, { rootMargin: '80px' }).observe(parent);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else if (inView) start();
+    });
 
     resize();
     if (reduced) frame();
