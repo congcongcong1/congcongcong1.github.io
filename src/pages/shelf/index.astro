@@ -214,7 +214,7 @@ const findEntry = (id: string) => entries.find((x) => x.e.id === id)!;
                                 <p class="mono-meta" style="margin-bottom: 0.4rem;">金句摘抄</p>
                                 <div class="prose shelf-quotes shelf-excerpt">
                                   <ol>
-                                    {e.data.quotes.map((q) => <li>{q}</li>)}
+                                    {(e.data.excerptQuotes.length > 0 ? e.data.excerptQuotes : e.data.quotes).map((q) => <li>{q}</li>)}
                                   </ol>
                                 </div>
                               </>

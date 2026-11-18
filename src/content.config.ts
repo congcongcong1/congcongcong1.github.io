@@ -22,7 +22,8 @@ const shelf = defineCollection({
     status: z.enum(['在看', '看过', '想看', '想读', '读过', '在听', '想玩', '在玩', '玩过', '想去', '去过']),
     link: z.string().default(''),         // seeduck / 豆瓣等外链
     seeduck: z.string().default(''),      // seeduck 资源页（电影等）
-    quotes: z.array(z.string()).default([]), // 金句摘抄（列表页与详情页共用）
+    quotes: z.array(z.string()).default([]), // 金句摘抄（详情页完整展示）
+    excerptQuotes: z.array(z.string()).default([]), // 列表页精选金句；为空时使用 quotes
     rating: z.number().min(0).max(10).default(0),
     hours: z.number().min(0).default(0),     // 游戏时长（小时）
     date: z.coerce.date(),
