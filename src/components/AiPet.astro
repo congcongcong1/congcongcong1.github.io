@@ -761,7 +761,7 @@ import { searchIndex } from '../lib/site-search';
 
   function setStatus(t) { statusEl.textContent = t; }
 
-  // 打开面板时探活：3 秒内连不上代理就本会话走离线人格，不让访客干等
+  // 打开面板时探活：预留 10 秒覆盖函数冷启动，失败再走离线人格
   let online = false;
   let contextSupported = false;
   async function probe() {
@@ -769,7 +769,7 @@ import { searchIndex } from '../lib/site-search';
     setStatus('数字分身 · 连接中…');
     try {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 3000);
+      const timer = setTimeout(() => ctrl.abort(), 10000);
       const r = await fetch(endpoint, { method: 'OPTIONS', signal: ctrl.signal });
       clearTimeout(timer);
       online = r.ok;
