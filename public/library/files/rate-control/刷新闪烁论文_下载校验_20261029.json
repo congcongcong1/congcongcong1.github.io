@@ -1,0 +1,18 @@
+[
+  {
+    "file": "2007_Post-processing for Flicker Reduction in H264-AVC.pdf",
+    "pages": 4,
+    "bytes": 219343,
+    "sha256": "9b6e3c1e32bcc748b8d831f0b76783c684f7b756be8d4a695d9f92aa8bc7e6d8",
+    "source": "https://yair.net.technion.ac.il/files/2013/07/2007-Post-Processing-for-Flicker-Reduction-in-H.264-AVC.pdf",
+    "verification": "PDF parsed; all pages text extracted; title checked; saved hash matched"
+  },
+  {
+    "file": "2024_ColorVideoVDP.pdf",
+    "pages": 20,
+    "bytes": 5181009,
+    "sha256": "ba9a6d964efc1a1f05e714bccfabfb998dd025b4ae4043cdcf432edcf587591f",
+    "source": "https://www.cl.cam.ac.uk/~rkm38/pdfs/mantiuk2024_ColorVideoVDP.pdf",
+    "verification": "PDF parsed; all pages text extracted; title checked; saved hash matched"
+  }
+]

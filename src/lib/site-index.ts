@@ -5,6 +5,7 @@ import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 import { projects } from '../data/projects';
 import { bittalking } from '../data/lab';
+import { libraryDocuments } from '../data/library';
 
 export interface SiteSection {
   title: string;
@@ -14,7 +15,7 @@ export interface SiteSection {
 
 export interface SiteEntry {
   id: string;
-  kind: 'note' | 'shelf' | 'project';
+  kind: 'note' | 'shelf' | 'project' | 'library';
   title: string;
   description: string;
   url: string;
@@ -91,6 +92,15 @@ export async function buildSiteIndex(): Promise<SiteEntry[]> {
         ],
       };
     }),
+    ...libraryDocuments.map((document) => ({
+      id: `library-${document.id}`,
+      kind: 'library' as const,
+      title: document.title,
+      description: `${document.collectionTitle} · ${document.format} · ${document.description}`,
+      url: document.readerUrl || document.url,
+      tags: document.tags,
+      sections: [{ title: document.title, url: document.readerUrl || document.url, text: `${document.fileName} ${document.description} ${document.tags.join(' ')}` }],
+    })),
     ...projects.map((project) => ({
       id: project.slug,
       kind: 'project' as const,

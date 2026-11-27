@@ -1,0 +1,87 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getLibraryDocument, libraryDocuments } from '../../data/library';
+import '../../styles/library.css';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('library');
+  return notes.map((note) => ({ params: { id: note.id }, props: { note } }));
+}
+
+const { note } = Astro.props;
+const document = getLibraryDocument(note.id);
+if (!document) throw new Error(`缺少资料库索引：${note.id}`);
+const { Content, headings: renderedHeadings } = await render(note);
+const headings = renderedHeadings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const related = libraryDocuments.filter((item) => item.collection === document.collection && item.id !== document.id);
+const cjk = (note.body.match(/[一-鿿]/g) || []).length;
+const words = (note.body.replace(/[一-鿿]/g, ' ').match(/[a-zA-Z0-9]+/g) || []).length;
+const minutes = Math.max(1, Math.round(cjk / 400 + words / 250));
+---
+
+<Base title={`${document.title} · 资料库`} description={document.description}>
+  <div class="wrap reading-nav library-reading-nav">
+    {headings.length > 0 && <details>
+      <summary>本篇目录 <span>{headings.length} 个章节</span></summary>
+      <nav aria-label="本篇目录" class="reading-nav-content">
+        {headings.map((heading) => <a class:list={['toc-link', `toc-h${heading.depth}`]} href={`#${heading.slug}`}>{heading.text}</a>)}
+      </nav>
+    </details>}
+    <details>
+      <summary>同卷资料 <span>{document.collectionTitle}</span></summary>
+      <nav aria-label="同卷其他资料" class="reading-nav-content">
+        {related.map((item) => <a class="side-link" href={item.readerUrl || item.url} target={item.readerUrl ? undefined : '_blank'} rel={item.readerUrl ? undefined : 'noopener'}>{item.title}</a>)}
+      </nav>
+    </details>
+  </div>
+
+  <div class="wrap notes-layout library-reader">
+    <aside class="notes-side" aria-label={`${document.collectionTitle}卷其他资料`}>
+      <p class="mono-meta" style="margin-bottom: 1rem;">{document.collectionTitle} — 同卷资料</p>
+      <a class="side-link" href={`/library/?collection=${document.collection}#library-browser`}>
+        <span class="side-title">查看整卷目录</span><span class="mono-meta">↗</span>
+      </a>
+      <div class="library-reader-side-list">
+        {related.map((item) => (
+          <a class="side-link" href={item.readerUrl || item.url} target={item.readerUrl ? undefined : '_blank'} rel={item.readerUrl ? undefined : 'noopener'}>
+            <span class="side-title">{item.title}</span><span class="side-date mono-meta">{item.extension}</span>
+          </a>
+        ))}
+      </div>
+    </aside>
+
+    <article class="prose notes-article library-reader-article">
+      <p class="mono-meta">
+        <a href={`/library/?collection=${document.collection}#library-browser`} class="uline" style="text-transform: none; letter-spacing: 0.06em;">← 返回资料库 / {document.collectionTitle}</a>
+      </p>
+      <div class="library-reader-heading">
+        <span class="library-file-type">{document.extension}</span>
+        <h1>{document.title}</h1>
+        <p>{document.description}</p>
+      </div>
+      <div class="library-reader-meta mono-meta">
+        <span>{document.collectionTitle} · {document.format}</span>
+        <span>{document.size} · 约 {minutes} 分钟读完</span>
+      </div>
+      <div class="library-reader-actions">
+        <a class="project-link project-doc" href={document.url} target="_blank" rel="noopener">打开原始文件 ↗</a>
+        {document.tags.map((tag) => <span class="library-reader-tag">#{tag}</span>)}
+      </div>
+      <Content />
+      <hr />
+      <nav class="library-reader-back" aria-label="返回资料库">
+        <a class="uline" href="/library/">浏览全部馆藏</a>
+        <a class="uline" href={`/library/?collection=${document.collection}#library-browser`}>继续阅读「{document.collectionTitle}」卷 →</a>
+      </nav>
+    </article>
+
+    {headings.length > 0 && <aside class="notes-toc" aria-label="本页目录">
+      <p class="mono-meta" style="margin-bottom: 0.9rem;">On this page — 本页</p>
+      {headings.map((heading) => <a class:list={['toc-link', `toc-h${heading.depth}`]} href={`#${heading.slug}`}>{heading.text}</a>)}
+    </aside>}
+  </div>
+  <script>
+    import '../../scripts/reading';
+  </script>
+</Base>

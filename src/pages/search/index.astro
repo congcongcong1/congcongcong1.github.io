@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import DustCanvas from '../../components/DustCanvas.astro';
 ---
 
-<Base title="搜索 · kaiser" description="搜索站内笔记、拾光与项目。">
+<Base title="搜索 · kaiser" description="搜索站内笔记、拾光、项目与资料库。">
   <div class="dust-zone">
     <DustCanvas />
     <section class="wrap search-page">
@@ -12,8 +12,8 @@ import DustCanvas from '../../components/DustCanvas.astro';
         <h1>寻找<span class="about-marker">内容</span></h1>
       </div>
       <form id="site-search-form" class="site-search-form" role="search">
-        <label for="site-search-input" class="sr-only">搜索笔记、拾光与项目</label>
-        <input id="site-search-input" name="q" type="search" placeholder="搜索笔记、拾光与项目" autocomplete="off" />
+        <label for="site-search-input" class="sr-only">搜索笔记、拾光、项目与资料库</label>
+        <input id="site-search-input" name="q" type="search" placeholder="搜索笔记、拾光、项目与资料库" autocomplete="off" />
         <button type="submit" aria-label="搜索">搜索</button>
       </form>
       <p id="site-search-status" class="search-status" role="status">输入关键词开始搜索。</p>
@@ -46,7 +46,7 @@ import DustCanvas from '../../components/DustCanvas.astro';
       link.href = section.url;
       const kind = document.createElement('span');
       kind.className = 'mono-meta';
-      kind.textContent = { note: '笔记', shelf: '拾光', project: '项目' }[entry.kind];
+      kind.textContent = { note: '笔记', shelf: '拾光', project: '项目', library: '资料' }[entry.kind];
       const title = document.createElement('strong');
       title.textContent = entry.title;
       const excerpt = document.createElement('span');

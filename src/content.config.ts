@@ -31,4 +31,9 @@ const shelf = defineCollection({
   }),
 });
 
-export const collections = { notes, shelf };
+/* 资料库 Markdown 正文：文件与索引由 scripts/build-library.mjs 同步 */
+const library = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/library' }),
+});
+
+export const collections = { notes, shelf, library };

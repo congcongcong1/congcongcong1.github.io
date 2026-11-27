@@ -1,0 +1,722 @@
+{
+  "generatedAt": "2026-11-27T01:04:38.097Z",
+  "collections": [
+    {
+      "slug": "rate-control",
+      "title": "码率控制",
+      "english": "Rate Control",
+      "description": "学习式视频压缩、码率分配与反馈控制，配套阅读汇总和写作指南。",
+      "count": 30
+    },
+    {
+      "slug": "video-post-training",
+      "title": "视频后训练",
+      "english": "Video Post-training",
+      "description": "视频生成模型的后训练研究，从综述开始建立可追溯的阅读路径。",
+      "count": 1
+    },
+    {
+      "slug": "reinforcement-learning",
+      "title": "强化学习",
+      "english": "Reinforcement Learning",
+      "description": "RAPNet-HEVC 项目说明、Actor-Critic 训练记录与实验排障笔记。",
+      "count": 5
+    }
+  ],
+  "documents": [
+    {
+      "id": "rate-control-001",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "2007 Post-processing for Flicker Reduction in H264-AVC",
+      "fileName": "2007_Post-processing for Flicker Reduction in H264-AVC.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 219343,
+      "size": "214 KB",
+      "url": "/library/files/rate-control/2007_Post-processing%20for%20Flicker%20Reduction%20in%20H264-AVC.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-002",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "2024 ColorVideoVDP",
+      "fileName": "2024_ColorVideoVDP.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 5181009,
+      "size": "4.9 MB",
+      "url": "/library/files/rate-control/2024_ColorVideoVDP.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-021",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "深度学习视频压缩中的码率控制方法综述",
+      "fileName": "rate_control_survey.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "中文调研报告：梳理学习式视频压缩中的码率控制技术路线。",
+      "tags": [
+        "综述",
+        "NVC"
+      ],
+      "bytes": 1092376,
+      "size": "1.0 MB",
+      "url": "/library/files/rate-control/rate_control_survey.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-003",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "bitrate tracking example",
+      "fileName": "bitrate_tracking_example.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 25843,
+      "size": "25 KB",
+      "url": "/library/files/rate-control/bitrate_tracking_example.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-005",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "DCVC-FM",
+      "fileName": "DCVC-FM.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 7008213,
+      "size": "6.7 MB",
+      "url": "/library/files/rate-control/DCVC-FM.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-006",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "DCVC-RT: Towards Practical Real-Time Neural Video Compression",
+      "fileName": "dcvc-rt.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "实时神经视频压缩与 Module-Bank 码率控制。",
+      "tags": [
+        "实时编码",
+        "DCVC"
+      ],
+      "bytes": 5312274,
+      "size": "5.1 MB",
+      "url": "/library/files/rate-control/dcvc-rt.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-008",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "DCVC-UF",
+      "fileName": "DCVC-UF.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 5062940,
+      "size": "4.8 MB",
+      "url": "/library/files/rate-control/DCVC-UF.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-009",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "Deflickering",
+      "fileName": "Deflickering.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 15713088,
+      "size": "15 MB",
+      "url": "/library/files/rate-control/Deflickering.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-010",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "DVC",
+      "fileName": "DVC.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 2714220,
+      "size": "2.6 MB",
+      "url": "/library/files/rate-control/DVC.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-011",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "Feedback-Driven Rate Control for Learned Video Compression",
+      "fileName": "Feedback-Driven Rate Control.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "对数域 PI 闭环与预算约束下的帧间比特分配。",
+      "tags": [
+        "反馈控制",
+        "PI"
+      ],
+      "bytes": 11599396,
+      "size": "11 MB",
+      "url": "/library/files/rate-control/Feedback-Driven%20Rate%20Control.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-012",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "GLVC",
+      "fileName": "GLVC.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 25203713,
+      "size": "24 MB",
+      "url": "/library/files/rate-control/GLVC.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-013",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "LARGE-SCALE VIDEO  GENERATIVE MODELS",
+      "fileName": "LARGE-SCALE VIDEO  GENERATIVE MODELS.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 21889519,
+      "size": "21 MB",
+      "url": "/library/files/rate-control/LARGE-SCALE%20VIDEO%20%20GENERATIVE%20MODELS.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-015",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "LVC综述",
+      "fileName": "LVC综述.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 2607205,
+      "size": "2.5 MB",
+      "url": "/library/files/rate-control/LVC%E7%BB%BC%E8%BF%B0.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-016",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "mlvc",
+      "fileName": "mlvc.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 4570691,
+      "size": "4.4 MB",
+      "url": "/library/files/rate-control/mlvc.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-017",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "Neural Rate Control for Learned Video Compression",
+      "fileName": "NEURAL RATE CONTROL.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "ICLR 2024｜两级码率分配与内容自适应的码率实现网络。",
+      "tags": [
+        "ICLR 2024",
+        "神经码控"
+      ],
+      "bytes": 1652401,
+      "size": "1.6 MB",
+      "url": "/library/files/rate-control/NEURAL%20RATE%20CONTROL.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-019",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "PID-based Quality Control Method",
+      "fileName": "PID.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "以 PID 反馈调节 QP，让视频质量保持平稳。",
+      "tags": [
+        "反馈控制",
+        "HEVC"
+      ],
+      "bytes": 2283646,
+      "size": "2.2 MB",
+      "url": "/library/files/rate-control/PID.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-022",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "rd curve example",
+      "fileName": "rd_curve_example.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 45168,
+      "size": "44 KB",
+      "url": "/library/files/rate-control/rd_curve_example.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-024",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "Reinforced Rate Control for NVC",
+      "fileName": "Reinforced Rate Control.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "AAAI 2026｜基于帧间率失真感知的强化学习码率控制。",
+      "tags": [
+        "AAAI 2026",
+        "强化学习"
+      ],
+      "bytes": 3110724,
+      "size": "3.0 MB",
+      "url": "/library/files/rate-control/Reinforced%20Rate%20Control.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-025",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "Unified Intra and Inter Coding",
+      "fileName": "Unified Intra and Inter Coding.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 738817,
+      "size": "722 KB",
+      "url": "/library/files/rate-control/Unified%20Intra%20and%20Inter%20Coding.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-026",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "Variable Rate image",
+      "fileName": "Variable Rate image .pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 3049041,
+      "size": "2.9 MB",
+      "url": "/library/files/rate-control/Variable%20Rate%20image%20.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-027",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "vision统一法则",
+      "fileName": "vision统一法则.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "码率控制 · 论文资料",
+      "tags": [
+        "码率控制",
+        "论文"
+      ],
+      "bytes": 40798685,
+      "size": "39 MB",
+      "url": "/library/files/rate-control/vision%E7%BB%9F%E4%B8%80%E6%B3%95%E5%88%99.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "rate-control-029",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "刷新闪烁论文 阅读与下载清单 20261029",
+      "fileName": "刷新闪烁论文_阅读与下载清单_20261029.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "码率控制 · 笔记资料",
+      "tags": [
+        "码率控制",
+        "笔记"
+      ],
+      "bytes": 3148,
+      "size": "3.1 KB",
+      "url": "/library/files/rate-control/%E5%88%B7%E6%96%B0%E9%97%AA%E7%83%81%E8%AE%BA%E6%96%87_%E9%98%85%E8%AF%BB%E4%B8%8E%E4%B8%8B%E8%BD%BD%E6%B8%85%E5%8D%95_20261029.md",
+      "readerUrl": "/library/rate-control-029/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "rate-control-007",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "dcvc-rt论文阅读笔记",
+      "fileName": "dcvc-rt论文阅读笔记.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "DCVC-RT 论文阅读笔记，与原论文配合查阅。",
+      "tags": [
+        "阅读笔记",
+        "DCVC"
+      ],
+      "bytes": 3423,
+      "size": "3.3 KB",
+      "url": "/library/files/rate-control/dcvc-rt%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0.md",
+      "readerUrl": "/library/rate-control-007/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "rate-control-014",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "LVC NVC码率控制论文写作入门指南",
+      "fileName": "LVC_NVC码率控制论文写作入门指南.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "从问题建模到实验写作，整理码率控制论文的结构与常见规范。",
+      "tags": [
+        "写作指南",
+        "LVC"
+      ],
+      "bytes": 28981,
+      "size": "28 KB",
+      "url": "/library/files/rate-control/LVC_NVC%E7%A0%81%E7%8E%87%E6%8E%A7%E5%88%B6%E8%AE%BA%E6%96%87%E5%86%99%E4%BD%9C%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97.md",
+      "readerUrl": "/library/rate-control-014/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "rate-control-030",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "NVC / 码率控制论文分析汇总",
+      "fileName": "论文分析汇总.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "11 篇独立文献的训练集、评测协议、码控方法与图表风格对照。",
+      "tags": [
+        "阅读笔记",
+        "横向对比"
+      ],
+      "bytes": 21183,
+      "size": "21 KB",
+      "url": "/library/files/rate-control/%E8%AE%BA%E6%96%87%E5%88%86%E6%9E%90%E6%B1%87%E6%80%BB.md",
+      "readerUrl": "/library/rate-control-030/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "rate-control-018",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "NVC码率控制论文写作上手指南",
+      "fileName": "NVC码率控制论文写作上手指南.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "NVC 码率控制研究的论文写作上手参考。",
+      "tags": [
+        "写作指南",
+        "NVC"
+      ],
+      "bytes": 18462,
+      "size": "18 KB",
+      "url": "/library/files/rate-control/NVC%E7%A0%81%E7%8E%87%E6%8E%A7%E5%88%B6%E8%AE%BA%E6%96%87%E5%86%99%E4%BD%9C%E4%B8%8A%E6%89%8B%E6%8C%87%E5%8D%97.md",
+      "readerUrl": "/library/rate-control-018/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "rate-control-020",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "plot rd curve template",
+      "fileName": "plot_rd_curve_template.py",
+      "extension": "PY",
+      "kind": "code",
+      "format": "代码",
+      "description": "码率控制 · 代码资料",
+      "tags": [
+        "码率控制",
+        "代码"
+      ],
+      "bytes": 5867,
+      "size": "5.7 KB",
+      "url": "/library/files/rate-control/plot_rd_curve_template.py",
+      "action": "查看文件"
+    },
+    {
+      "id": "rate-control-004",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "bitrate tracking example",
+      "fileName": "bitrate_tracking_example.png",
+      "extension": "PNG",
+      "kind": "image",
+      "format": "图像",
+      "description": "码率控制 · 图像资料",
+      "tags": [
+        "码率控制",
+        "图像"
+      ],
+      "bytes": 81016,
+      "size": "79 KB",
+      "url": "/library/files/rate-control/bitrate_tracking_example.png",
+      "action": "查看文件"
+    },
+    {
+      "id": "rate-control-023",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "rd curve example",
+      "fileName": "rd_curve_example.png",
+      "extension": "PNG",
+      "kind": "image",
+      "format": "图像",
+      "description": "码率控制 · 图像资料",
+      "tags": [
+        "码率控制",
+        "图像"
+      ],
+      "bytes": 322434,
+      "size": "315 KB",
+      "url": "/library/files/rate-control/rd_curve_example.png",
+      "action": "查看文件"
+    },
+    {
+      "id": "rate-control-028",
+      "collection": "rate-control",
+      "collectionTitle": "码率控制",
+      "title": "刷新闪烁论文 下载校验 20261029",
+      "fileName": "刷新闪烁论文_下载校验_20261029.json",
+      "extension": "JSON",
+      "kind": "data",
+      "format": "数据",
+      "description": "码率控制 · 数据资料",
+      "tags": [
+        "码率控制",
+        "数据"
+      ],
+      "bytes": 768,
+      "size": "768 B",
+      "url": "/library/files/rate-control/%E5%88%B7%E6%96%B0%E9%97%AA%E7%83%81%E8%AE%BA%E6%96%87_%E4%B8%8B%E8%BD%BD%E6%A0%A1%E9%AA%8C_20261029.json",
+      "action": "查看文件"
+    },
+    {
+      "id": "video-post-training-001",
+      "collection": "video-post-training",
+      "collectionTitle": "视频后训练",
+      "title": "Video Generation Post-Training Survey",
+      "fileName": "Video_Generation_Post_Training_Survey.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "视频生成后训练研究综述，原文 PDF。",
+      "tags": [
+        "综述",
+        "视频生成"
+      ],
+      "bytes": 8750543,
+      "size": "8.3 MB",
+      "url": "/library/files/video-post-training/Video_Generation_Post_Training_Survey.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "reinforcement-learning-004",
+      "collection": "reinforcement-learning",
+      "collectionTitle": "强化学习",
+      "title": "强化学习",
+      "fileName": "强化学习.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "强化学习 · 笔记资料",
+      "tags": [
+        "强化学习",
+        "笔记"
+      ],
+      "bytes": 2803,
+      "size": "2.7 KB",
+      "url": "/library/files/reinforcement-learning/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0.md",
+      "readerUrl": "/library/reinforcement-learning-004/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "reinforcement-learning-003",
+      "collection": "reinforcement-learning",
+      "collectionTitle": "强化学习",
+      "title": "强化学习-硬件编码预设",
+      "fileName": "强化学习-硬件编码预设.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "强化学习 · 笔记资料",
+      "tags": [
+        "强化学习",
+        "笔记"
+      ],
+      "bytes": 17349,
+      "size": "17 KB",
+      "url": "/library/files/reinforcement-learning/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0-%E7%A1%AC%E4%BB%B6%E7%BC%96%E7%A0%81%E9%A2%84%E8%AE%BE.md",
+      "readerUrl": "/library/reinforcement-learning-003/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "reinforcement-learning-005",
+      "collection": "reinforcement-learning",
+      "collectionTitle": "强化学习",
+      "title": "梯度解惑",
+      "fileName": "梯度解惑.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "强化学习 · 笔记资料",
+      "tags": [
+        "强化学习",
+        "笔记"
+      ],
+      "bytes": 16190,
+      "size": "16 KB",
+      "url": "/library/files/reinforcement-learning/%E6%A2%AF%E5%BA%A6%E8%A7%A3%E6%83%91.md",
+      "readerUrl": "/library/reinforcement-learning-005/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "reinforcement-learning-001",
+      "collection": "reinforcement-learning",
+      "collectionTitle": "强化学习",
+      "title": "RAPNet-HEVC 项目说明",
+      "fileName": "README.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "基于 Actor-Critic 的视频编码预处理网络：架构、训练、实验与排障。",
+      "tags": [
+        "RAPNet",
+        "Actor-Critic"
+      ],
+      "bytes": 13732,
+      "size": "13 KB",
+      "url": "/library/files/reinforcement-learning/README.md",
+      "readerUrl": "/library/reinforcement-learning-001/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "reinforcement-learning-002",
+      "collection": "reinforcement-learning",
+      "collectionTitle": "强化学习",
+      "title": "TensorBoard 指标监控指南 (Actor-Critic for Video Encoding)",
+      "fileName": "TensorBoard 指标监控指南 (Actor-Critic for Video Encoding).md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "视频编码 Actor-Critic 训练的 TensorBoard 指标监控指南。",
+      "tags": [
+        "TensorBoard",
+        "实验监控"
+      ],
+      "bytes": 5437,
+      "size": "5.3 KB",
+      "url": "/library/files/reinforcement-learning/TensorBoard%20%E6%8C%87%E6%A0%87%E7%9B%91%E6%8E%A7%E6%8C%87%E5%8D%97%20(Actor-Critic%20for%20Video%20Encoding).md",
+      "readerUrl": "/library/reinforcement-learning-002/",
+      "action": "站内阅读"
+    }
+  ]
+}

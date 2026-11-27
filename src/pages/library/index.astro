@@ -1,0 +1,262 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { libraryCollections, libraryDocuments } from '../../data/library';
+import '../../styles/library.css';
+
+const libraryNotes = await getCollection('library');
+const noteText = Object.fromEntries(libraryNotes.map((note) => [note.id, note.body]));
+const paperCount = libraryDocuments.filter((document) => document.kind === 'paper').length;
+const noteCount = libraryDocuments.filter((document) => document.kind === 'note').length;
+const attachmentCount = libraryDocuments.length - paperCount - noteCount;
+const kindFilters = [
+  { id: 'all', label: '全部类型', count: libraryDocuments.length },
+  { id: 'paper', label: '论文', count: paperCount },
+  { id: 'note', label: '笔记', count: noteCount },
+  { id: 'slides', label: '课件', count: libraryDocuments.filter((document) => document.kind === 'slides').length },
+  { id: 'other', label: '其他附件', count: attachmentCount },
+].filter((filter) => filter.id === 'all' || filter.count > 0);
+---
+
+<Base title="资料库 · kaiser" description="论文、课程课件、研究笔记与实验资料的个人资料库。">
+  <section class="library-hero">
+    <div class="wrap library-hero-grid">
+      <div class="library-intro">
+        <p class="mono-meta">Research Archive — 个人资料库</p>
+        <h1>资料库<span>Library</span></h1>
+        <p class="library-lead">论文、笔记与实验资料，各就其位。<br />把读过的留在手边，让下一次查找少走弯路。</p>
+        <div class="library-actions">
+          <a class="library-primary" href="#library-browser">开始检索 <span aria-hidden="true">↓</span></a>
+          <button class="library-text-button" id="library-index-open" type="button">馆藏索引</button>
+        </div>
+        <dl class="library-stats" aria-label="资料库统计">
+          <div><dt>{libraryDocuments.length}</dt><dd>份馆藏</dd></div>
+          <div><dt>{libraryCollections.length}</dt><dd>条研究线索</dd></div>
+          <div><dt>{noteCount}</dt><dd>篇可读笔记</dd></div>
+        </dl>
+      </div>
+
+      <div class="library-map" aria-label="按研究主题浏览资料库">
+        <p class="library-map-caption mono-meta">A map of what I read</p>
+        <svg class="library-map-lines" viewBox="0 0 520 390" fill="none" aria-hidden="true">
+          <path d="M259 193C201 165 156 123 112 79" />
+          <path d="M267 197C330 176 380 136 421 93" />
+          <path d="M260 207C252 259 225 301 188 335" />
+          <circle cx="112" cy="79" r="3" /><circle cx="421" cy="93" r="3" /><circle cx="188" cy="335" r="3" />
+        </svg>
+        <div class="library-map-core" aria-hidden="true"><span>K</span><small>LIBRARY</small></div>
+        {libraryCollections.map((collection, index) => (
+          <button
+            class={`library-map-node library-map-node-${index + 1}`}
+            type="button"
+            data-library-collection={collection.slug}
+            aria-label={`浏览${collection.title}，共 ${collection.count} 份资料`}
+          >
+            <span class="library-node-index">0{index + 1}</span>
+            <strong>{collection.title}</strong>
+            <small>{collection.english} · {collection.count}</small>
+          </button>
+        ))}
+        <span class="library-map-note">点击主题，进入对应书架</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap library-browser" id="library-browser" aria-labelledby="library-browser-title">
+    <div class="section-head">
+      <span class="mono-meta">The collection — 馆藏目录</span>
+      <h2 id="library-browser-title">按图索骥</h2>
+    </div>
+
+    <div class="library-search-block">
+      <form class="library-search" id="library-search-form" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>
+        <label class="sr-only" for="library-search-input">搜索资料标题、主题、标签与笔记全文</label>
+        <input id="library-search-input" type="search" placeholder="搜索标题、主题、标签与笔记全文…" autocomplete="off" />
+        <kbd aria-hidden="true">/</kbd>
+        <button id="library-search-clear" type="button" aria-label="清空搜索" hidden>清空</button>
+      </form>
+      <div class="library-kind-filters" aria-label="按资料类型筛选">
+        {kindFilters.map((filter) => (
+          <button type="button" data-library-kind={filter.id} aria-pressed={filter.id === 'all' ? 'true' : 'false'}>
+            {filter.label} <span>{filter.count}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div class="library-catalogue">
+      <aside class="library-rail" aria-label="按研究主题筛选">
+        <p class="mono-meta">Shelves / 书架</p>
+        <button class="library-rail-item" type="button" data-library-collection="all" aria-pressed="true">
+          <span>全部馆藏</span><i></i><small>{libraryDocuments.length}</small>
+        </button>
+        {libraryCollections.map((collection, index) => (
+          <button class="library-rail-item" type="button" data-library-collection={collection.slug} aria-pressed="false">
+            <span><em>0{index + 1}</em>{collection.title}</span><i></i><small>{collection.count}</small>
+          </button>
+        ))}
+        <p class="library-rail-note">文件保留原始格式；Markdown 笔记可直接在站内阅读。</p>
+      </aside>
+
+      <div class="library-results-wrap">
+        <p class="library-result-status" id="library-result-status" role="status">共 {libraryDocuments.length} 份资料</p>
+        <div class="library-results" id="library-results">
+          {libraryDocuments.map((document, index) => (
+            <a
+              class="library-row"
+              href={document.readerUrl || document.url}
+              target={document.readerUrl ? undefined : '_blank'}
+              rel={document.readerUrl ? undefined : 'noopener'}
+              data-library-row={document.id}
+            >
+              <span class="library-row-number">{String(index + 1).padStart(2, '0')}</span>
+              <span class="library-row-main">
+                <span class="library-row-eyebrow">{document.collectionTitle} / {document.format}</span>
+                <strong>{document.title}</strong>
+                <span class="library-row-description">{document.description}</span>
+                <span class="library-row-file">{document.fileName}</span>
+              </span>
+              <span class="library-row-meta">
+                <span class="library-file-type">{document.extension}</span>
+                <small>{document.size}</small>
+                <span class="library-row-action">{document.action} <b aria-hidden="true">↗</b></span>
+              </span>
+            </a>
+          ))}
+        </div>
+        <div class="library-empty" id="library-empty" hidden>
+          <p class="mono-meta">No matching records</p>
+          <h3>这一格暂时是空的</h3>
+          <p>换个关键词，或清除筛选后再看看。</p>
+          <button class="library-text-button" id="library-reset" type="button">清除全部筛选</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="library-colophon">
+      <span class="mono-meta">A living archive</span>
+      <p>这不是静态的文件堆，而是一条持续生长的阅读路径。<br />后续可继续收录课程 PPT、论文、实验记录与其他学习资料。</p>
+    </div>
+  </section>
+
+  <dialog class="library-drawer" id="library-drawer" aria-labelledby="library-drawer-title">
+    <div class="library-drawer-inner">
+      <button class="library-drawer-close" id="library-index-close" type="button" aria-label="关闭馆藏索引">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+      <p class="mono-meta">Index / 馆藏索引</p>
+      <h2 id="library-drawer-title">三条阅读路径</h2>
+      <p class="library-drawer-lead">从研究主题进入，而不是在文件夹里迷路。</p>
+      <nav class="library-drawer-nav" aria-label="馆藏主题">
+        {libraryCollections.map((collection, index) => (
+          <button type="button" data-library-collection={collection.slug}>
+            <span class="library-drawer-number">0{index + 1}</span>
+            <span><strong>{collection.title}</strong><small>{collection.description}</small></span>
+            <em>{collection.count}</em>
+          </button>
+        ))}
+      </nav>
+      <div class="library-drawer-foot">
+        <p class="mono-meta">Formats</p>
+        <p>PDF · Markdown · PowerPoint<br />图片 · 数据 · 代码附件</p>
+      </div>
+    </div>
+  </dialog>
+</Base>
+
+<script define:vars={{ documents: libraryDocuments, noteText }}>
+  const form = document.getElementById('library-search-form');
+  const input = document.getElementById('library-search-input');
+  const clearSearch = document.getElementById('library-search-clear');
+  const status = document.getElementById('library-result-status');
+  const empty = document.getElementById('library-empty');
+  const drawer = document.getElementById('library-drawer');
+  const rows = Array.from(document.querySelectorAll('[data-library-row]'));
+  const params = new URL(location.href).searchParams;
+  const validCollections = new Set(['all', ...documents.map((document) => document.collection)]);
+  const validKinds = new Set(['all', 'paper', 'note', 'slides', 'other']);
+  const requestedCollection = params.get('collection') || 'all';
+  const requestedKind = params.get('kind') || 'all';
+  const state = {
+    q: params.get('q') || '',
+    collection: validCollections.has(requestedCollection) ? requestedCollection : 'all',
+    kind: validKinds.has(requestedKind) ? requestedKind : 'all',
+  };
+  input.value = state.q;
+
+  const normalize = (value) => value.toLocaleLowerCase().replace(/\s+/g, ' ').trim();
+  const matchesKind = (document) => state.kind === 'all' || document.kind === state.kind || (state.kind === 'other' && !['paper', 'note', 'slides'].includes(document.kind));
+
+  function applyFilters(updateUrl = true) {
+    const query = normalize(state.q);
+    let visible = 0;
+    for (const document of documents) {
+      const row = rows.find((item) => item.dataset.libraryRow === document.id);
+      const haystack = normalize([
+        document.title, document.fileName, document.description, document.collectionTitle,
+        document.format, document.extension, ...document.tags, noteText[document.id] || '',
+      ].join(' '));
+      const terms = query.split(' ').filter(Boolean);
+      const matchesQuery = terms.every((term) => haystack.includes(term));
+      const matchesCollection = state.collection === 'all' || document.collection === state.collection;
+      const show = matchesQuery && matchesCollection && matchesKind(document);
+      row.hidden = !show;
+      if (show) visible += 1;
+    }
+
+    status.textContent = visible === documents.length ? `共 ${visible} 份资料` : `找到 ${visible} / ${documents.length} 份资料`;
+    empty.hidden = visible !== 0;
+    clearSearch.hidden = !state.q;
+    document.querySelectorAll('[data-library-collection]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.libraryCollection === state.collection));
+    });
+    document.querySelectorAll('[data-library-kind]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.libraryKind === state.kind));
+    });
+
+    if (updateUrl) {
+      const url = new URL(location.href);
+      state.q ? url.searchParams.set('q', state.q) : url.searchParams.delete('q');
+      state.collection !== 'all' ? url.searchParams.set('collection', state.collection) : url.searchParams.delete('collection');
+      state.kind !== 'all' ? url.searchParams.set('kind', state.kind) : url.searchParams.delete('kind');
+      history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+  }
+
+  form.addEventListener('submit', (event) => event.preventDefault());
+  input.addEventListener('input', () => { state.q = input.value; applyFilters(); });
+  clearSearch.addEventListener('click', () => {
+    state.q = ''; input.value = ''; applyFilters(); input.focus();
+  });
+
+  document.querySelectorAll('[data-library-kind]').forEach((button) => {
+    button.addEventListener('click', () => { state.kind = button.dataset.libraryKind; applyFilters(); });
+  });
+  document.querySelectorAll('[data-library-collection]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.collection = button.dataset.libraryCollection;
+      applyFilters();
+      if (drawer.open) drawer.close();
+      if (button.closest('.library-map') || button.closest('.library-drawer')) {
+        document.getElementById('library-browser').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  document.getElementById('library-reset').addEventListener('click', () => {
+    state.q = ''; state.collection = 'all'; state.kind = 'all'; input.value = ''; applyFilters(); input.focus();
+  });
+  document.getElementById('library-index-open').addEventListener('click', () => drawer.showModal());
+  document.getElementById('library-index-close').addEventListener('click', () => drawer.close());
+  drawer.addEventListener('click', (event) => { if (event.target === drawer) drawer.close(); });
+  document.addEventListener('keydown', (event) => {
+    const target = event.target;
+    const editing = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target.isContentEditable;
+    if (event.key === '/' && !editing && !drawer.open) {
+      event.preventDefault(); input.focus(); input.select();
+    }
+  });
+
+  applyFilters(false);
+</script>

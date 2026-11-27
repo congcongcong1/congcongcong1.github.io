@@ -4,10 +4,13 @@
   "version": "1.0.0",
   "description": "个人网站：主站 + 笔记（Astro 静态站点）",
   "scripts": {
+    "predev": "npm run sync:library",
     "dev": "astro dev --host --port 7100",
+    "prebuild": "npm run sync:library",
     "build": "astro build",
     "preview": "astro preview --host --port 7100",
-    "sync:repos": "node scripts/sync-repos.mjs"
+    "sync:repos": "node scripts/sync-repos.mjs",
+    "sync:library": "node scripts/build-library.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
