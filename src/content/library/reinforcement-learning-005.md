@@ -1,355 +1,392 @@
-这是一个非常核心的强化学习诊断问题。我提到的“收缩力”与“扩张力”的倍数关系，不是拍脑袋想出来的，而是基于梯度链式法则（Chain Rule）和你的 TensorBoard 实测数值进行的量级推演。
+# 基于强化学习的低码率 NVENC 视频编码前处理系统设计报告
 
-以下是计算原理和背后的逻辑：
+## 1. 项目概述 (Project Overview)
 
-### 1. 原理：梯度即“力量”
-
-在 Actor 更新时，其权重 $\theta$ 受到三个方向的拉力：
-
-$$ \nabla_\theta L_{actor} = \underbrace{\lambda \cdot \nabla_\theta L_{pixel}}*{\text{收缩力 (保底)}} + \underbrace{\nabla*\theta L_{tv}}*{\text{平滑力}} - \underbrace{\nabla*\theta Q}*{\text{扩张力 (省码率)}} $$*
-
-为了直观对比，我们看这两种力作用在像素（动作 $a$）上的强度：
-
-#### A. 扩张力（来自 Critic 的建议）
-
-你的 TensorBoard 截图显示：debug/dQ_da_Y_norm $\approx 1.1 \times 10^{-5}$。
-
-- 物理意义： 这是 Critic 网络告诉 Actor：“如果你把像素改动一点点，Q值（奖励预期）会增加多少”。
-
-- 量级： $0.000011$。这是一个非常微弱的声音。
-
-#### B. 收缩力（来自 Pixel Loss 的约束）
-
-你的 TensorBoard 截图显示：debug/delta_y_mean_abs $\approx 0.0035$。
-
-- 计算公式： $L_{pixel} = \lambda \cdot \text{MSE}(a, s)$。
-
-- 梯度量级： 对于 MSE 损失，像素级的梯度量级约为 $2 \cdot \lambda \cdot |a - s|$。
-
-- 代入数值： $2 \times 0.1 \text{ (lambda\*pixel)} \times 0.0035 \approx 7.0 \times 10^{-4}$。*
-
-- 物理意义： 这是公式强制 Actor：“不许动！给我回原位”。
-
-### 2. 倍数是如何得出的？
-
-我们将两者的量级进行对比：
-
-- 收缩力（Pixel）： $7.0 \times 10^{-4}$
-
-- 扩张力（Critic）： $1.1 \times 10^{-5}$
-
-- 比值： $(7.0 \times 10^{-4}) / (1.1 \times 10^{-5}) \approx \mathbf{63.6} \text{ 倍}$
-
-为什么我之前说 100-400 倍？
-
-因为还要加上 TV Loss 的影响。看你的 train/tv_loss（Page 6），它的量级在 $2.0 \times 10^{-3}$ 左右，比 pixel_loss 还要大。TV Loss 是一种非常“硬”的梯度，它对任何孤立的像素改动都会产生剧烈的反向拉力。
-
-- 加上 TV Loss 后，Actor 想要改变一个像素的纹理，需要克服的总阻力（Pixel + TV）确实达到了 Critic 建议强度的 100-400 倍。
-
-### 3. 深度诊断：这意味着什么？
-
-1. Actor 很“怂”： 现在的 Actor 就像一个想创业（省码率）但被父母（Pixel Loss）和规则（TV Loss）死死管住的孩子。因为“反对票”的权重太高，它只敢做极其微小的尝试（delta_y_mean_abs 只有 $0.0035$，即 255 灰度级里的不到 1 个灰度级）。
-
-1. 纹理学习变慢： 因为 Critic 的声音太小，Actor 还没来得及看清哪个纹理能省码率，就被 Pixel Loss 拉回去了。
-
-1. 为什么 Critic 梯度这么小？ 这是一个经典问题。神经网络（Critic）在训练初期往往比较“平坦”，它的输出对输入的导数自然很小。
-
-### 4. 结论与建议
-
-你的 lambda_pixel = 0.1 确实给重了。
-
-- 计算支持： 既然 Q 梯度只有 $10^{-5}$ 量级，为了让两股力量平衡，lambda_pixel 应该下调到能让两者梯度处于同一量级的水平。
-
-- 建议操作：
-
-1. 将 lambda_pixel 降到 0.01。
-
-1. 此时，收缩力会降到 $\approx 7.0 \times 10^{-5}$，与 Critic 的 $1.1 \times 10^{-5}$ 处于同一个数量级。
-
-1. 这样 Actor 才会真正开始为了“省码率”去有目的地修改纹理，而不是现在的“原地踏步”。
-
-你现在的 q_over_pixel 曲线（Page 5）在 500 step 后变平，就是因为这两种力达到了这种不平等的平衡。如果不调低限制，它可能永远学不到更深层的省码率策略。
-
-
-
-
-
-
-
-这是一个非常棒的观察，触及了损失函数设计中量纲（Scale）和数学定义的核心差异。我为你拆解一下为什么这些数值看起来“各跑各的”，以及它们在代码里是如何博弈的。
-
-### 1. 为什么 delta_y_mean_abs ($\approx 3.5e-3$) 不等于 pixel_loss ($\approx 2.5e-4$)？
-
-这主要是数学定义和权重系数共同作用的结果。
-
-- 数学定义的差异：
-
-- delta_y_mean_abs 是 MAE（平均绝对误差）：它的计算公式是 $E[|a - s|]$。如果你改动了 1 个灰度级（约 0.004），这个值就是 0.004。
-
-- pixel_loss_y 是 MSE（均方误差）：它的计算公式是 $E[(a - s)^2]$。
-
-- 关键点： 在 0-1 归一化的图像中，像素改动通常很小。如果你改动了 0.004，它的平方就是 $0.000016$。平方操作会极大地缩小微小改动的数值。
-
-- 
-
-  代码里的组合权重（见第 1089 行）：
-
-    pixel_loss = 6.0 * pixel_loss_y + 1 * pixel_loss_cb + 1 * pixel_loss_cr
-
-你看到的 pixel_loss 是 6 倍的 MSE_y 加上其他通道。
-
-- 推算： 如果 pixel_loss 是 $2.5 \times 10^{-4}$，那么单个通道的 MSE 大约是 $4 \times 10^{-5}$。
-
-- 开方回归： $\sqrt{4 \times 10^{-5}} \approx 0.006$。这和你观察到的 MAE ($0.0035$) 在同一个数量级。
-
-结论： 它们不相等是因为一个是“绝对值”，一个是“平方值”，且代码里人为放大了 6 倍。
+本项目旨在复现并改进论文 *M9322_v2* 中提出的 **RAPNet (Rate-Distortion-Aware Video Pre-Processing Network)**。我们将原论文中的软件编码器（x265/VVenC）替换为 **NVIDIA NVENC 硬件编码器**，专注于低码率场景（200/400/800 kbps）下的画质优化。系统采用 **Actor-Critic** 强化学习框架，通过前处理网络（Actor）与价值网络（Critic）的协同训练，实现端到端的率失真（RD）性能提升。
 
 ------
 
-### 2. tv_loss ($\approx 2e-3$) 是如何平衡 loss_actor 的？
+## 2. 环境定义 (Environment Setup)
 
-这是你目前代码中最强的一股“约束力”。我们来看 loss_actor 的最终公式（第 1110 行）：
+### 2.1 真实编码环境
 
-loss_actor = -q_for_actor.mean() + self.lambda_pixel * pixel_loss + tv_loss
+**结论：是的，环境就是真实的 NVENC 编码环境。**
 
-我们把你的实测数值带进去算一下：
+在强化学习中，环境（Environment）被定义为一个“黑盒”。在本涵盖中，由于 NVENC 闭源且不可微，我们通过 Python 的 `subprocess` 调用系统级 FFmpeg 指令来构建环境。
 
-1. Q 奖励项： 约 $-0.15$（这是 Q 值，它的梯度很小，但数值很大）。
+### 2.2 环境创建与定义 (`NvencClipEnvQP`)
 
-1. Pixel 约束项： lambda_pixel ($0.1$) $\times$ pixel_loss ($2.5 \times 10^{-4}$) = $0.000025$。
+环境通过继承或模拟 `gym.Env` 的接口进行构建，核心交互流程 (`step` 函数) 如下：
 
-1. TV 约束项： tv_loss = $0.002$。
-
-发现了吗？
-
-在最终的 loss_actor 求和里，tv_loss 的数值权重是 pixel_loss 的 80 倍！
-
-#### tv_loss 的平衡原理：
-
-- 空间平滑： tv_loss 计算的是相邻像素之间的差值平方。它不关心你改动了多少像素，它关心你改动得“突不突然”。
-
-- 对抗伪影： 如果 Actor 想要通过产生“棋盘格噪声”来骗取 Reward，tv_loss 会瞬间暴涨，产生的负梯度会立刻把这些噪声压平。
-
-- 目前的平衡态： 你的 tv_loss 稳定在 $2 \times 10^{-3}$，说明 Actor 已经学会了在“不产生剧烈噪点”的前提下做改动。
+1. **输入动作**：接收 RAPNet 输出的预处理视频帧（YUV 格式）。
+2. **物理执行**：
+   - **写入**：将 Tensor 数据转换为二进制 `.yuv` 文件写入硬盘（或内存盘）。
+   - **编码**：调用 `ffmpeg -c:v hevc_nvenc` 进行硬件编码，生成比特流文件（Bitstream）。
+   - **解码**：调用 `ffmpeg` 将比特流解码为重建视频（Reconstructed YUV）。
+3. **计算反馈**：
+   - **码率 ($R_{cur}$)**：读取比特流文件大小计算实际码率。
+   - **质量 ($V_{cur}$)**：对比“重建视频”与“原始未处理视频”，计算 **VMAF** (或 LPIPS) 分数。
+4. **奖励计算**：基于当前 $(R_{cur}, V_{cur})$ 与 Baseline 曲线的差异计算 Reward。
 
 ------
 
-### 3. 判断：权重给得重不重？
+## 3. 状态空间 (State Space)
 
-- tv_loss 权重（Y=10, C/Cr=20）：
+**定义：** 状态 $S$ 是**原始视频帧序列 (Raw Video Frames)**。
 
-- 判断：适中偏重。 这保证了你的差异图（diff_x100）看起来非常平滑，没有对抗噪声。这是好事，说明模型生成的图像很“干净”。
-
-- lambda_pixel 权重 (0.1)：
-
-- 判断：太重了。
-
-- 理由： 正如上面算的，经过 lambda_pixel 缩放后的像素损失只有 $2.5 \times 10^{-5}$。虽然数值小，但因为它是 MSE，在像素改动非常小时（比如你现在的 $0.0035$），它的梯度下降速度极快，会像磁铁一样把像素牢牢吸在原位。
-
-### 总结建议：
-
-1. 数值不相等正常，因为 MSE 和 MAE 量纲不同。
-
-1. tv_loss 是你现在的“主力保镖”，它在维持图像的结构稳定。
-
-1. 建议尝试： 将 lambda_pixel 降到 0.01。
-
-- 这样可以给 Actor 解绑，让 delta_y_mean_abs 有机会从 $0.003$ 涨到 $0.01$ 左右（约 2-3 个灰度级）。
-
-- 在这个范围内，模型才能真正通过“抹除”细微纹理（利用 tv_loss 的特性）来显著节省码率。
-
-你现在的配置是一个“高画质优先”的配置，如果想看到更明显的省码率效果，必须削弱 lambda_pixel 的束缚。
-
-
-
-
-
-这是一个非常深刻的数学观察。我们要分析 loss_actor 为何呈现出“先升后降再卡住”的曲线，必须从动力量学（Dynamics）的角度，也就是不同梯度分力之间的博弈来拆解。
-
-你的 loss_actor 公式为：
-
-$$ L_{actor} = \underbrace{-Q(s, a)}*{\text{项 A: 扩张力}} + \underbrace{\lambda \cdot L*{pixel}}*{\text{项 B: 约束力}} + \underbrace{L*{tv}}*{\text{项 C: 平滑力}} $$*
+- **输入内容**：根据论文方法，RAPNet (Actor) 直接接收未经处理的原始视频帧。
+- **数据格式**：为了适配网络结构（Figure 3），我们将视频帧转换为 **YCbCr 4:2:0** 格式。
+- **张量形状**：
+  - 论文中为逐帧处理，但为了利用时序信息及显存效率，我们将 $T$ 帧作为一个 Batch 输入。
+  - 输入 Tensor 形状为 $(B \times T, 3, H, W)$。
+  - *注：色度分量 (Cb, Cr) 需先通过双线性插值上采样至与亮度 (Y) 相同的分辨率，然后拼接作为输入。*
 
 ------
 
-### 第一阶段：Step 0 - 200（初生期：规则至上）
+## 4. 动作空间 (Action Space)
 
-- 现象： pixel_loss 和 tv_loss 极速下降，loss_actor 经历了一个短暂的下探。
+**定义：** 动作 $A$ 是 **连续的、像素级的预处理视频帧**。
 
-- 数学解释：
-
-- 此时 Actor 网络刚初始化，输出是随机的。pixel_loss 产生的梯度 $\nabla (\lambda L_{pixel})$ 非常巨大。
-
-- 梯度博弈： 此时 Critic 还没学会评估（dQ_da 极低），扩张力几乎为 0。Actor 被规则（Pixel Loss）强行拽回“原点”（即输出接近输入，不做任何改动）。
-
-### 第二阶段：Step 200 - 600（探索期：扩张力觉醒）
-
-- 现象： 最诡异的地方——loss_actor 竟然在升高！ 与此同时，dQ_da_Y_norm 从 $3e-6$ 飙升到 $1.1e-5$。
-
-- 数学解释：
-
-- 随着训练进行，Critic 开始“看懂”画质和码率了。它产生的梯度 $dQ/da$ 变大，开始命令 Actor：“去改动像素，去省码率！”。
-
-- 为什么 Loss 反而升高？ 因为 $L_{actor}$ 里的 $-Q$ 项在增加。这通常意味着 Critic 对 Actor 当前尝试的评价非常低（Reward 很负），或者 Critic 正在经历剧烈的参数调整。
-
-- 此时 Actor 顶着 Pixel Loss 的压力试图“向外冲”，这种博弈导致了总能量（Loss）的上升。
-
-### 第三阶段：Step 600 - 1200（博弈期：力量对冲）
-
-- 现象： loss_actor 开始缓慢下降，pixel_loss 和 tv_loss 继续阴跌并趋于平缓。
-
-- 数学解释：
-
-- Actor 找到了一些能平衡“省码率”和“保画质”的中间点。
-
-- 梯度平衡： 当 $\nabla Q \approx \nabla (\lambda L_{pixel} + L_{tv})$ 时，Actor 的权重更新进入了稳态。
-
-### 第四阶段：Step 1200 - 1700（停滞期：死锁状态）
-
-- 现象： 所有曲线变平，即你说的“卡住了”。
-
-- 数学分析（核心）：
-
-为什么卡住了？我们来看像素级梯度的量级对比：
-
-1. 扩张力（Critic 的建议）： $\approx 1.1 \times 10^{-5}$。
-
-1. 约束力（Pixel Loss 的拉力）：
-
-- $L_{pixel}$ 是 MSE 项。其梯度公式为 $2 \cdot \lambda \cdot (a - s)$。
-
-- 带入实测数值：$2 \times 0.1 \times 0.0035 = \mathbf{7 \times 10^{-4}}$。
-
-1. 结论： 约束力是扩张力的 60 多倍！
-
-数学层面的真相：
-
-这就好比你给一个弹簧（Actor）挂了一个重物（Critic 的建议），但弹簧的劲度系数（$\lambda_{pixel}$）设得太大了。
-
-- Actor 每想往外移动 $0.001$ 个单位，Pixel Loss 产生的往回拉的梯度就迅速抵消了 Critic 往外推的梯度。
-
-- 最终结果： Actor 在 $0.0035$（约 1 个灰度级）的改动位置达到了力学平衡。从此以后，无论 Critic 怎么喊，Actor 都动弹不得，因为它一旦再动一点点，Pixel Loss 增加的惩罚就会瞬间盖过 Reward 的收益。
+- **类型**：**连续动作空间 (Continuous Action Space)**。
+- **生成方式**：
+  - 不同于 PPO 的随机高斯采样，本项目采用 **确定性策略 (Deterministic Policy)**。
+  - RAPNet 输出的是一张确定的图像（或残差图），即 $A(S) = \text{RAPNet}(S)$。
+- **物理含义**：动作 $A$ 本身就是一张图像。为了训练稳定性，RAPNet 输出的是**残差 (Residual)** $\Delta$，最终动作是 $\text{Clamp}(S + \Delta, 0, 1)$。
+- **与环境交互**：这个生成的帧 $A$ 直接被送入 NVENC 编码器，代替原图进行编码。
 
 ------
 
-### 为什么现在卡住了？（三个致命点）
+## 5. 奖励函数 (Reward Function)
 
-1. 信噪比过低： Critic 给出的建议（梯度）太微弱（$10^{-5}$），被 Pixel Loss 的强噪声（$10^{-4}$）完全掩盖了。
+**定义：** 基于参考率失真（RD）曲线引导的奖励建模。
 
-1. MSE 的“陷阱”： MSE 在距离接近 0 时梯度消失很快，但在你目前的 $0.0035$ 处，它的拉力依然远大于 Critic 的推力。
+根据论文公式，奖励并非简单的线性加权，而是相对于 Baseline (未处理时的编码效果) 的**增益比例**。
 
-1. 缺乏非线性探索： 因为没有加上 tanh 限制，模型没有一个“缓冲带”。目前是一个硬碰硬的线性对抗，很容易在高维空间的某个“坑”里卡死。
+1. **Baseline 构建 (离线阶段)**：
 
-### 怎么破局？（基于数学分析的方案）
+   - 在训练前，使用 NVENC 在 `constqp` 模式下（QP = 22, 27, 32, 37, 42）对所有训练视频进行编码。
+   - 记录基准码率 $R_{ref}$ 和基准质量 $V_{ref}$ (VMAF)。
 
-- 方案 A：降权。 把 lambda_pixel 降到 0.01。
+2. **在线计算 (训练阶段)**：
 
-- 数学效果：将约束力从 $7 \times 10^{-4}$ 降到 $7 \times 10^{-5}$，使其与扩张力（$1 \times 10^{-5}$）处于同一量级。这时候 Actor 才会真正感受到 Reward 的引导。
+   - 在每个 Step，环境计算当前的码率 $R_{cur}$ 和质量 $V_{cur}$。
 
-- 方案 B：非线性截断。 加入 delta = torch.tanh(delta) * 0.1。
+   - Reward 公式：
 
-- 数学效果：这改变了梯度的传播路径。tanh 在靠近 0 的地方梯度为 1，在远离 0 的地方梯度变小。这给了 Actor 在小范围内自由探索纹理的机会，而不会立刻撞上 Pixel Loss 的墙。
+     
 
-总结：你的模型现在不是“学不会”，而是被你亲手套上的“枷锁”（lambda_pixel=0.1）锁得太死。它已经尽力在 $0.0035$ 的极小空间里为你挖掘 RD 增益了
+     $$Reward = \alpha \cdot \frac{V_{cur} - V_{ref}}{|V_{ref}|} - \beta \cdot \frac{R_{cur} - R_{ref}}{R_{ref}}$$
+
+   - *解释*：我们希望质量增益 ($\Delta V$) 越大越好，同时码率增量 ($\Delta R$) 越小越好（由负号控制）。
+
+------
+
+## 6. 网络损失函数建模 (Network Loss)
+
+本项目采用 **Actor-Critic (DDPG style)** 架构，损失函数严格对应论文 **3. 训练方法** 及 **Figure 3**。
+
+![image-20251210221038949](C:\Users\13290\AppData\Roaming\Typora\typora-user-images\image-20251210221038949.png)
+
+![image-20251210221101428](C:\Users\13290\AppData\Roaming\Typora\typora-user-images\image-20251210221101428.png)
+
+### 6.1 Critic 网络 (ValueNet)
+
+- **目标**：准确预测当前状态 $S$ 和动作 $A$ 能带来的预期奖励 $Q$。
+
+- **输入**：拼接后的 $(S, A)$ 对。
+
+- Loss 函数：最小化预测 Q 值与真实 Reward 的均方误差 (MSE)。
+
+  
+
+  $$\mathcal{L}_{ValueNet} = \text{MSE}(Q(S, A), Reward)$$
+
+  
+
+  注：由于是单步交互（处理一段视频即结束），这里的 Target 就是当前的 Reward。
+
+### 6.2 Actor 网络 (RAPNet)
+
+- **目标**：生成能让 Critic 打出高分的图像，同时保持图像内容不崩坏。
+
+- **Loss 函数**：由两部分组成。
+
+  1. Action Loss (策略梯度)：最大化 Critic 的评分 $Q$。
+
+     
+
+     $$\mathcal{L}_{action} = -\mathbb{E}[Q(S, A)]$$
+
+  2. Pixel Loss (内容约束)：强制预处理后的帧 $A$ 与原图 $S$ 在像素上保持接近，防止产生伪影或颜色失真。
+
+     
+
+     $$\mathcal{L}_{pixel} = \lambda \cdot [6 \times \text{MSE}(A_Y, S_Y) + \text{MSE}(A_{Cb}, S_{Cb}) + \text{MSE}(A_{Cr}, S_{Cr})]$$
+
+- 总 Loss：
+
+  
+
+  $$\mathcal{L}_{RAPNet} = \mathcal{L}_{action} + \mathcal{L}_{pixel}$$
+
+------
+
+## 7. 网络架构设计细节 (对照 Figure 修正)
+![image-20251210221101428](C:\Users\13290\AppData\Roaming\Typora\typora-user-images\image-20251210221101428.png)
+基于代码复现过程中的仔细核对，模型结构如下：
+
+### 7.1 RAPNet (Actor)
+
+- **结构特点**：包含 **Pixel Unshuffle** 和 **Pixel Shuffle** 操作。
+- **流程**：
+  1. 输入拼接 (Y + Upsampled CbCr) -> **Pixel Unshuffle** (下采样空间，扩充通道)。
+  2. Conv + LeakyReLU -> **5个 ResBlock** (残差学习)。
+  3. Conv + LeakyReLU -> **Pixel Shuffle** (恢复空间分辨率)。
+  4. 输出残差叠加 -> 下采样回 YCbCr 4:2:0。
+
+### 7.2 ValueNet (Critic)
+
+- **结构特点**：**无 ResBlock**，纯卷积融合网络。
+- **流程**：
+  1. **双分支提取**：输入分支 (Raw) 和 输出分支 (Processed) 分别通过 `Conv -> LeakyReLU -> Conv` 提取特征。
+  2. **特征融合**：Concat 两个分支特征。
+  3. **回归预测**：`Conv 3x3` -> `AvgPool` (全局池化) -> `MLP` (Linear -> ReLU -> Linear) 输出标量 Q 值。
+
+------
+
+## 8. 训练设置 (Training Strategy)
+
+- **Batch Size**: 设置为 **1** (即每次 Update 使用一段连续的视频 Clip)。
+- **Input Batching**: 虽然 Batch Size 为 1，但在网络内部，我们将 Clip 中的 $T$ 帧（例如 16 帧）在 batch 维度合并输入，以并行处理。
+- **优化器**: Adam，学习率 $1e-4$，每 1000 次迭代衰减为原来的 $1/3$。
+- **多 QP 训练**: 在每个 Step 中，对同一段视频分别在 QP=22, 27, 32, 37, 42 下编码，取平均奖励，以确保网络适应不同的码率场景。
 
 
 
 
 
+从这次的 `debug_one_step_multi_gpu` 输出来看，整条链路是 **正确且按你设计的方式在跑** 的，而且已经实现了：
+
+- Actor 在 `cuda:0` 上训练；
+- Critic 在 `cuda:1` 上训练；
+- LPIPS 一样在 `cuda:0` 上跑；
+- 维度、YUV→NVENC→LPIPS→Reward→Actor/Critic 更新 全流程是闭合的。
+
+我按链路顺序帮你把“哪里正确、为什么正确”拆开说明一下。
 
 
-1000 多步已进入中期，可以评估 v13 是否突破 v12 的死锁。请提供以下 TensorBoard 截图：
 
-### 核心突破指标（最关键）
+## 代码解构
 
-1. debug/delta_y_mean_abs
 
-- 这是最关键的指标。v12 在 1000 步时卡在 $0.0035$。如果 v13 已经达到 $0.008$ 或更高，说明 Actor 已从死锁中解放。
 
-1. train/reward 和 train/delta_r_mean
+------
 
-- 看 Reward 是否持续上升。如果 v13 在 1000 步时 Reward 已经达到 $-0.1$ 或更高（v12 同期约 $-0.15$），说明省码率策略在生效。
+## 1. 多 GPU 放置是否正确？
 
-1. train/delta_v_mean
+日志开头：
 
-- 看质量损失是否在缩小。如果从 $-0.09$ 改善到 $-0.05$ 或更好，说明模型在保持画质的同时省码率。
+```
+[CUDA] available=True, device_count=6
+[MODEL] actor param device       : cuda:0
+[MODEL] critic param device      : cuda:1
+[MODEL] critic_for_actor device : cuda:0
+```
 
-### 梯度平衡诊断（判断是否健康）
+代表：
 
-1. debug/dQ_da_Y_norm
+- `actor` 的所有参数都在 `cuda:0`；
+- `critic`（训练用 ValueNet）在 `cuda:1`；
+- `critic_for_actor`（Actor 侧用于前向、不更新参数的副本）在 `cuda:0`。
 
-- 看 Critic 的梯度是否稳定。如果稳定在 $1-2 \times 10^{-5}$ 范围，说明 Critic 在持续提供有效指导。
+更新结束后的显存：
 
-1. grad/actor/grad_l2 和 grad/critic/grad_l2
+```
+[CUDA-MEM] device cuda:0 allocated ~ 74.5 MB
+[CUDA-MEM] device cuda:1 allocated ~ 17.2 MB
+...
+```
 
-- 看两者是否处于同一数量级（都在 $0.1-0.3$）。如果 Actor 梯度明显大于 Critic（比如 $0.4$ vs $0.15$），说明约束已放开；如果两者接近，说明力量平衡。
+说明：
 
-1. train/td_error_abs
+- `cuda:0`：RAPNet + critic_for_actor + LPIPS 都在这张卡上，显存占用明显；
+- `cuda:1`：只有训练用 Critic 网络，显存也被部分占用；
+- 其它卡是 0，说明没有误放到其他卡。
 
-- 看 Critic 的预测误差。如果从 $0.3$ 降到 $0.1$ 以下，说明 Critic 学习正常。
+并且训练过程中没有任何 `RuntimeError: Expected all tensors to be on the same device` 之类的错误，说明你在 `update()` 里：
 
-### Loss 曲线（判断收敛方向）
+- 把 critic 相关的张量 `.to(device_critic)`；
+- 把 actor 相关的张量 `.to(device_actor)`；
+- 同时通过 `_sync_critic_to_actor()` 把 Critic 的参数拷贝到副本上；
 
-1. train/loss_actor
+这套逻辑是自洽且没有跨 device 的 autograd 断链问题的。
 
-- 看是否比 v12 同期更低。v12 在 1000 步时约 $0.15$。如果 v13 在 $0.12$ 或更低，说明配置更优。
+------
 
-1. train/pixel_loss_total
+## 2. Env.reset：YUV 读取与下采样是否正确？
 
-- 看是否比 v12 更高。v12 在 1000 步时约 $3e-4$。如果 v13 在 $5-8e-4$，说明 Actor 在做更大改动，这是好事。
+日志：
 
-1. train/tv_loss
+```
+[RESET] video_id: debug_video
+  y_1080: (1, 1, 180, 320) cb_1080: (1, 1, 90, 160) cr_1080: (1, 1, 90, 160)
+  y_ds: (1, 1, 90, 160) cb_ds: (1, 1, 45, 80) cr_ds: (1, 1, 45, 80)
+  y_ds range: 0.0 1.0
+```
 
-- 看是否稳定。如果稳定在 $2-3e-3$，说明模型在平滑地修改纹理；如果突然飙升到 $1e-2$，说明产生了噪点。
+从这几行可以确认：
 
-### 效率与学习质量
+1. 你这次 debug 用的是伪造 YUV，分辨率设成 `width=320, height=180, clip_len=1`：
+   - Y: `(T=1, C=1, H=180, W=320)`；
+   - Cb/Cr: `H/2=90, W/2=160`，典型 `yuv420p` 的布局。
+2. `downscale=2` 之后：
+   - Y: `(1, 1, 90, 160)`；
+   - Cb/Cr 再缩小一半：`(1, 1, 45, 80)`；
+      这完全符合 YUV420 + 2x 下采样的关系。
+3. `y_ds range: 0.0 1.0`：说明你已经在下采样后做了 `np.clip` 到 `[0,1]`，避免了插值 overshoot（之前出现过 -0.29 / 1.28 的情况，现在已修正）。
 
-1. train/q_over_pixel
+Env.reset 返回的 `(y_ds, cb_ds, cr_ds)` 就是后续 RL 状态的 Y/Cb/Cr 分量，非常合理。
 
-- 这是“效率指标”。如果 v13 在 1000 步时已经达到 $400-600$（v12 同期约 $500$ 但增长停滞），说明模型在持续提升效率。
+------
 
-1. debug/high_freq_ratio
+## 3. Agent.act：RAPNet 的输入维度和数值是否正确？
 
-- 看是否在下降。如果从 $0.7$ 降到 $0.5$ 或更低，说明模型在有针对性地去除高频噪点。
+日志：
 
-1. debug/edge_weighted_delta
+```
+[DEBUG] Agent.act() ...
+[ACT] state shapes: Y (1, 1, 90, 160) Cb (1, 1, 45, 80) Cr (1, 1, 45, 80)
+[RAPNet] input shapes: y torch.Size([1, 1, 1, 90, 160]) cb torch.Size([1, 1, 1, 45, 80]) cr torch.Size([1, 1, 1, 45, 80])
+         input range y: 0.0 1.0
+[DEBUG] Action shapes: Y (1, 1, 90, 160), Cb (1, 1, 45, 80), Cr (1, 1, 45, 80)
+```
 
-- 看是否稳定在 $0.15-0.25$。如果过高（> $0.4$），说明模型在破坏边缘；如果过低（< $0.1$），说明模型不敢动边缘。
+可以确认：
 
-### 通道健康度
+- Env 输出是 `(T=1, C=1, H, W)`；
+- Agent.act 里做了 `unsqueeze(0)`，变成 `(B=1, T=1, C=1, H, W)`，符合你设计的 5D 输入 `(B, T, C, H, W)`；
+- RAPNet 输入 range `[0,1]`，没有再出现负值；
+- RAPNet 输出的动作 `y_a, cb_a, cr_a` 维度与输入完全一致 `(1,1,90,160)` / `(1,1,45,80)`，说明：
+  - PixelUnshuffle / PixelShuffle / 残差结构的维度都没出错；
+  - 最后一层没有改变空间分辨率；
+  - 你对 Y/Cb/Cr 三支路的上采样、拼接等都处理正确。
 
-1. act/Y/mean, act/Cb/mean, act/Cr/mean
+这一步确认的是：**Actor（RAPNet）结构在 YUV 通道拆分和 5D 序列维度上是正确的，没有维度不匹配的隐藏 bug。**
 
-- 看是否稳定在 $0.5$ 左右。如果 Cb/Cr 偏离到 $0.3$ 或 $0.7$，说明零均值约束可能有问题。
+------
 
-1. act/Y/delta_mean, act/Cb/delta_mean, act/Cr/delta_mean
+## 4. Env.step：NVENC + 解码 + LPIPS + Reward 是否正确？
 
-- 看三个通道的改动幅度。如果 Y 通道改动明显大于 Cb/Cr（比如 Y=0.008, Cb=0.002），说明模型在优先优化亮度通道，这是合理的。
+日志：
 
-### 视觉验证（重要）
+```
+[DEBUG] Env.step() (NVENC + LPIPS) ...
+[STEP] action shapes: Y (1, 1, 90, 160) Cb (1, 1, 45, 80) Cr (1, 1, 45, 80)
+       action range Y: 0.0 1.0
+[*] Initializing LPIPS on cuda:0...
+...
+    [QP 32] bitrate=2374.6 kbps, V_cur=-0.4998
+[DEBUG] Step done, reward = -1.773912385410873
+```
 
-1. img/Y/diff_x100（step 1000 左右）
+这说明：
 
-- 看是否能看到清晰的纹理轮廓（如动物毛发、树叶边缘）。如果比 v12 的 step 1000 更清晰、更有针对性，说明模型在学习纹理。
+1. 传入 Env.step 的动作维度与 Env.reset 的状态保持一致，不存在维度错位。
+2. NVENC 部分能正确执行：
+   - 会先把 `(T,1,H,W)` / `(T,1,H/2,W/2)` 写成一条 `yuv420p`（这里是 160x90 的 downsampled clip）；
+   - 用 `ffmpeg -c:v hevc_nvenc -rc constqp -qp 32 ...` 成功编码；
+   - 然后再解码为 YUV420，读回 `(T,1,90,160) / (T,1,45,80)`。
+      没有 `CalledProcessError` 或 ffmpeg stderr 报错，这在之前多次踩坑后非常关键。
+3. LPIPS 部分：
+   - 第一次调用会看到：`[*] Initializing LPIPS on cuda:0...`；
+   - 用 VGG 后端，说明你现在直接用 PyTorch LPIPS 为质量指标；
+   - `V_cur=-0.4998` 正常（我们定义 `V = -LPIPS`，LPIPS 范围约 [0,1]，所以 V 是一个接近 0 的负数）。
+4. Reward 部分：
+   - `reward = -1.77...`：
+      当前是用伪造 RD baseline（`R_ref=1000, V_ref=-0.2`）和这个 clip 的 `(R_cur, V_cur)` 做了参考率失真引导的 reward；
+      虽然数值本身没有物理意义（假 baseline），但至少能确定：
+     - RD 曲线查表是通的；
+     - 你的 reward 公式在数值上是 finite 的，没有出现 NaN / inf；
+     - 传给 Agent.update 的 `reward` 是一个标量 float，这一点在后面 Update 日志里也印证了。
 
-1. img/Y/action 和 img/Y/state（step 1000 左右）
+简而言之：**编码 / 解码 / LPIPS / RD-based reward 整条链路已经在多 GPU 修改后保持完好**。
 
-- 看处理后的图像是否自然。如果出现明显的“涂抹感”或“棋盘格”，说明需要调整。
+------
 
-### 快速判断标准（1000 步）
+## 5. Agent.update：Critic 在 GPU1、Actor 在 GPU0，是否正确更新？
 
-如果以下条件满足 4 个以上，说明 v13 配置成功：
+日志：
 
-- delta_y_mean_abs > $0.008$（明显大于 v12 的 $0.0035$）
+```
+[DEBUG] Agent.update() ...
+[ValueNet] y_in: torch.Size([1, 1, 1, 90, 160]) y_out: torch.Size([1, 1, 1, 90, 160])
+[RAPNet] input shapes: y torch.Size([1, 1, 1, 90, 160]) cb torch.Size([1, 1, 1, 45, 80]) cr torch.Size([1, 1, 1, 45, 80])
+         input range y: 0.0 1.0
+[ValueNet] y_in: torch.Size([1, 1, 1, 90, 160]) y_out: torch.Size([1, 1, 1, 90, 160])
+[UPDATE] reward: -1.7739 Q_pred: -0.0116 pixel_loss_y: 0.0218
+[DEBUG] Loss: Actor=0.1762, Critic=3.1057
+```
 
-- reward > $-0.1$（比 v12 同期 $-0.15$ 高）
+结合我们前面对 `update()` 的设计，可以解读为：
 
-- pixel_loss_total > $5e-4$（说明 Actor 在做更大改动）
+1. **先在 `cuda:1` 上更新 Critic**：
+   - 把 `(y_state, cb_state, cr_state, y_action, cb_action, cr_action)` 拷到 `device_critic`；
+   - `q_pred = critic(y_s_c, cb_s_c, cr_s_c, y_a_c, cb_a_c, cr_a_c)` 得到标量 Q 值；
+   - 使用 `MSELoss(q_pred, reward)` 回传梯度 → `optimizer_critic.step()`；
+   - 这部分的前向/反向都在 `cuda:1` 上执行，所以 `cuda:1` 占了大约 17MB 显存。
+2. **同步 Critic 参数到 Actor 卡上的副本**：
+   - `_sync_critic_to_actor()` 把 `critic.state_dict()` 拷贝给 `critic_for_actor`（在 `cuda:0` 上）；
+   - `critic_for_actor.parameters().requires_grad=False`，确保后面不会更新它的参数，只用来给 Actor 提供 Q 值。
+3. **再在 `cuda:0` 上更新 Actor**：
+   - 把 `y_state, cb_state, cr_state` 拷到 `device_actor`；
+   - `y_a2, cb_a2, cr_a2 = actor(y_s_a, cb_s_a, cr_s_a)`；
+   - 用 `critic_for_actor` 计算 `Q(S, A(S))`，梯度从 Q 传播到动作，再沿着 Actor 网络反向；
+   - Pixel loss：
+     - `pixel_loss_y = MSE(y_a2, y_s_a)`
+     - `pixel_loss_cb / pixel_loss_cr` 同理
+     - 总体 `pixel_loss = 2 * L_y + L_cb + L_cr`（你现在是 2.0 权重，之前你也试过 6.0，这个属于设计选择）
+   - Actor 损失：
+      `loss_actor = -Q + lambda_pixel * pixel_loss`
+   - `loss_actor.backward()` + `optim_actor.step()` 完成 Actor 的更新。
+4. 数值方面：
+   - `Q_pred ≈ -0.0116`，`reward ≈ -1.77`，在伪造 baseline 下差异较大很正常；
+   - `pixel_loss_y ≈ 0.02`，代表预处理前后 Y 通道 MSE 很小（符合“轻微预处理”的直觉）；
+   - `loss_actor ≈ 0.17，loss_critic ≈ 3.10`，都是 finite 标量，说明梯度流和优化器都正常工作。
 
-- q_over_pixel 持续上升且 > $400$
+再看显存统计：
 
-- high_freq_ratio 在下降（说明在去除噪点）
+```
+[CUDA-MEM] device cuda:0 allocated ~ 74.5 MB
+[CUDA-MEM] device cuda:1 allocated ~ 17.2 MB
+```
 
-- loss_actor 在下降（说明整体在收敛）
+- 0 号卡：Actor + critic_for_actor + LPIPS + 中间梯度图；
+- 1 号卡：Critic + 中间梯度图；
 
-请优先提供前 10 个指标的截图，我可以快速判断训练是否正常，以及是否需要微调超参数。
+未出现任何显存碎片 / OOM / device mismatch 报错，说明多 GPU 策略在单步训练里已经完全跑通。
+
+------
+
+## 6. 总结：为什么可以认为“整体链路是正确的”
+
+结合这次 debug 的输出，我们可以说：
+
+1. **YUV 数据流正确**：
+   - 伪造 YUV → 读取成 YUV420 planes → 下采样 → 状态给到 Actor；
+   - 动作再写回 YUV420 → hevc_nvenc 编码 → 解码 → 上采样 → 再用于 LPIPS/Reward。
+2. **网络输入输出维度正确**：
+   - 所有 Y/Cb/Cr 分支都遵守 `(T,1,H,W)` / `(B,T,1,H,W)` 的约定；
+   - RAPNet / ValueNet 在多次 forward 中输出形状始终一致；
+   - 没有出现前面担心的 Channel/T 维度混淆问题。
+3. **奖励计算链路正确**：
+   - LPIPS 按帧或按 clip 计算，输出 `V_cur`；
+   - 与 baseline RD JSON（这里是假的，但结构正确）结合，得到单步 Reward；
+   - Reward 传进 Critic MSE 回归、Actor 的 -Q 部分，完全符合你设计的 DDPG-style objective。
+4. **多 GPU 训练正确**：
+   - Actor 在 `cuda:0`，Critic 在 `cuda:1`，两边的显存都有实际占用；
+   - 通过 Critic 副本 `critic_for_actor` 实现“Critic 在 1 号卡训练、Actor 在 0 号卡更新”；
+   - 整个 pipe 没有 device mismatch 或跨设备 autograd 问题。
+5. **单步 debug 完整跑通**：
+   - 从 Env.reset → Agent.act → Env.step → Agent.update 一次完整 roll-out；
+   - 所有中间量可视化，loss 和 reward 都是有限值；
+   - 最后 clean 掉假 YUV / 假 RD JSON，环境复原

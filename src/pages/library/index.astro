@@ -8,12 +8,13 @@ const libraryNotes = await getCollection('library');
 const noteText = Object.fromEntries(libraryNotes.map((note) => [note.id, note.body]));
 const paperCount = libraryDocuments.filter((document) => document.kind === 'paper').length;
 const noteCount = libraryDocuments.filter((document) => document.kind === 'note').length;
-const attachmentCount = libraryDocuments.length - paperCount - noteCount;
+const slideCount = libraryDocuments.filter((document) => document.kind === 'slides').length;
+const attachmentCount = libraryDocuments.length - paperCount - noteCount - slideCount;
 const kindFilters = [
   { id: 'all', label: '全部类型', count: libraryDocuments.length },
   { id: 'paper', label: '论文', count: paperCount },
   { id: 'note', label: '笔记', count: noteCount },
-  { id: 'slides', label: '课件', count: libraryDocuments.filter((document) => document.kind === 'slides').length },
+  { id: 'slides', label: '课件', count: slideCount },
   { id: 'other', label: '其他附件', count: attachmentCount },
 ].filter((filter) => filter.id === 'all' || filter.count > 0);
 ---
@@ -43,7 +44,10 @@ const kindFilters = [
           <path d="M267 197C330 176 380 136 421 93" />
           <path d="M260 207C252 259 225 301 188 335" />
           <path d="M270 207C330 245 376 285 420 320" />
+          <path d="M259 197C190 190 140 190 88 195" />
+          <path d="M271 197C335 200 380 210 432 218" />
           <circle cx="112" cy="79" r="3" /><circle cx="421" cy="93" r="3" /><circle cx="188" cy="335" r="3" /><circle cx="420" cy="320" r="3" />
+          <circle cx="88" cy="195" r="3" /><circle cx="432" cy="218" r="3" />
         </svg>
         <div class="library-map-core" aria-hidden="true"><span>K</span><small>LIBRARY</small></div>
         {libraryCollections.map((collection, index) => (
@@ -187,6 +191,11 @@ const kindFilters = [
   input.value = state.q;
 
   const normalize = (value) => value.toLocaleLowerCase().replace(/\s+/g, ' ').trim();
+  const normalizeSearchText = (value) => normalize(`${value} ${value.replace(/([a-z])([A-Z])/g, '$1 $2')}`);
+  const matchesTerm = (haystack, term) => {
+    if (!/^[a-z0-9]+$/.test(term)) return haystack.includes(term);
+    return new RegExp(`(^|[^a-z0-9])${term}($|[^a-z0-9])`).test(haystack);
+  };
   const matchesKind = (document) => state.kind === 'all' || document.kind === state.kind || (state.kind === 'other' && !['paper', 'note', 'slides'].includes(document.kind));
 
   function applyFilters(updateUrl = true) {
@@ -194,12 +203,12 @@ const kindFilters = [
     let visible = 0;
     for (const document of documents) {
       const row = rows.find((item) => item.dataset.libraryRow === document.id);
-      const haystack = normalize([
+      const haystack = normalizeSearchText([
         document.title, document.fileName, document.description, document.collectionTitle,
         document.format, document.extension, ...document.tags, noteText[document.id] || '',
       ].join(' '));
       const terms = query.split(' ').filter(Boolean);
-      const matchesQuery = terms.every((term) => haystack.includes(term));
+      const matchesQuery = terms.every((term) => matchesTerm(haystack, term));
       const matchesCollection = state.collection === 'all' || document.collection === state.collection;
       const show = matchesQuery && matchesCollection && matchesKind(document);
       row.hidden = !show;

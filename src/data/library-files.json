@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-27T01:18:53.482Z",
+  "generatedAt": "2026-11-27T02:17:23.285Z",
   "collections": [
     {
       "slug": "rate-control",
@@ -20,7 +20,7 @@
       "title": "强化学习",
       "english": "Reinforcement Learning",
       "description": "RAPNet-HEVC 项目说明、Actor-Critic 训练记录与实验排障笔记。",
-      "count": 5
+      "count": 7
     },
     {
       "slug": "edge-deployment",
@@ -28,6 +28,20 @@
       "english": "Edge Deployment",
       "description": "端侧模型部署项目的阶段进展、平台验证与实验记录。",
       "count": 1
+    },
+    {
+      "slug": "course-works",
+      "title": "课程作品",
+      "english": "Course Works",
+      "description": "课程汇报、论文解读与项目答辩，保留最终展示版本。",
+      "count": 8
+    },
+    {
+      "slug": "learning-resources",
+      "title": "学习资源",
+      "english": "Learning Resources",
+      "description": "通识阅读、算法整理与可长期回查的学习工具。",
+      "count": 2
     }
   ],
   "documents": [
@@ -626,7 +640,27 @@
       "action": "打开论文"
     },
     {
-      "id": "reinforcement-learning-004",
+      "id": "reinforcement-learning-001",
+      "collection": "reinforcement-learning",
+      "collectionTitle": "强化学习",
+      "title": "Proximal Policy Optimization Algorithms",
+      "fileName": "1707.06347v2.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "论文",
+      "description": "Schulman 等，2017；PPO 原始论文，与《A Quick Start to RL》配套阅读。",
+      "tags": [
+        "PPO",
+        "强化学习",
+        "原始论文"
+      ],
+      "bytes": 2446629,
+      "size": "2.3 MB",
+      "url": "/library/files/reinforcement-learning/1707.06347v2.pdf",
+      "action": "打开论文"
+    },
+    {
+      "id": "reinforcement-learning-006",
       "collection": "reinforcement-learning",
       "collectionTitle": "强化学习",
       "title": "强化学习",
@@ -642,11 +676,11 @@
       "bytes": 2803,
       "size": "2.7 KB",
       "url": "/library/files/reinforcement-learning/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0.md",
-      "readerUrl": "/library/reinforcement-learning-004/",
+      "readerUrl": "/library/reinforcement-learning-006/",
       "action": "站内阅读"
     },
     {
-      "id": "reinforcement-learning-003",
+      "id": "reinforcement-learning-005",
       "collection": "reinforcement-learning",
       "collectionTitle": "强化学习",
       "title": "强化学习-硬件编码预设",
@@ -662,11 +696,11 @@
       "bytes": 17349,
       "size": "17 KB",
       "url": "/library/files/reinforcement-learning/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0-%E7%A1%AC%E4%BB%B6%E7%BC%96%E7%A0%81%E9%A2%84%E8%AE%BE.md",
-      "readerUrl": "/library/reinforcement-learning-003/",
+      "readerUrl": "/library/reinforcement-learning-005/",
       "action": "站内阅读"
     },
     {
-      "id": "reinforcement-learning-005",
+      "id": "reinforcement-learning-007",
       "collection": "reinforcement-learning",
       "collectionTitle": "强化学习",
       "title": "梯度解惑",
@@ -682,11 +716,32 @@
       "bytes": 16190,
       "size": "16 KB",
       "url": "/library/files/reinforcement-learning/%E6%A2%AF%E5%BA%A6%E8%A7%A3%E6%83%91.md",
-      "readerUrl": "/library/reinforcement-learning-005/",
+      "readerUrl": "/library/reinforcement-learning-007/",
       "action": "站内阅读"
     },
     {
-      "id": "reinforcement-learning-001",
+      "id": "reinforcement-learning-003",
+      "collection": "reinforcement-learning",
+      "collectionTitle": "强化学习",
+      "title": "A Quick Start to RL｜强化学习入门",
+      "fileName": "rl-quick-start.md",
+      "extension": "MD",
+      "kind": "note",
+      "format": "笔记",
+      "description": "强化学习基本概念，以及 PPO、SAC、REINFORCE 的入门实践。",
+      "tags": [
+        "强化学习",
+        "入门",
+        "PPO"
+      ],
+      "bytes": 17849,
+      "size": "17 KB",
+      "url": "/library/files/reinforcement-learning/rl-quick-start.md",
+      "readerUrl": "/library/reinforcement-learning-003/",
+      "action": "站内阅读"
+    },
+    {
+      "id": "reinforcement-learning-002",
       "collection": "reinforcement-learning",
       "collectionTitle": "强化学习",
       "title": "RAPNet-HEVC 项目说明",
@@ -702,11 +757,11 @@
       "bytes": 13732,
       "size": "13 KB",
       "url": "/library/files/reinforcement-learning/README.md",
-      "readerUrl": "/library/reinforcement-learning-001/",
+      "readerUrl": "/library/reinforcement-learning-002/",
       "action": "站内阅读"
     },
     {
-      "id": "reinforcement-learning-002",
+      "id": "reinforcement-learning-004",
       "collection": "reinforcement-learning",
       "collectionTitle": "强化学习",
       "title": "TensorBoard 指标监控指南 (Actor-Critic for Video Encoding)",
@@ -722,7 +777,7 @@
       "bytes": 5437,
       "size": "5.3 KB",
       "url": "/library/files/reinforcement-learning/TensorBoard%20%E6%8C%87%E6%A0%87%E7%9B%91%E6%8E%A7%E6%8C%87%E5%8D%97%20(Actor-Critic%20for%20Video%20Encoding).md",
-      "readerUrl": "/library/reinforcement-learning-002/",
+      "readerUrl": "/library/reinforcement-learning-004/",
       "action": "站内阅读"
     },
     {
@@ -744,6 +799,206 @@
       "size": "12 MB",
       "url": "/library/files/edge-deployment/RK3588%E9%AA%8C%E8%AF%81%E6%8A%A5%E5%91%8A.pdf",
       "action": "打开论文"
+    },
+    {
+      "id": "course-works-003",
+      "collection": "course-works",
+      "collectionTitle": "课程作品",
+      "title": "运动 HDR 项目说明",
+      "fileName": "motion-hdr-project-summary.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "报告",
+      "description": "计算摄像学运动 HDR 项目说明与实现概要。",
+      "tags": [
+        "运动 HDR",
+        "计算摄像学",
+        "项目说明"
+      ],
+      "bytes": 258139,
+      "size": "252 KB",
+      "url": "/library/files/course-works/motion-hdr-project-summary.pdf",
+      "action": "阅读报告"
+    },
+    {
+      "id": "course-works-004",
+      "collection": "course-works",
+      "collectionTitle": "课程作品",
+      "title": "OliVe 离群值配对量化与并行硬件设计解读",
+      "fileName": "olive-paper-review.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "报告",
+      "description": "OliVe 论文中文解读：离群值配对量化、并行架构与实验结果。",
+      "tags": [
+        "OliVe",
+        "论文解读",
+        "量化"
+      ],
+      "bytes": 1530137,
+      "size": "1.5 MB",
+      "url": "/library/files/course-works/olive-paper-review.pdf",
+      "action": "阅读报告"
+    },
+    {
+      "id": "course-works-007",
+      "collection": "course-works",
+      "collectionTitle": "课程作品",
+      "title": "Single-Pixel Imaging: A Comparative Reading",
+      "fileName": "proxunroll-literature-review.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "报告",
+      "description": "单像素成像中压缩采样与近端展开方法的对比阅读。",
+      "tags": [
+        "单像素成像",
+        "文献综述",
+        "近端展开"
+      ],
+      "bytes": 1366368,
+      "size": "1.3 MB",
+      "url": "/library/files/course-works/proxunroll-literature-review.pdf",
+      "action": "阅读报告"
+    },
+    {
+      "id": "course-works-008",
+      "collection": "course-works",
+      "collectionTitle": "课程作品",
+      "title": "Single-Pixel Reconstruction: Controlled HQS Fine-Tuning and Training Ablations",
+      "fileName": "proxunroll-technical-report.pdf",
+      "extension": "PDF",
+      "kind": "paper",
+      "format": "报告",
+      "description": "受控 HQS 微调、训练消融与可复现实验技术报告。",
+      "tags": [
+        "ProxUnroll",
+        "技术报告",
+        "消融实验"
+      ],
+      "bytes": 2543952,
+      "size": "2.4 MB",
+      "url": "/library/files/course-works/proxunroll-technical-report.pdf",
+      "action": "阅读报告"
+    },
+    {
+      "id": "course-works-001",
+      "collection": "course-works",
+      "collectionTitle": "课程作品",
+      "title": "毕业论文答辩｜基于视频编码的协处理方案",
+      "fileName": "graduation-defense.pdf",
+      "extension": "PDF",
+      "kind": "slides",
+      "format": "课件",
+      "description": "16 页毕业设计答辩课件：视频编码协处理、NVENC 与 RAPNet。",
+      "tags": [
+        "毕业设计",
+        "NVENC",
+        "RAPNet"
+      ],
+      "bytes": 3430215,
+      "size": "3.3 MB",
+      "url": "/library/files/course-works/graduation-defense.pdf",
+      "action": "打开课件"
+    },
+    {
+      "id": "course-works-006",
+      "collection": "course-works",
+      "collectionTitle": "课程作品",
+      "title": "单像素成像｜ProxUnroll 中文课堂汇报",
+      "fileName": "proxunroll-course-slides.pdf",
+      "extension": "PDF",
+      "kind": "slides",
+      "format": "课件",
+      "description": "31 页图解课堂汇报，从压缩感知讲到近端展开重建网络。",
+      "tags": [
+        "ProxUnroll",
+        "单像素成像",
+        "课堂汇报"
+      ],
+      "bytes": 11310927,
+      "size": "11 MB",
+      "url": "/library/files/course-works/proxunroll-course-slides.pdf",
+      "action": "打开课件"
+    },
+    {
+      "id": "course-works-002",
+      "collection": "course-works",
+      "collectionTitle": "课程作品",
+      "title": "运动 HDR｜AFUNet 与 LuckyHDR 课程答辩",
+      "fileName": "motion-hdr-course-defense.pdf",
+      "extension": "PDF",
+      "kind": "slides",
+      "format": "课件",
+      "description": "41 页计算摄像学小组项目答辩：运动 HDR、AFUNet 与 LuckyHDR。",
+      "tags": [
+        "运动 HDR",
+        "AFUNet",
+        "LuckyHDR"
+      ],
+      "bytes": 13228523,
+      "size": "13 MB",
+      "url": "/library/files/course-works/motion-hdr-course-defense.pdf",
+      "action": "打开课件"
+    },
+    {
+      "id": "course-works-005",
+      "collection": "course-works",
+      "collectionTitle": "课程作品",
+      "title": "OliVe：离群值配对量化课堂汇报",
+      "fileName": "olive-quantization-slides.pdf",
+      "extension": "PDF",
+      "kind": "slides",
+      "format": "课件",
+      "description": "20 页并行计算课程汇报，梳理 OliVe 量化方法与硬件协同设计。",
+      "tags": [
+        "OliVe",
+        "量化",
+        "并行计算"
+      ],
+      "bytes": 828791,
+      "size": "809 KB",
+      "url": "/library/files/course-works/olive-quantization-slides.pdf",
+      "action": "打开课件"
+    },
+    {
+      "id": "learning-resources-002",
+      "collection": "learning-resources",
+      "collectionTitle": "学习资源",
+      "title": "力扣 Hot 100 总结",
+      "fileName": "leetcode-hot100.pdf",
+      "extension": "PDF",
+      "kind": "note",
+      "format": "笔记",
+      "description": "力扣 Hot 100 高频算法题的分类整理与解题总结。",
+      "tags": [
+        "算法",
+        "LeetCode",
+        "题解"
+      ],
+      "bytes": 1308655,
+      "size": "1.2 MB",
+      "url": "/library/files/learning-resources/leetcode-hot100.pdf",
+      "action": "阅读笔记"
+    },
+    {
+      "id": "learning-resources-001",
+      "collection": "learning-resources",
+      "collectionTitle": "学习资源",
+      "title": "HowToLiveBetter",
+      "fileName": "HowToLiveBetter.pdf",
+      "extension": "PDF",
+      "kind": "note",
+      "format": "笔记",
+      "description": "开源生活工具书，33 节、344 页，按真实生活场景提供可检索的行动清单。",
+      "tags": [
+        "生活工具书",
+        "通识阅读",
+        "行动清单"
+      ],
+      "bytes": 6482500,
+      "size": "6.2 MB",
+      "url": "/library/files/learning-resources/HowToLiveBetter.pdf",
+      "action": "阅读笔记"
     }
   ]
 }
