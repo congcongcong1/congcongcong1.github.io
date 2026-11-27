@@ -26,9 +26,20 @@ const collections = [
     english: 'Reinforcement Learning',
     description: 'RAPNet-HEVC 项目说明、Actor-Critic 训练记录与实验排障笔记。',
   },
+  {
+    slug: 'edge-deployment',
+    title: '端侧部署',
+    english: 'Edge Deployment',
+    description: '端侧模型部署项目的阶段进展、平台验证与实验记录。',
+  },
 ];
 
 const overrides = {
+  'RK3588验证报告.pdf': {
+    title: 'RK3588 验证报告',
+    description: 'RK3588 端侧部署项目的阶段进展与验证记录，原文 PDF。',
+    tags: ['RK3588', '端侧部署', '验证报告'],
+  },
   'rate_control_survey.pdf': {
     title: '深度学习视频压缩中的码率控制方法综述',
     description: '中文调研报告：梳理学习式视频压缩中的码率控制技术路线。',

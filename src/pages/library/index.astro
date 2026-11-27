@@ -42,7 +42,8 @@ const kindFilters = [
           <path d="M259 193C201 165 156 123 112 79" />
           <path d="M267 197C330 176 380 136 421 93" />
           <path d="M260 207C252 259 225 301 188 335" />
-          <circle cx="112" cy="79" r="3" /><circle cx="421" cy="93" r="3" /><circle cx="188" cy="335" r="3" />
+          <path d="M270 207C330 245 376 285 420 320" />
+          <circle cx="112" cy="79" r="3" /><circle cx="421" cy="93" r="3" /><circle cx="188" cy="335" r="3" /><circle cx="420" cy="320" r="3" />
         </svg>
         <div class="library-map-core" aria-hidden="true"><span>K</span><small>LIBRARY</small></div>
         {libraryCollections.map((collection, index) => (
@@ -146,7 +147,7 @@ const kindFilters = [
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
       </button>
       <p class="mono-meta">Index / 馆藏索引</p>
-      <h2 id="library-drawer-title">三条阅读路径</h2>
+      <h2 id="library-drawer-title">馆藏阅读路径</h2>
       <p class="library-drawer-lead">从研究主题进入，而不是在文件夹里迷路。</p>
       <nav class="library-drawer-nav" aria-label="馆藏主题">
         {libraryCollections.map((collection, index) => (

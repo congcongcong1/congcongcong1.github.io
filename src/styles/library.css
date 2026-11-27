@@ -145,11 +145,13 @@
 .library-node-index { position: absolute; top: 0.65rem; right: 1rem; color: var(--ink-40); font: 0.58rem var(--mono); }
 .library-map-node-1 { top: 7%; left: 0; transform: rotate(-4deg); }
 .library-map-node-2 { top: 10%; right: 0; border-radius: 12px; transform: rotate(3deg); }
-.library-map-node-3 { bottom: 0; left: 20%; border-radius: 12px 50% 12px 50%; transform: rotate(-2deg); }
+.library-map-node-3 { bottom: 0; left: 10%; border-radius: 12px 50% 12px 50%; transform: rotate(-2deg); }
+.library-map-node-4 { bottom: 3%; right: 0; border-radius: 50% 12px 50% 12px; transform: rotate(2deg); }
 .library-map-node-1:hover, .library-map-node-1:focus-visible { transform: rotate(-4deg) translateY(-3px); }
 .library-map-node-2:hover, .library-map-node-2:focus-visible { transform: rotate(3deg) translateY(-3px); }
 .library-map-node-3:hover, .library-map-node-3:focus-visible { transform: rotate(-2deg) translateY(-3px); }
-.library-map-note { position: absolute; right: 0; bottom: 0; color: var(--ink-60); font-size: 0.72rem; }
+.library-map-node-4:hover, .library-map-node-4:focus-visible { transform: rotate(2deg) translateY(-3px); }
+.library-map-note { position: absolute; right: 0; bottom: -1.75rem; color: var(--ink-60); font-size: 0.72rem; }
 
 .library-browser { padding-top: clamp(3rem, 7vw, 6rem); padding-bottom: clamp(3rem, 7vw, 6rem); scroll-margin-top: 4rem; }
 .library-search-block { margin-top: 2.2rem; }
